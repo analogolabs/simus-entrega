@@ -1,0 +1,142 @@
+<section aria-labelledby="titulo-equipo" class="space-y-5" data-testid="seccion-equipo">
+  <header>
+    <h1 id="titulo-equipo">Equipo</h1>
+    <p class="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600">
+      Qué puede hacer cada rol en esta organización. Es lo mismo que permiten las pantallas: lo que un rol no puede hacer no se le ofrece.
+    </p>
+  </header>
+
+  @if (error()) { <p role="alert" data-testid="equipo-error" class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ error() }}</p> }
+  @if (aviso()) { <p role="status" data-testid="equipo-aviso" class="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">{{ aviso() }}</p> }
+
+  @if (cargando() && !equipo()) { <app-esqueleto variante="fila" [cantidad]="2" etiqueta="Cargando el equipo…" /> }
+
+  <div class="grid gap-x-10 gap-y-8 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] xl:items-start">
+  <!--
+    MIEMBROS A LA IZQUIERDA; A LA DERECHA, «INVITAR A ALGUIEN» ARRIBA DE «INVITACIONES PENDIENTES» (prototipo B4). En
+    pantallas angostas las dos columnas se apilan en ese mismo orden.
+  -->
+  <div class="min-w-0 space-y-8">
+  @if (equipo(); as datos) {
+    <app-panel-de-seccion titulo="Miembros" idDelTitulo="titulo-miembros" [contador]="datos.miembros.length">
+      <div class="space-y-3">
+        <app-barra-de-herramientas etiqueta="Buscar y ordenar los miembros" [mostradas]="miembrosVisibles().length" [total]="datos.miembros.length"
+          [hayFiltros]="!!busqueda().trim()" (quitarFiltros)="busqueda.set('')">
+          <app-buscador-de-lista identificador="equipo-buscar" etiqueta="Buscar miembros" marcador="Nombre, correo o rol"
+            [valor]="busqueda()" [espera]="0" (cambiar)="busqueda.set($event)" />
+          <app-orden-de-lista etiquetaDeLaLista="los miembros" identificador="orden-de-miembros" [columnas]="criteriosDeOrden" [orden]="orden()" (cambiar)="orden.set($event)" />
+        </app-barra-de-herramientas>
+        @if (!miembrosVisibles().length) {
+          <app-estado-de-lista titulo="Nadie coincide con la búsqueda." detalle="Prueba con otro nombre, correo o rol.">
+            <button type="button" appBoton="secundaria" (click)="busqueda.set('')">Quitar filtros</button>
+          </app-estado-de-lista>
+        } @else {
+          <div data-testid="equipo-miembros">
+            <app-tabla-de-gestion etiqueta="Miembros del equipo" tarjetasBajo="estrecho" [columnas]="columnasDeMiembros" [filas]="miembrosVisibles()" [clave]="claveDeMiembro"
+              [orden]="orden()" (ordenar)="orden.set(alternarOrden(orden(), $event))"
+              [acciones]="accionesDeMiembro" [descripcionDeFila]="nombreDeMiembro" (accion)="alElegirAccionDeMiembro($event.fila, $event.accion)"
+              [atributosDeFila]="atributosDeMiembro">
+              <ng-template appCelda="nombre" let-miembro>
+                <p class="font-bold text-slate-900">{{ miembro.nombre }} @if (miembro.esUsted) { <span class="font-normal text-slate-600">(tú)</span> }</p>
+                <p class="tg-detalle">{{ miembro.correo }} · {{ miembro.cuentaActiva ? 'Activa' : 'Cuenta desactivada' }}</p>
+                @if (esLaUltimaAdministradora(miembro)) { <p [id]="'motivo-ultima-' + miembro.usuarioId" data-testid="equipo-ultima-administracion" class="mt-1 text-dato text-slate-600">{{ MOTIVO_ULTIMA_ADMINISTRACION }}</p> }
+              </ng-template>
+              <ng-template appCelda="rol" let-miembro>
+                <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">{{ etiquetaDeRol(miembro.rol) }}</span>
+              </ng-template>
+            </app-tabla-de-gestion>
+          </div>
+        }
+      </div>
+    </app-panel-de-seccion>
+  }
+  </div>
+
+  <div class="min-w-0 space-y-8">
+    @if (equipo(); as datos) {
+     @if (datos.puedeAdministrar) {
+      <form (ngSubmit)="invitar()" aria-labelledby="titulo-invitar" data-testid="equipo-invitar">
+       <app-panel-de-seccion titulo="Invitar a alguien" idDelTitulo="titulo-invitar">
+        <p class="-mt-1 text-cuerpo text-slate-600">Se genera un enlace de un solo uso que vence en 7 días. Cópialo y compártelo con la persona.</p>
+        <div class="mt-4 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+          <label for="invitar-correo" class="block text-sm font-bold text-slate-700">Correo
+            <input id="invitar-correo" name="correo" type="email" autocomplete="email" placeholder="persona@correo.test" required [ngModel]="correo()" (ngModelChange)="correo.set($event)"
+                   class="mt-1 block min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm font-normal text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado" />
+          </label>
+          <app-campo-de-seleccion tamano="comodo" etiqueta="Rol" identificador="invitar-rol" name="rol" [ngModel]="rol()" (ngModelChange)="rol.set($event)">
+              <option value="editor">Editor</option>
+              <option value="administrador">Administrador</option>
+            </app-campo-de-seleccion>
+          <button type="submit" [disabled]="ocupado()" appBoton="principal" class="sm:col-span-2 sm:justify-self-start">Crear invitación</button>
+        </div>
+        @if (enlaceCreado(); as enlace) {
+          <div class="mt-4 rounded-lg bg-slate-50 p-3">
+            <label for="enlace-invitacion" class="block text-sm font-bold text-slate-700">Enlace de la invitación</label>
+            <div class="mt-1 flex flex-col gap-2 sm:flex-row">
+              <input id="enlace-invitacion" data-testid="equipo-enlace" readonly [value]="enlace" (focus)="$any($event.target).select()"
+                     class="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900" />
+              <button type="button" (click)="copiar()" appBoton="secundaria" class="shrink-0">{{ copiado() ? 'Copiado' : 'Copiar enlace' }}</button>
+            </div>
+            <p class="mt-2 text-xs text-slate-500">Solo se muestra ahora: SIMUS no guarda el enlace, solo una huella para comprobarlo.</p>
+          </div>
+        }
+       </app-panel-de-seccion>
+      </form>
+
+      <app-panel-de-seccion titulo="Invitaciones pendientes" idDelTitulo="titulo-invitaciones" [contador]="datos.invitaciones.length || null">
+        @if (!datos.invitaciones.length) { <p class="text-cuerpo text-slate-500">No hay invitaciones pendientes.</p> }
+        @else {
+          <div data-testid="equipo-invitaciones">
+            <app-tabla-de-gestion etiqueta="Invitaciones pendientes" tarjetasBajo="estrecho" [columnas]="columnasDeInvitaciones" [filas]="datos.invitaciones" [clave]="claveDeInvitacion"
+              [acciones]="accionesDeInvitacion" [descripcionDeFila]="correoDeInvitacion" (accion)="alElegirAccionDeInvitacion($event.fila, $event.accion)"
+              [atributosDeFila]="atributosDeInvitacion">
+              <ng-template appCelda="correo" let-invitacion>
+                <p class="font-bold text-slate-900">{{ invitacion.correo }}</p>
+                <p class="tg-detalle">{{ estadoDeLaInvitacion(invitacion) }} · enviada el {{ invitacion.fechaEmision | fecha }} · {{ invitacion.estado === 'vencida' ? 'venció' : 'vence' }} el {{ invitacion.fechaExpiracion | fecha }}</p>
+              </ng-template>
+              <ng-template appCelda="rol" let-invitacion>
+                <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">{{ etiquetaDeRol(invitacion.rol) }}</span>
+              </ng-template>
+            </app-tabla-de-gestion>
+          </div>
+        }
+      </app-panel-de-seccion>
+     } @else {
+      <app-panel-de-seccion titulo="Invitar a alguien" idDelTitulo="titulo-invitar">
+        <p class="text-cuerpo text-slate-600">Solo la administración invita personas.</p>
+      </app-panel-de-seccion>
+     }
+    }
+  </div>
+  </div>
+
+    <!--
+      UNA SOLA TABLA DE PERMISOS. La frase anterior decía que quien edita «prepara
+      borradores y atiende ajustes», y en Eventos esa misma persona no podía ni anunciar ni editar:
+      un evento se entrega al PNMC al crearlo. La tabla sigue docs/desarrollo/19-cuentas-y-organizaciones.md §19.3 y lo que comprueba
+      el servidor en cada ruta. Va en su propio panel, debajo, a todo el ancho, y sus filas se distinguen por el fondo, no por filetes.
+    -->
+    <app-panel-de-seccion titulo="Permisos por rol" idDelTitulo="titulo-permisos">
+      <div class="-mx-2 overflow-x-auto px-2">
+        <table class="w-full border-collapse text-left text-sm" data-testid="equipo-permisos">
+          <caption class="sr-only">Permisos de administración y edición en la organización</caption>
+          <thead>
+            <tr class="text-xs text-slate-500">
+              <th scope="col" class="px-3 pb-2 font-bold">Qué</th>
+              <th scope="col" class="px-3 pb-2 font-bold">Administración</th>
+              <th scope="col" class="px-3 pb-2 font-bold">Edición</th>
+            </tr>
+          </thead>
+          <tbody class="text-slate-700">
+            @for (fila of PERMISOS_POR_ROL; track fila.que) {
+              <tr class="odd:bg-slate-50">
+                <th scope="row" class="rounded-l-lg px-3 py-2 font-normal">{{ fila.que }}</th>
+                <td class="px-3 py-2">{{ fila.administracion }}</td>
+                <td class="rounded-r-lg px-3 py-2">{{ fila.edicion }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </app-panel-de-seccion>
+</section>

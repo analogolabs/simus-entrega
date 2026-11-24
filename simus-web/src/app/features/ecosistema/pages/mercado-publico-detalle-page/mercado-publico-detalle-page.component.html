@@ -1,0 +1,209 @@
+<!--
+  LA FICHA PUBLICA DE UN MERCADO, con las mismas partes y la misma disposición que la de un Festival y que las
+  de Lutería, Espacios y Redes (DIR-07): lo que es el mercado y sus prácticas a la izquierda, sus datos y su
+  presencia pública en la barra lateral, y las ediciones publicadas debajo.
+-->
+<section class="min-h-screen bg-hueso pb-24 font-nunito text-titulo">
+  @if (cargando()) {
+    <div class="mx-auto max-w-7xl px-6 pt-28"><app-esqueleto variante="ficha" [etiqueta]="'merc_ficha_cargando' | textoWeb" /></div>
+  } @else if (!mercado()) {
+    <app-recurso-no-encontrado
+      idBase="mercado"
+      [titulo]="'ficha_no_disponible' | textoWeb"
+      causa="Puede que la dirección esté mal escrita o que la ficha no esté publicada para consulta pública."
+      etiquetaDeLista="Ver los Mercados musicales"
+      rutaDeLista="/ecosistema/mercados-musicales"
+    />
+  } @else if (mercado(); as ficha) {
+    <app-compact-hero [backLabel]="'merc_ficha_miga' | textoWeb" [current]="ficha.nombre" [title]="ficha.nombre" [subtitle]="territorio(ficha)" (regresoSolicitado)="volverADirectorio()"></app-compact-hero>
+    <div class="mx-auto max-w-[86rem] px-6 pt-8 lg:px-8">
+      <!-- LA MISMA DISPOSICIÓN QUE LAS FICHAS DE LUTERÍA, ESPACIOS Y REDES (DIR-07): lo que es el registro a la izquierda y
+           sus datos y su presencia pública en la barra lateral; las ediciones, debajo. -->
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div class="min-w-0 space-y-6">
+          <article class="rounded-xl border border-filete bg-white p-6 ">
+            <h2 class="font-alternate text-sm font-bold text-titulo">{{ 'merc_ficha_sobre' | textoWeb }}</h2>
+            <p class="mt-3 whitespace-pre-line leading-relaxed" [class.text-slate-600]="!ficha.descripcion" [class.italic]="!ficha.descripcion">{{ valor(ficha.descripcion) }}</p>
+          </article>
+          <article class="rounded-xl border border-filete bg-white p-6 ">
+            <header class="flex items-center gap-2.5 border-b border-filete pb-4">
+              <svg lucideUsersRound [size]="16" class="text-morado"></svg>
+              <h2 class="font-alternate text-sm font-bold text-titulo">{{ 'ficha_practicas_territorios' | textoWeb }}</h2>
+            </header>
+            <dl class="mt-4 space-y-3">
+              <div>
+                <dt class="font-alternate text-xs font-bold text-tinta-media">{{ 'ficha_practicas' | textoWeb }}</dt>
+                <dd class="mt-2 flex flex-wrap gap-1.5" data-practicas-del-mercado>
+                  @for (practica of ficha.practicasMusicales; track practica.id) {
+                    <a routerLink="/ecosistema/mercados-musicales" [queryParams]="{ practica: practica.nombre }" data-explorar-practica
+                       class="rounded-full bg-verde/10 px-2 py-1 text-xs font-semibold text-morado no-underline transition hover:bg-verde/20">{{ practica.nombre }}</a>
+                  }
+                  @if (!ficha.practicasMusicales.length) { <span class="text-sm italic text-slate-600">{{ sinDato }}</span> }
+                </dd>
+              </div>
+              <div>
+                <dt class="font-alternate text-xs font-bold text-tinta-media">{{ 'ficha_territorios' | textoWeb }}</dt>
+                <dd class="mt-2 flex flex-wrap gap-1.5">
+                  @for (territorio of ficha.territoriosSonoros; track territorio.id) {
+                    <a routerLink="/ecosistema/mercados-musicales" [queryParams]="{ territorio: territorio.nombre }"
+                       class="rounded-full bg-violet-50 px-2 py-1 text-xs font-semibold text-violet-700 no-underline transition hover:bg-violet-100">{{ territorio.nombre | nombrePropio }}</a>
+                  }
+                  @if (!ficha.territoriosSonoros.length) { <span class="text-sm italic text-slate-600">{{ sinDato }}</span> }
+                </dd>
+              </div>
+            </dl>
+          </article>
+        </div>
+        <aside class="min-w-0 space-y-6" aria-label="Datos del mercado">
+          @if (ficha.esRegistroHistorico) {
+            <app-aviso-de-registro-historico tipo="este mercado" modulo="mercados" [id]="'' + ficha.id" [nombre]="ficha.nombre" />
+          }
+          <article class="rounded-xl border border-filete bg-white p-6 ">
+            <header class="flex items-center gap-2.5 border-b border-filete pb-4">
+              <svg lucideStore [size]="16" class="text-morado"></svg>
+              <h2 class="font-alternate text-sm font-bold text-titulo">{{ 'merc_ficha_datos' | textoWeb }}</h2>
+            </header>
+            <dl class="mt-4 space-y-3">
+              @for (dato of datosGenerales(ficha); track dato.etiqueta) {
+                <div>
+                  <dt class="font-alternate text-xs font-bold text-tinta-media">{{ dato.etiqueta }}</dt>
+                  <!--
+                    EL TERRITORIO ABRE EL DIRECTORIO FILTRADO. Leer «Amazonas» y no poder preguntar
+                    «¿qué más hay en Amazonas?» deja a quien mira en un callejón: tendría que volver
+                    al directorio y escribirlo a mano. Es el gesto que ya ofrece la ficha de un
+                    Festival, y lo que hace que los filtros del directorio sirvan de algo.
+                  -->
+                  <dd class="mt-0.5 text-sm" [class.text-slate-600]="dato.valor === sinDato" [class.italic]="dato.valor === sinDato">
+                    @if (dato.ficha && dato.valor !== sinDato) {
+                      <!-- LA ORGANIZACION LLEVA A SU FICHA, solo si la tiene. -->
+                      <a data-ficha-organizacion [routerLink]="dato.ficha" [attr.aria-label]="'Ver la ficha de ' + dato.valor"
+                         class="rounded-sm text-morado no-underline transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-verde">{{ dato.valor | nombrePropio }}</a>
+                    } @else if (dato.filtro && dato.valor !== sinDato) {
+                      <a data-explorar-territorio routerLink="/ecosistema/mercados-musicales" [queryParams]="exploracionDe(dato)"
+                         [attr.aria-label]="'Ver los mercados de ' + dato.valor"
+                         class="rounded-sm text-titulo no-underline transition hover:text-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-verde">{{ dato.valor | nombrePropio }}</a>
+                    } @else {
+                      {{ dato.valor | nombrePropio }}
+                    }
+                  </dd>
+                </div>
+              }
+            </dl>
+          </article>
+          <article class="rounded-xl border border-filete bg-white p-6 ">
+            <header class="flex items-center gap-2.5 border-b border-filete pb-4">
+              <svg lucideGlobe [size]="16" class="text-morado"></svg>
+              <h2 class="font-alternate text-sm font-bold text-titulo">{{ 'ficha_presencia' | textoWeb }}</h2>
+            </header>
+            <!--
+              SOLO REDES Y SITIO WEB. El correo, el teléfono y las observaciones de contacto no salen
+              de la consola: es la misma regla que la ficha pública de un Festival, y el servidor
+              tampoco los manda por esta puerta.
+            -->
+            @if (enlacesDelMercado(ficha).length) {
+              <ul class="mt-4 space-y-2">
+                @for (enlace of enlacesDelMercado(ficha); track enlace.clave) {
+                  <li>
+                    <a [href]="enlace.href" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-sm text-titulo no-underline hover:text-morado">
+                      <svg lucideLink [size]="14" class="text-morado"></svg>{{ enlace.etiqueta }}
+                    </a>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="mt-4 italic text-slate-600">{{ sinDato }}</p>
+            }
+
+            <!--
+              LA RELACION SE RECORRE EN LOS DOS SENTIDOS: la ficha del festival enlaza sus mercados y
+              esta enlaza su festival. Sin el enlace, la relación existe en la base y no en la lectura.
+            -->
+            @if (ficha.seRealizaEnElMarcoDeUnFestival && ficha.festivalNombre) {
+              <div class="mt-5 border-t border-filete pt-4" data-festival-del-mercado>
+                <p class="font-alternate text-xs font-bold text-tinta-media">{{ 'merc_ficha_marco' | textoWeb }}</p>
+                @if (ficha.festivalId) {
+                  <a [routerLink]="['/ecosistema/festivales', ficha.festivalId]" class="mt-1 inline-block text-sm font-bold text-morado underline decoration-verde decoration-2 underline-offset-4 hover:text-morado">{{ ficha.festivalNombre }}</a>
+                } @else {
+                  <p class="mt-1 text-sm font-bold text-titulo">{{ ficha.festivalNombre }}</p>
+                }
+              </div>
+            }
+          </article>
+        </aside>
+      </div>
+
+      <div class="mt-12 border-t border-filete pt-10">
+        <p class="tipo-etiqueta text-morado">{{ 'merc_ficha_realizaciones' | textoWeb }}</p>
+        <h2 class="mt-1.5 font-alternate font-bold text-2xl uppercase text-titulo md:text-3xl">{{ 'ficha_ediciones' | textoWeb }}</h2>
+        <p class="mt-2 max-w-3xl text-sm text-tinta-media">{{ 'merc_ficha_ediciones_texto' | textoWeb }}</p>
+      </div>
+      @if (!edicionesCargadas()) {
+        <div class="mt-5 rounded-xl border border-filete bg-white p-8 text-center text-tinta-media">{{ 'ficha_cargando_ediciones' | textoWeb }}</div>
+      } @else if (edicionesError()) {
+        <div class="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-6 text-amber-800">{{ edicionesError() }}</div>
+      } @else if (!ediciones().length) {
+        <div class="mt-5 rounded-xl border border-dashed border-filete bg-white p-10 text-center">
+          <p class="font-alternate text-base font-bold text-morado">{{ 'ficha_sin_ediciones' | textoWeb }}</p>
+          <p class="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-tinta-media">{{ 'merc_ficha_sin_ediciones_texto' | textoWeb }}</p>
+        </div>
+      } @else {
+        <ul class="mt-5 space-y-3">
+          @for (edicion of ediciones(); track edicion.id) {
+            <li data-edicion-publica class="overflow-hidden rounded-xl border border-filete bg-white ">
+              <button type="button" (click)="alternarEdicion(edicion.id)" [attr.aria-expanded]="edicionAbierta() === edicion.id" [attr.aria-controls]="'edicion-mercado-' + edicion.id"
+                class="flex w-full items-center justify-between gap-4 border-0 bg-transparent px-6 py-4 text-left hover:bg-niebla">
+                <span>
+                  <span class="font-alternate text-[0.95rem] font-bold text-morado">{{ nombreDeLaEdicion(edicion) }}</span>
+                  <span class="ml-2 rounded-full bg-niebla px-2.5 py-0.5 text-xs font-bold text-tinta-media">{{ edicion.anio }}</span>
+                  <span class="mt-2 block text-sm text-tinta-media">
+                    <svg lucideCalendarDays [size]="13" class="mr-1 inline text-morado"></svg>{{ rangoDeFechas(edicion) }}
+                  </span>
+                </span>
+                <span class="text-xs font-bold text-morado">{{ edicionAbierta() === edicion.id ? 'Cerrar' : 'Ver detalle' }}</span>
+              </button>
+              @if (edicionAbierta() === edicion.id) {
+                <div [id]="'edicion-mercado-' + edicion.id" class="grid gap-5 border-t border-filete px-6 py-6 md:grid-cols-3">
+                  <div class="md:col-span-2">
+                    <p class="font-alternate text-xs font-bold text-tinta-media">{{ 'ficha_descripcion' | textoWeb }}</p>
+                    <p class="mt-1 whitespace-pre-line text-sm leading-relaxed" [class.text-slate-600]="!edicion.descripcion" [class.italic]="!edicion.descripcion">{{ valor(edicion.descripcion) }}</p>
+                  </div>
+                  <dl class="space-y-3">
+                    <div>
+                      <dt class="font-alternate text-xs font-bold text-tinta-media">{{ 'ficha_estado_realizacion' | textoWeb }}</dt>
+                      <dd class="mt-1 text-sm">{{ estadoDeLaEdicion(edicion) }}</dd>
+                    </div>
+                    <div>
+                      <dt class="font-alternate text-xs font-bold text-tinta-media">{{ 'ficha_donde' | textoWeb }}</dt>
+                      <dd class="mt-1 text-sm">{{ donde(edicion) | nombrePropio }}</dd>
+                    </div>
+                  </dl>
+                  @if (imagenesDe(edicion); as imagenes) {
+                    @if (imagenes.length) {
+                      <ul class="grid grid-cols-2 gap-3 md:col-span-3 md:grid-cols-4" data-imagenes-de-la-edicion>
+                        @for (imagen of imagenes; track imagen.archivoId) {
+                          <li class="overflow-hidden rounded-lg border border-filete bg-niebla">
+                            <img [src]="imagen.url" [alt]="imagen.alt || nombreDeLaEdicion(edicion)" loading="lazy" decoding="async" width="400" height="300"
+                                 class="aspect-[4/3] w-full object-cover" />
+                            @if (imagen.pie || imagen.credito) {
+                              <p class="px-3 py-2 text-xs text-tinta-media">{{ imagen.pie }}{{ imagen.pie && imagen.credito ? ' · ' : '' }}{{ imagen.credito }}</p>
+                            }
+                          </li>
+                        }
+                      </ul>
+                    }
+                  }
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      }
+
+      <div class="mt-10 border-t border-filete pt-6">
+        <a routerLink="/ecosistema/mercados-musicales" class="inline-flex min-h-11 items-center gap-2 font-alternate text-xs font-bold text-morado no-underline hover:text-morado">
+          <svg lucideArrowLeft [size]="14"></svg>{{ 'merc_ficha_volver' | textoWeb }}
+        </a>
+      </div>
+    </div>
+  }
+</section>

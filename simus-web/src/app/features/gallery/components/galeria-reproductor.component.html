@@ -1,0 +1,66 @@
+@if (actual(); as v) {
+  <div class="vgrid">
+    <div class="vprincipal">
+      <div class="player" data-testid="galeria-reproductor">
+        @if (incrustacion(); as src) {
+          <iframe [src]="src" [title]="'Video: ' + v.titulo" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen
+            referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        } @else {
+          @if (v.miniaturaUrl) { <img class="player__imagen" [src]="v.miniaturaUrl" alt="" width="1280" height="720" decoding="async" /> }
+          <button type="button" class="player__ir" (click)="reproducir(v)" [attr.aria-label]="'Reproducir: ' + v.titulo + (v.duracionSegundos ? ', ' + duracion(v.duracionSegundos) : '')" data-testid="galeria-reproducir">
+            <span class="play play--grande"><svg lucidePlay [size]="30" aria-hidden="true"></svg></span>
+            <small>Al pulsar se carga el reproductor de YouTube (youtube-nocookie.com, privacidad mejorada). Hasta entonces no se contacta con YouTube.</small>
+          </button>
+          @if (v.duracionSegundos) { <span class="dur" aria-hidden="true">{{ duracion(v.duracionSegundos) }}</span> }
+        }
+      </div>
+      <div class="vmeta">
+        <h2 class="vtitulo tipo-titulo-grande" data-testid="galeria-video-titulo">{{ v.titulo }}</h2>
+        <p class="vdatos">
+          @if (v.credito) { <span>{{ v.credito }}</span> }
+          @if (v.fecha) { <span>{{ fechaLarga(v.fecha) }}</span> }
+          @if (v.duracionSegundos) { <span>{{ duracionLarga(v.duracionSegundos) }}</span> }
+        </p>
+        @if (v.descripcion) { <p class="vdesc">{{ v.descripcion }}</p> }
+        @if (v.detalle) {
+          <details class="vdetalle" data-testid="galeria-video-detalle">
+            <summary>Texto completo de la descripción</summary>
+            <p>{{ v.detalle }}</p>
+          </details>
+        }
+        <div class="vacciones">
+          @if (rotuloDeVuelta(); as r) {
+            <button type="button" class="btn" (click)="volver.emit()" data-testid="galeria-reproductor-volver"><svg lucideArrowLeft [size]="16" aria-hidden="true"></svg> Volver a {{ r }}</button>
+          }
+          @if (v.urlYoutube) {
+            <a class="btn" [href]="v.urlYoutube" target="_blank" rel="noopener noreferrer">
+              <svg lucideExternalLink [size]="16" aria-hidden="true"></svg> Ver en YouTube<span class="sr-only"> (se abre en una pestaña nueva)</span>
+            </a>
+          }
+          <button type="button" class="btn" (click)="copiar.emit(v.videoId)"><svg lucideLink [size]="16" aria-hidden="true"></svg> Copiar enlace</button>
+        </div>
+        <p class="priv"><strong>Privacidad.</strong> El video usa el dominio youtube-nocookie.com y solo se carga después de su clic; mientras tanto la página muestra una imagen propia. Si prefiere no cargar contenido de terceros, use «Ver en YouTube».</p>
+      </div>
+    </div>
+    <div>
+      <h3 class="et" id="galeria-lista-videos">{{ rotuloDeLista() }}</h3>
+      <ul class="vlista" aria-labelledby="galeria-lista-videos" data-testid="galeria-lista-videos">
+        @for (x of videos(); track x.id) {
+          <li>
+            <button type="button" class="vit" [attr.aria-current]="x.videoId === v.videoId ? 'true' : null" (click)="alElegir(x)" [attr.data-testid]="'video-' + x.videoId">
+              <span class="vit__mini">
+                @if (x.miniaturaUrl) { <img [src]="x.miniaturaUrl" alt="" loading="lazy" decoding="async" width="320" height="180" /> }
+                <span class="play play--chico"><svg lucidePlay [size]="14" aria-hidden="true"></svg></span>
+                @if (x.duracionSegundos) { <span class="dur dur--chico">{{ duracion(x.duracionSegundos) }}</span> }
+              </span>
+              <span class="vit__texto">
+                <span class="vit__titulo">{{ x.titulo }}</span>
+                <span class="vit__meta">{{ x.albumTitulo ?? 'Sin álbum' }}@if (x.fecha) { · {{ mesYAnio(x.fecha) }} }</span>
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+}

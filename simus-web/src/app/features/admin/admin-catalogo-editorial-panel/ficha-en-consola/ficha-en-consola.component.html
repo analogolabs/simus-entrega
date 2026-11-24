@@ -1,0 +1,323 @@
+@if (ficha(); as f) {
+  <section class="space-y-6" [attr.aria-labelledby]="enCajon ? null : 'ficha-consola-titulo'">
+
+    <!-- ═══════════ Cabecera: qué es y en qué estado está ═══════════ -->
+    <header class="flex flex-col gap-4 border-b border-slate-200 pb-5 lg:flex-row lg:items-start lg:justify-between">
+      <div class="min-w-0">
+        @if (!enCajon) {
+          <p class="font-mono text-dato tracking-widest text-slate-400">{{ f.codigo }}</p>
+          <h3 id="ficha-consola-titulo" class="mt-1 font-alternate text-lg font-bold uppercase tracking-wide text-morado">{{ f.titulo }}</h3>
+        } @else {
+          <p class="font-mono text-dato tracking-widest text-slate-400">{{ f.codigo }}</p>
+        }
+        @if (f.subtitulo || f.designacionVolumen) {
+          <p class="mt-1 text-sm leading-relaxed text-slate-500">
+            {{ f.subtitulo }}@if (f.subtitulo && f.designacionVolumen) {<span> · </span>}{{ f.designacionVolumen }}
+          </p>
+        }
+        <!--
+          LOS DOS ESTADOS SE LEEN JUNTOS Y SEPARADOS, porque son dos decisiones distintas: una ficha
+          validada puede quedarse sin publicar, y una publicada puede estar pendiente de revisión.
+        -->
+        <div class="mt-3 flex flex-wrap items-center gap-4">
+          <span class="inline-flex items-center gap-2">
+            <span class="text-dato font-bold uppercase tracking-widest text-slate-400">Catalogación</span>
+            <app-indicador-de-estado
+              [etiqueta]="rotuloDeCatalogacion(f.estadoCatalogacion)"
+              [tono]="tonoDelEstado(f.estadoCatalogacion)"
+              [matiz]="matizDelEstado(f.estadoCatalogacion)"
+              [conTexto]="true"></app-indicador-de-estado>
+          </span>
+          <span class="inline-flex items-center gap-2">
+            <span class="text-dato font-bold uppercase tracking-widest text-slate-400">Publicación</span>
+            <app-indicador-de-estado
+              [etiqueta]="rotuloDePublicacion(f.estadoPublicacion)"
+              [tono]="tonoDelEstado(f.estadoPublicacion)"
+              [matiz]="matizDelEstado(f.estadoPublicacion)"
+              [conTexto]="true"></app-indicador-de-estado>
+          </span>
+        </div>
+      </div>
+      @if (!enCajon) {
+        <button type="button" (click)="cerrar.emit()"
+                class="shrink-0 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-morado transition hover:border-morado">Volver al listado</button>
+      }
+    </header>
+
+    @if (error()) { <p role="alert" class="border border-red-300 bg-red-50 p-3 text-sm text-red-800">{{ error() }}</p> }
+    <p role="status" [class.hidden]="!aviso()" class="border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800">{{ aviso() }}</p>
+
+    <!--
+      QUE LE FALTA PARA VERSE, ANTES DE PULSAR. La puerta pública exige cuatro cosas a la vez y el
+      servidor las comprueba al publicar; enterarse ahí es enterarse tarde. Enumerarlas convierte
+      «no se puede publicar» en una lista de tareas.
+    -->
+    @if (sePuedeVerEnElPortal()) {
+      <p class="border border-emerald-300 bg-emerald-50/60 px-4 py-3 text-sm leading-relaxed text-emerald-900">
+        Esta ficha se está viendo en el portal.
+      </p>
+    } @else if (loQueFalta().length > 0) {
+      <div class="border border-amber-300 bg-amber-50 px-4 py-3">
+        <p class="text-sm font-bold text-amber-950">Todavía no se puede ver en el portal</p>
+        <ul class="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-amber-900">
+          @for (falta of loQueFalta(); track falta) { <li>{{ falta }}</li> }
+        </ul>
+      </div>
+    } @else {
+      <p class="border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-600">
+        Cumple las condiciones para publicarse, pero todavía no está publicada.
+      </p>
+    }
+
+    <!-- ═══════════ Lo que el portal NO enseña ═══════════ -->
+    <div class="grid gap-4 md:grid-cols-2">
+      @if (administrativos().length > 0) {
+        <div class="border-t border-slate-200 pt-5">
+          <h4 class="font-alternate text-cuerpo font-bold uppercase tracking-wide text-morado">Trabajo de catalogación</h4>
+          <p class="mt-1 text-xs leading-relaxed text-slate-500">Esto no sale al portal: describe cómo está hecha la ficha, no la obra.</p>
+          <dl class="mt-4 space-y-3">
+            @for (dato of administrativos(); track dato.rotulo) {
+              <div>
+                <dt class="text-dato font-bold uppercase tracking-widest text-slate-400">{{ dato.rotulo }}</dt>
+                <dd class="mt-0.5 text-sm leading-relaxed text-slate-700">{{ dato.valor }}</dd>
+              </div>
+            }
+          </dl>
+        </div>
+      }
+
+      <div class="border-t border-slate-200 pt-5">
+        <div class="flex items-start justify-between gap-3">
+          <h4 class="font-alternate text-cuerpo font-bold uppercase tracking-wide text-morado">Derechos y procedencia</h4>
+          @if (!derechosEnEdicion()) {
+            <button type="button" data-editar-derechos (click)="editarDerechos()"
+                    class="shrink-0 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-morado transition hover:border-morado">Editar derechos</button>
+          }
+        </div>
+        <p class="mt-1 text-xs leading-relaxed text-slate-500">Al portal solo sale la licencia; quién la verificó se queda aquí.</p>
+
+        <!--
+          EL BLOQUE «DERECHOS» (#134). Lo registra quien cataloga, en la ficha y en cada acceso:
+          publicar la ficha y repartir el archivo son dos autorizaciones distintas. Publicar sigue
+          siendo del webmaster. Quién verificó y cuándo los pone el servidor.
+        -->
+        @if (derechosEnEdicion(); as lista) {
+          <form class="mt-4 space-y-4" data-testid="derechos-en-edicion" (ngSubmit)="guardarDerechos()">
+            @for (d of lista; track d.accesoId; let i = $index) {
+              <fieldset class="rounded-xl border border-slate-200 bg-white p-4">
+                <legend class="px-1 text-xs font-bold text-slate-700">{{ d.nombre }}</legend>
+                <label class="block text-xs font-bold text-slate-600">
+                  Estado
+                  <select class="mt-1 w-full rounded-lg border border-slate-300 p-2 text-sm font-normal"
+                          [ngModel]="d.estado" (ngModelChange)="cambiarDerecho(i, 'estado', $event)" [name]="'estado-' + i">
+                    @for (estado of estadosDerechos; track estado) { <option [value]="estado">{{ etiquetasDerechos[estado] }}</option> }
+                  </select>
+                </label>
+                <label class="mt-3 flex items-center gap-2 text-sm text-slate-700">
+                  <input type="checkbox" [disabled]="d.estado === 'pendiente'" [name]="'ficha-' + i"
+                         [ngModel]="d.permitePublicarFicha" (ngModelChange)="cambiarDerecho(i, 'permitePublicarFicha', $event)" />
+                  Permite publicar la ficha
+                </label>
+                <label class="mt-2 flex items-center gap-2 text-sm text-slate-700">
+                  <input type="checkbox" [disabled]="d.estado === 'pendiente'" [name]="'archivo-' + i"
+                         [ngModel]="d.permitePublicarArchivo" (ngModelChange)="cambiarDerecho(i, 'permitePublicarArchivo', $event)" />
+                  Permite publicar el archivo
+                </label>
+                @if (d.estado === 'pendiente') {
+                  <p class="mt-2 text-dato text-slate-500">Con los derechos pendientes no se autoriza ninguna publicación.</p>
+                }
+                <label class="mt-3 block text-xs font-bold text-slate-600">
+                  Licencia o nota
+                  <textarea rows="2" maxlength="600" [name]="'licencia-' + i"
+                            class="mt-1 w-full rounded-lg border border-slate-300 p-2 text-sm font-normal"
+                            [ngModel]="d.licenciaONota" (ngModelChange)="cambiarDerecho(i, 'licenciaONota', $event)"></textarea>
+                </label>
+                @if (f.fuentes.length > 0) {
+                  <label class="mt-3 block text-xs font-bold text-slate-600">
+                    Fuente que lo respalda
+                    <select class="mt-1 w-full rounded-lg border border-slate-300 p-2 text-sm font-normal" [name]="'fuente-' + i"
+                            [ngModel]="d.fuenteId" (ngModelChange)="cambiarDerecho(i, 'fuenteId', $event)">
+                      <option [ngValue]="null">Ninguna</option>
+                      @for (fuente of f.fuentes; track fuente.id) { <option [ngValue]="fuente.id">{{ fuente.nombre }}</option> }
+                    </select>
+                  </label>
+                }
+              </fieldset>
+            }
+            <div class="flex justify-end gap-2">
+              <button type="button" (click)="cancelarDerechos()" [disabled]="guardandoDerechos()"
+                      class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-morado">Cancelar</button>
+              <button type="submit" [disabled]="guardandoDerechos()"
+                      class="rounded-lg bg-morado px-4 py-2 text-xs font-bold text-white transition hover:bg-morado/90 disabled:opacity-50">
+                {{ guardandoDerechos() ? 'Guardando…' : 'Guardar derechos' }}
+              </button>
+            </div>
+          </form>
+        }
+        <dl class="mt-4 space-y-3">
+          @for (dato of derechos(); track dato.rotulo) {
+            <div>
+              <dt class="text-dato font-bold uppercase tracking-widest text-slate-400">{{ dato.rotulo }}</dt>
+              <dd class="mt-0.5 text-sm leading-relaxed text-slate-700">{{ dato.valor }}</dd>
+            </div>
+          }
+          <!--
+            LAS FUENTES, CON SU CONTROL. Hasta ahora el texto decía «No cita ninguna
+            fuente» y no había dónde añadirla. Se registran y se corrigen aquí, con historial.
+          -->
+          <div data-testid="fuentes-de-la-ficha">
+            <div class="flex items-start justify-between gap-3">
+              <dt class="text-dato font-bold uppercase tracking-widest text-slate-400">Fuentes que cita</dt>
+              @if (!fuenteEnEdicion()) {
+                <button type="button" data-agregar-fuente (click)="agregarFuente()"
+                        class="shrink-0 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-morado transition hover:border-morado">Agregar fuente</button>
+              }
+            </div>
+            <dd class="mt-1 space-y-2">
+              @for (fuente of f.fuentes; track fuente.id) {
+                <div class="flex items-start justify-between gap-3" [attr.data-fuente]="fuente.id">
+                  <p class="min-w-0 text-sm leading-relaxed text-slate-700">
+                    {{ fuente.nombre }}
+                    @if (fuente.url) { <a [href]="fuente.url" target="_blank" rel="noopener" class="break-all text-morado underline-offset-2 hover:underline"> · {{ fuente.url }}<span class="sr-only"> (se abre en una pestaña nueva)</span></a> }
+                    @if (fuente.referencia) { <span class="text-slate-600"> · {{ fuente.referencia }}</span> }
+                    @if (fuente.verificadaPor) {<span class="text-slate-400"> · verificada por {{ fuente.verificadaPor }} el {{ fuente.fechaConsulta | fecha }}</span>}
+                  </p>
+                  @if (!fuenteEnEdicion()) {
+                    <button type="button" data-editar-fuente (click)="editarFuente(fuente)" [attr.aria-label]="'Editar la fuente ' + fuente.nombre"
+                            class="shrink-0 rounded-lg border border-slate-300 bg-white px-3 py-1 text-xs font-bold text-morado transition hover:border-morado">Editar</button>
+                  }
+                </div>
+              } @empty {
+                <p class="text-sm leading-relaxed text-amber-800">Ninguna. Sin fuente, la ficha no puede publicarse: agrégala con el botón.</p>
+              }
+            </dd>
+
+            @if (fuenteEnEdicion(); as edicion) {
+              <form class="mt-3 space-y-3 rounded-xl border border-slate-200 bg-white p-4" data-testid="fuente-en-edicion" (ngSubmit)="guardarFuente()">
+                <p class="text-xs font-bold text-slate-700">{{ edicion.id === null ? 'Nueva fuente' : 'Corregir la fuente' }}</p>
+                <label class="block text-xs font-bold text-slate-600">Nombre de la fuente
+                  <input type="text" name="fuente-nombre" maxlength="300" required [ngModel]="edicion.nombre" (ngModelChange)="cambiarFuente('nombre', $event)"
+                         class="mt-1 w-full rounded-lg border border-slate-300 p-2 text-sm font-normal" />
+                </label>
+                <label class="block text-xs font-bold text-slate-600">Enlace
+                  <input type="url" name="fuente-url" maxlength="1000" placeholder="https://…" [ngModel]="edicion.url" (ngModelChange)="cambiarFuente('url', $event)"
+                         class="mt-1 w-full rounded-lg border border-slate-300 p-2 text-sm font-normal" />
+                </label>
+                <label class="block text-xs font-bold text-slate-600">Referencia (si no tiene enlace público)
+                  <input type="text" name="fuente-referencia" maxlength="600" [ngModel]="edicion.referencia" (ngModelChange)="cambiarFuente('referencia', $event)"
+                         class="mt-1 w-full rounded-lg border border-slate-300 p-2 text-sm font-normal" />
+                </label>
+                <label class="block text-xs font-bold text-slate-600">Fecha de la fuente (opcional)
+                  <input type="date" name="fuente-fecha" [ngModel]="edicion.fechaFuente" (ngModelChange)="cambiarFuente('fechaFuente', $event)"
+                         class="mt-1 w-full rounded-lg border border-slate-300 p-2 text-sm font-normal" />
+                </label>
+                <p class="text-dato text-slate-500">Hace falta el enlace o la referencia. Quién la verificó y cuándo lo registra el sistema.</p>
+                @if (errorDeLaFuente()) { <p role="alert" data-testid="fuente-error" class="text-sm font-bold text-red-800">{{ errorDeLaFuente() }}</p> }
+                <div class="flex justify-end gap-2">
+                  <button type="button" (click)="cancelarFuente()" [disabled]="guardandoFuente()"
+                          class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-morado">Cancelar</button>
+                  <button type="submit" [disabled]="guardandoFuente()"
+                          class="rounded-lg bg-morado px-4 py-2 text-xs font-bold text-white transition hover:bg-morado/90 disabled:opacity-50">{{ guardandoFuente() ? 'Guardando…' : 'Guardar fuente' }}</button>
+                </div>
+              </form>
+            }
+          </div>
+          @if (f.procedencia; as p) {
+            <div>
+              <dt class="text-dato font-bold uppercase tracking-widest text-slate-400">Procedencia del registro</dt>
+              <dd class="mt-0.5 text-sm leading-relaxed text-slate-700">{{ p.contextoEtiqueta || p.contextoOrigen }}@if (p.usuarioCreadorNombre) {<span> · {{ p.usuarioCreadorNombre }}</span>}</dd>
+            </div>
+          }
+        </dl>
+      </div>
+    </div>
+
+    <!-- ═══════════ El hilo: decisiones y anotaciones, en un solo orden ═══════════ -->
+    <section class="rounded-2xl border border-slate-200 bg-white p-5" aria-labelledby="hilo-titulo">
+      <h4 id="hilo-titulo" class="font-alternate text-cuerpo font-bold uppercase tracking-wide text-morado">Revisiones y anotaciones</h4>
+      <p class="mt-1 text-xs leading-relaxed text-slate-500">
+        Lo que se decidió sobre esta ficha y lo que alguien anotó, en el mismo orden.
+      </p>
+
+      <div class="mt-4 space-y-2">
+        <label for="anotacion-nueva" class="block text-xs font-bold text-slate-600">
+          Dejar una anotación
+          <textarea id="anotacion-nueva" rows="2" [ngModel]="anotacion()" (ngModelChange)="anotacion.set($event)"
+                    placeholder="Qué hay que revisar, qué se comprobó, qué falta…"
+                    class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio"></textarea>
+        </label>
+        <div class="flex justify-end">
+          <!-- NO SE OFRECE GUARDAR UNA ANOTACION VACIA: una entrada en blanco no le dice nada a quien la lea después. -->
+          <button type="button" (click)="guardarAnotacion()"
+                  [disabled]="guardandoAnotacion() || !anotacion().trim()"
+                  class="rounded-lg bg-morado px-4 py-2 text-xs font-bold text-white transition hover:bg-morado/90 disabled:opacity-50">
+            {{ guardandoAnotacion() ? 'Guardando…' : 'Anotar' }}
+          </button>
+        </div>
+      </div>
+
+      @if (cargandoHistorial()) {
+        <app-esqueleto variante="fila" [cantidad]="2" etiqueta="Consultando el historial…" />
+      } @else if (historial().length === 0) {
+        <p class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">
+          Todavía no hay nada en el historial de esta ficha. Aparecerá aquí en cuanto se valide, se
+          publique o alguien deje una anotación.
+        </p>
+      } @else {
+        <ol class="mt-5 space-y-0 pl-1">
+          @for (entrada of historial(); track entrada.id) {
+            <li class="border-t border-slate-200 py-3 first:border-t-0">
+              <p class="text-xs font-bold text-slate-900">{{ tituloDeLaEntrada(entrada) }}</p>
+              <p class="mt-0.5 text-dato tabular-nums text-slate-400">
+                {{ entrada.fecha | fecha: 'fecha-hora' }}@if (entrada.usuarioNombre) {<span> · {{ entrada.usuarioNombre }}</span>}
+              </p>
+              @if (entrada.comentario) {
+                <p class="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-sm leading-relaxed text-slate-700">{{ entrada.comentario }}</p>
+              }
+            </li>
+          }
+        </ol>
+      }
+    </section>
+
+    <!--
+      ═══════════ La normalización, que es trabajo de catalogación y no de lectura ═══════════
+
+      ESTOS DATOS ESTABAN EN LA FICHA PUBLICA Y NO LE SERVIAN A NADIE ALLI. «Tipo de recurso
+      (Dublin Core): MovingImage» es un término del DCMI Type Vocabulary —no se traduce porque es un
+      identificador de intercambio, y por eso aparecía en inglés en mitad de una ficha en español—,
+      y «RDA 336/337/338» es la norma que da el término, no el término. Nada de eso ayuda a quien
+      busca una obra; todo eso importa a quien la cataloga y a quien exporta el catálogo. Aquí sí.
+    -->
+    <section class="rounded-2xl border border-slate-200 bg-white p-5" aria-labelledby="normalizacion-titulo">
+      <h4 id="normalizacion-titulo" class="font-alternate text-cuerpo font-bold uppercase tracking-wide text-morado">Normalización y estándares</h4>
+      <p class="mt-1 text-xs leading-relaxed text-slate-500">
+        Los términos normalizados de la ficha. No se publican: hacen la ficha citable e intercambiable.
+      </p>
+      <dl class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        @for (fila of normalizacionInterna(); track fila.rotulo) {
+          <div class="min-w-0">
+            <dt class="text-dato font-bold uppercase tracking-widest text-slate-400">{{ fila.rotulo }}</dt>
+            <dd class="mt-0.5 break-words font-nunito text-xs leading-relaxed text-slate-700">{{ fila.valor }}</dd>
+          </div>
+        }
+      </dl>
+      @if (normalizacionInterna().length === 0) {
+        <p class="mt-3 font-nunito text-xs text-slate-400">Esta ficha todavía no tiene tipología normalizada.</p>
+      }
+    </section>
+
+    <!-- ═══════════ Y la ficha, exactamente como la ve el portal ═══════════ -->
+    <section class="rounded-2xl border border-slate-200 bg-slate-50/60 p-5" aria-labelledby="como-se-ve-titulo">
+      <h4 id="como-se-ve-titulo" class="font-alternate text-cuerpo font-bold uppercase tracking-wide text-morado">Como se ve en el portal</h4>
+      <p class="mt-1 text-xs leading-relaxed text-slate-500">
+        Es el mismo componente que pinta el catálogo público: lo que se ve aquí es lo que verá quien consulte.
+      </p>
+      @if (comoLoVeElPortal(); as recurso) {
+        <div class="mt-5 rounded-xl bg-white p-5">
+          <app-ficha-editorial [item]="recurso" variante="fila"></app-ficha-editorial>
+        </div>
+      }
+    </section>
+  </section>
+}

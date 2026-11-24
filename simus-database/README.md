@@ -1,0 +1,30 @@
+# Base de datos de SIMUS
+
+Artefactos de SQL Server y Azure SQL.
+
+## Estructura
+
+- `schema/`: cambios estructurales inmutables, aplicados por DbUp.
+- `seed/`: datos de referencia o demostración, separados del esquema.
+- `scripts/`: validaciones y auditorías SQL.
+- `local/`: documentación del modelo y del entorno local.
+- `simus-ministerio/`: migraciones Flyway que llevan la base SIMUS del Ministerio al mismo modelo;
+  tienen su propia numeración y su propio historial (`flyway_schema_history`).
+
+La carpeta `migrations/` fue retirada: contenía dos guiones baseline fuera del flujo real.
+`schema/` es la única fuente de cambios y `dbo.SchemaVersions` conserva su historial.
+
+## Convención
+
+Un cambio nuevo usa `VAAAAMMDD_NN__descripcion_en_espanol.sql`. No se modifica un archivo
+que ya pudo aplicarse. Los guiones no contienen credenciales y declaran las opciones de
+sesión que necesiten.
+
+```bash
+./scripts/local/schema-local.sh estado
+./scripts/local/schema-local.sh migrar
+```
+
+El detalle operativo está en
+[`docs/desarrollo/05-base-de-datos.md`](../docs/desarrollo/05-base-de-datos.md).
+

@@ -1,0 +1,72 @@
+<section class="space-y-5 pb-8">
+  @if (error()) { <p role="alert" class="border border-red-200 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">{{ error() }}</p> }
+  @if (reclamadaAhora()) {
+    <p role="status" data-testid="reclamacion-enviada" class="border border-emerald-200 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+      Enviaste tu solicitud para administrar el Festival. El PNMC la revisará y te avisará aquí y en la campana; si te pide una aclaración, la respondes desde su ficha.
+    </p>
+  }
+
+  @if (cargando() || cargandoLista()) { <app-esqueleto variante="fila" [cantidad]="2" etiqueta="Consultando solicitudes…" /> }
+  @else if (fichaAbierta(); as reclamacion) {
+    <!--
+      LA FICHA DE UNA SOLICITUD DE ADMINISTRACIÓN (SOL). Antes sus acciones —responder una aclaración, elegir los
+      datos que se conservan, cancelar— vivían dentro de la lista, con una presentación distinta de la de los demás
+      tipos. Ahora la lista es una sola (`app-lista-de-solicitudes`) y estas acciones se atienden aquí, en la
+      ficha de la solicitud, a la que lleva su fila.
+    -->
+    <article aria-labelledby="ficha-solicitud-titulo" data-testid="ficha-de-solicitud" class="space-y-4">
+      <a [routerLink]="enPanel('solicitudes')" data-testid="volver-a-solicitudes" class="inline-block text-sm font-bold text-verde-texto hover:underline">Volver a Solicitudes</a>
+      @if (!esAdministradora() && esActiva(reclamacion)) {
+        <app-aviso-solo-administracion class="block" texto="Responder aclaraciones, conciliar datos o cancelar un trámite de administración lo hace quien administra la organización. Tu rol es editor." />
+      }
+      <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-dato font-bold tracking-wide text-morado">Solicitud de administración</span>
+            <span aria-hidden="true" class="text-slate-300">·</span>
+            <app-indicador-de-estado [etiqueta]="etiquetaEstado(reclamacion.estado)" [tono]="tonoDelEstado(reclamacion.estado)" [conTexto]="true"></app-indicador-de-estado>
+          </div>
+          <h1 id="ficha-solicitud-titulo" class="mt-2">{{ titulo(reclamacion) }}</h1>
+          <p class="mt-2 max-w-3xl text-cuerpo leading-relaxed text-prosa">{{ descripcionEstado(reclamacion) }}</p>
+          @if (reclamacion.estado === 'requiere_aclaracion' && reclamacion.aclaracionPendiente) { <p class="mt-3 max-w-3xl border border-amber-200 rounded-lg bg-amber-50/70 py-2 pl-3 text-sm text-slate-800" data-testid="aclaracion-pendiente"><span class="font-bold">El PNMC pregunta:</span> {{ reclamacion.aclaracionPendiente }}</p> }
+          @if (reclamacion.estado === 'rechazada' && reclamacion.motivoDecision) { <p class="mt-3 max-w-3xl text-sm text-slate-700" data-testid="motivo-del-rechazo"><span class="font-bold">Motivo:</span> {{ reclamacion.motivoDecision }}</p> }
+          @if (reclamacion.motivoDecision && reclamacion.estado !== 'rechazada') { <p class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-slate-700">{{ reclamacion.motivoDecision }}</p> }
+          @if (reclamacion.soportes?.length) { <p class="mt-3 text-sm text-slate-700" data-testid="soportes-de-la-solicitud"><span class="font-bold">Soportes:</span> @for (soporte of reclamacion.soportes!; track soporte.archivoId; let ultimo = $last) { <a [href]="soporte.url" target="_blank" rel="noopener" class="text-verde-texto hover:underline">{{ soporte.nombre }}</a>{{ ultimo ? '' : ', ' }} }</p> }
+        </div>
+        <div class="flex flex-wrap gap-x-4 gap-y-2 lg:justify-end">
+          @if (yaEsNuestro(reclamacion)) {
+            <a [routerLink]="enPanel('procesos/festivales', reclamacion.registroCanonicoId)" class="text-sm font-bold text-verde-texto hover:underline">Abrir el Festival</a>
+          } @else {
+            <a [routerLink]="['/ecosistema/festivales', reclamacion.registroCanonicoId]" target="_blank" rel="noopener" class="text-sm font-bold text-verde-texto hover:underline">Ver ficha pública<span class="sr-only"> (se abre en una pestaña nueva)</span></a>
+          }
+          @if (esAdministradora() && reclamacion.estado === 'requiere_aclaracion') { <button type="button" (click)="abrirAclaracion(reclamacion)" class="text-sm font-bold text-morado hover:underline">Responder aclaración</button> }
+          @if (esAdministradora() && reclamacion.estado === 'aprobada') { <button type="button" (click)="abrirConciliacion(reclamacion)" class="text-sm font-bold text-morado hover:underline">Elegir datos y terminar</button> }
+          @if (esAdministradora() && puedeCancelar(reclamacion)) { <button type="button" [disabled]="ocupado()" (click)="cancelar(reclamacion)" class="text-sm font-bold text-slate-600 hover:text-red-700 hover:underline disabled:opacity-50">Cancelar</button> }
+        </div>
+      </div>
+      @if (aclaracionAbierta() === reclamacion.id) {
+        <div class="max-w-3xl border border-amber-200 rounded-lg bg-amber-50/70 px-4 py-4">
+          <label [for]="'aclaracion-' + reclamacion.id" class="text-sm font-bold text-slate-800">Aclaración para la institución</label>
+          <textarea [id]="'aclaracion-' + reclamacion.id" [value]="respuestaAclaracion()" (input)="respuestaAclaracion.set($any($event.target).value)" rows="4" class="mt-2 block w-full border border-amber-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-morado focus:outline-none focus:ring-1 focus:ring-morado"></textarea>
+          @if (soportesDisponibles(reclamacion) > 0) { <app-soportes-de-solicitud [maximo]="soportesDisponibles(reclamacion)" (cambio)="soportesAclaracion.set($event)" /> }
+          <div class="mt-3 flex gap-4">
+            <button type="button" [disabled]="ocupado()" (click)="enviarAclaracion(reclamacion)" class="text-sm font-bold text-morado hover:underline disabled:opacity-50">Enviar aclaración</button>
+            <button type="button" (click)="aclaracionAbierta.set(null)" class="text-sm font-bold text-slate-600 hover:underline">Cancelar</button>
+          </div>
+        </div>
+      }
+    </article>
+  } @else {
+    @if (solicitudDirigida && !cargando()) {
+      <p role="status" data-testid="solicitud-no-encontrada" class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">No encontramos esa solicitud en esta organización. Aquí está la lista completa.</p>
+    }
+    <!--
+      UNA SOLA LISTA (SOL): la misma de «Mi actividad y solicitudes», para todos los tipos de proceso. Antes eran
+      dos bloques con presentación propia («Esperan tu acción», «Esperan decisión del PNMC») más un historial.
+    -->
+    <app-encabezado-de-pantalla titulo="Solicitudes" descripcion="Ajustes de revisión y trámites de tu organización, de todos los procesos." [contador]="contador()" />
+    <app-lista-de-solicitudes [solicitudes]="solicitudes()" [organizacionId]="organizacionId()" />
+  }
+
+  @if (conciliacion()) { <section class="border border-emerald-200 bg-emerald-50/60 p-5" aria-labelledby="conciliacion-titulo"><div class="flex items-start justify-between gap-4"><div><h2 id="conciliacion-titulo">Elige qué datos conservar</h2><p class="mt-2 text-cuerpo leading-relaxed text-prosa">Solo aparecen los datos en los que lo que escribiste es distinto del registro histórico. Lo demás se conserva. Al confirmar, tu organización pasa a administrar el Festival y se publica lo que elijas.</p></div><button type="button" (click)="conciliacion.set(null)" aria-label="Cerrar conciliación" class="text-lg text-slate-500 hover:text-morado">×</button></div>@for (campo of camposConciliacion(); track campo.clave) { <fieldset class="mt-4 border border-emerald-200 rounded-lg bg-white p-4"><legend class="px-1 text-sm font-bold text-slate-900">{{ campo.etiqueta }}</legend><div class="mt-2 grid gap-3 sm:grid-cols-2"><label class="cursor-pointer text-sm text-slate-700"><input type="radio" [checked]="selecciones()[campo.clave] === 'historico'" (change)="elegir(campo.clave, 'historico')" [attr.name]="'conciliar-' + campo.clave"> Conservar el histórico: {{ legible(campo.clave, campo.historico) || 'Sin dato' }}</label><label class="cursor-pointer text-sm text-slate-700"><input type="radio" [checked]="selecciones()[campo.clave] === 'borrador'" (change)="elegir(campo.clave, 'borrador')" [attr.name]="'conciliar-' + campo.clave"> Usar lo que escribiste: {{ legible(campo.clave, campo.borrador) }}</label></div></fieldset> }<button type="button" [disabled]="ocupado()" (click)="resolverConciliacion()" class="mt-5 border-b-2 border-verde-texto pb-1 text-sm font-bold text-morado hover:text-verde-texto disabled:opacity-50">Confirmar y administrar el Festival</button></section> }
+</section>

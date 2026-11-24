@@ -1,0 +1,65 @@
+<section class="mt-10 rounded-2xl border border-slate-200 bg-white p-6" aria-labelledby="perfiles-publicos-titulo">
+  <h2 id="perfiles-publicos-titulo" class="font-alternate text-sm font-bold uppercase tracking-widest text-slate-700">Perfiles públicos de personas</h2>
+  <p class="mt-1 text-sm text-slate-600">La consola puede ocultar un perfil con un motivo, sin editarlo. Cada acción queda en la bitácora.</p>
+
+  <form class="mt-4 flex flex-wrap items-end gap-2" (ngSubmit)="cargar()" role="search">
+    <div>
+      <label for="perfiles-busqueda" class="block text-xs font-semibold text-slate-700">Buscar por nombre o correo</label>
+      <app-buscador-de-lista tamano="comodo" [etiquetaVisible]="true" identificador="perfiles-busqueda"
+        etiqueta="Buscar por nombre o correo" marcador="Nombre o correo"
+        [valor]="busqueda" [espera]="0" (cambiar)="busqueda = $event" />
+    </div>
+    <button type="submit" appBoton="secundaria">Buscar</button>
+  </form>
+
+  @if (aviso()) { <p role="status" class="mt-4 text-sm text-emerald-800">{{ aviso() }}</p> }
+  @if (error()) { <p role="alert" class="mt-4 text-sm text-red-700">{{ error() }}</p> }
+
+  @if (cargando()) {
+    <app-esqueleto variante="fila" [cantidad]="2" etiqueta="Cargando…" />
+  } @else if (!perfiles().length) {
+    <p class="mt-4 text-sm text-slate-600">No hay perfiles públicos que coincidan.</p>
+  } @else {
+    <ul class="mt-4 divide-y divide-slate-100">
+      @for (perfil of perfiles(); track perfil.clave) {
+        <li class="py-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="font-semibold text-slate-800">{{ perfil.nombreVisible }}</p>
+              <p class="text-xs text-slate-500">{{ perfil.correoCuenta }}</p>
+              <p class="mt-1 text-xs text-slate-600">
+                @if (perfil.ocultoPorModeracion) {
+                  Oculto por moderación ({{ perfil.fechaModeracion | fecha }}): {{ perfil.motivoModeracion }}
+                } @else if (perfil.visible) {
+                  Público
+                } @else {
+                  No publicado por su titular
+                }
+              </p>
+            </div>
+            <div class="flex gap-2">
+              @if (perfil.ocultoPorModeracion) {
+                <button type="button" (click)="restablecer(perfil.clave)" appBoton="secundaria">Restablecer</button>
+              } @else if (ocultando() !== perfil.clave) {
+                <button type="button" (click)="abrirOcultar(perfil.clave)" appBoton="secundaria">Ocultar</button>
+              }
+            </div>
+          </div>
+          @if (ocultando() === perfil.clave) {
+            <div class="mt-3 rounded-lg bg-slate-50 p-4">
+              <label [for]="'motivo-' + perfil.clave" class="block text-sm font-semibold text-slate-800">Motivo (lo verá la persona)</label>
+              <textarea [id]="'motivo-' + perfil.clave" name="motivo" rows="3" maxlength="500" [(ngModel)]="motivo"
+                [attr.aria-invalid]="!!errorMotivo()" [attr.aria-describedby]="errorMotivo() ? 'motivo-error-' + perfil.clave : null"
+                class="mt-1 block w-full rounded-lg border border-slate-300 p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado"></textarea>
+              @if (errorMotivo()) { <p [id]="'motivo-error-' + perfil.clave" class="mt-1 text-sm text-red-700">{{ errorMotivo() }}</p> }
+              <div class="mt-3 flex gap-2">
+                <button type="button" (click)="confirmarOcultar(perfil.clave)" appBoton="destructiva">Ocultar perfil</button>
+                <button type="button" (click)="cancelar()" appBoton="secundaria">Cancelar</button>
+              </div>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>

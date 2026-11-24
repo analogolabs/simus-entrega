@@ -1,0 +1,9 @@
+{
+  "_lee_esto_primero": "Techo de los literales de diseño en CSS. Lo mantiene trinquete-tokens.mjs. Las métricas son de 'máximo': son deuda y solo bajan; --sellar aprieta y nunca afloja. Si ves un cambio que afloja un número, es una edición a mano y hay que discutirla en la revisión, no aprobarla de paso. Los lotes UI-C a UI-G de docs/desarrollo/30-consola-y-acceso.md migran pantallas a los tokens y sellan aquí cada bajada.",
+  "metricas": {
+    "bordes_de_campo_sin_contraste": 2,
+    "radios_de_control_a_mano": 6,
+    "mayuscula_sostenida_en_css": 26
+  },
+  "medido_en": "2026-11-13T06:12:04.214Z"
+}

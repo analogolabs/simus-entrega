@@ -1,0 +1,364 @@
+<section aria-labelledby="celebra-consola-titulo">
+  <h2 id="celebra-consola-titulo" class="sr-only">Celebra la música</h2>
+
+  @if (!modelo()) {
+    <!-- ── Lista de ediciones ───────────────────────────────────────────────────────────────── -->
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <p class="max-w-2xl text-cuerpo text-slate-600">
+        Las ediciones del micrositio «Celebra la música». La programación y las noticias de cada una son la agenda y las noticias
+        generales etiquetadas con su proyecto; aquí se edita lo demás: presentación, cifras, categorías, caja de herramientas,
+        preguntas frecuentes, galería y colores.
+      </p>
+      <app-boton importancia="principal" identificador="celebra-nueva-edicion" (accion)="abrirNuevo()">Nueva edición</app-boton>
+    </div>
+
+    @if (cargando() || cargandoEdicion()) {
+      <app-estado-de-lista class="mt-6" tipo="cargando" titulo="Consultando las ediciones…" />
+    } @else if (errorDeLista()) {
+      <app-estado-de-lista class="mt-6" tipo="error" titulo="No pudimos consultar las ediciones" [detalle]="errorDeLista()">
+        <app-boton importancia="secundaria" (accion)="cargarLista()">Reintentar</app-boton>
+      </app-estado-de-lista>
+    } @else if (ediciones().length === 0) {
+      <app-estado-de-lista class="mt-6" titulo="Todavía no hay ediciones" detalle="Crea la primera con «Nueva edición»: se creará también su proyecto para etiquetar eventos y noticias." />
+    } @else {
+      <div class="mt-6 overflow-x-auto">
+        <table class="tabla-administrativa" data-testid="celebra-ediciones">
+          <thead class="tabla-administrativa__cabecera">
+            <tr>
+              <th scope="col">Edición</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Proyecto para etiquetar</th>
+              <th scope="col" class="text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of ediciones(); track e.anio) {
+              <tr class="tabla-administrativa__fila">
+                <td>
+                  <span class="tabla-administrativa__principal">{{ e.nombre }}</span>
+                  <span class="tabla-administrativa__secundaria">{{ e.anio }}</span>
+                </td>
+                <td>
+                  <app-indicador-de-estado [etiqueta]="e.publicada ? 'Publicada' : 'Borrador'" [tono]="e.publicada ? 'logrado' : 'cerrado'" [conTexto]="true" />
+                  @if (e.actual) { <span class="tabla-administrativa__secundaria">Edición vigente</span> }
+                </td>
+                <td><span class="tabla-administrativa__secundaria font-mono">{{ e.proyectoCodigo }}</span></td>
+                <td class="tabla-administrativa__acciones">
+                  <a class="foco-simus tipo-enlace mr-3 text-morado" [href]="rutaDeVistaPrevia(e.anio)" target="_blank" rel="noopener">Vista previa<span class="sr-only"> de {{ e.nombre }} (abre en una pestaña nueva)</span></a>
+                  <app-boton importancia="secundaria" tamano="menudo" (accion)="abrir(e.anio)">Editar<span class="sr-only"> {{ e.nombre }}</span></app-boton>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (nuevoAnio(); as n) {
+      <app-dialogo-de-formulario titulo="Nueva edición" verbo="Crear la edición" identificador="celebra-crear-edicion"
+        proposito="Se abre el editor con el año elegido. La edición y su proyecto (celebra-la-musica-AAAA) se crean al guardar."
+        [error]="n.error" (guardar)="crearEdicion()" (cerrar)="cerrarNuevo()">
+        <label class="block campo__rotulo" for="celebra-anio">Año de la edición</label>
+        <input id="celebra-anio" name="anioNuevo" type="number" min="2011" max="2100" class="campo__control" [ngModel]="n.anio" (ngModelChange)="cambiarAnio($event)" />
+      </app-dialogo-de-formulario>
+    }
+  } @else {
+    @let m = modelo()!;
+    <!-- ── Editor de una edición ────────────────────────────────────────────────────────────── -->
+    <nav aria-label="Volver" class="mb-4">
+      <app-boton importancia="terciaria" tamano="menudo" (accion)="volver()">← Volver a las ediciones</app-boton>
+    </nav>
+
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div class="min-w-0">
+        <h3 class="tipo-titulo text-titulo">{{ m.nueva ? 'Nueva edición ' + m.anio : m.nombre }}</h3>
+        <p class="mt-1 flex flex-wrap items-center gap-3 text-cuerpo text-slate-600">
+          <app-indicador-de-estado [etiqueta]="m.publicada ? 'Publicada' : 'Borrador'" [tono]="m.publicada ? 'logrado' : 'cerrado'" [conTexto]="true" />
+          @if (m.actual) { <span>Edición vigente</span> }
+          @if (sinGuardar()) { <span class="font-bold text-amber-800">Cambios sin guardar</span> }
+        </p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        @if (!m.nueva) {
+          <a class="foco-simus tipo-enlace mr-2 text-morado" [href]="rutaDeVistaPrevia(m.anio)" target="_blank" rel="noopener" data-testid="celebra-vista-previa">Vista previa<span class="sr-only"> (abre en una pestaña nueva)</span></a>
+          @if (m.publicada) {
+            <app-boton importancia="secundaria" [deshabilitado]="guardando() || sinGuardar()" identificador="celebra-despublicar" (accion)="despublicar()">Despublicar</app-boton>
+          } @else {
+            <app-boton importancia="confirmar" [deshabilitado]="guardando() || sinGuardar()" identificador="celebra-publicar" (accion)="publicar()">Publicar</app-boton>
+          }
+        }
+        <app-boton importancia="principal" [ocupado]="guardando()" [deshabilitado]="guardando()" identificador="celebra-guardar" (accion)="guardar()">{{ m.nueva ? 'Crear la edición' : 'Guardar cambios' }}</app-boton>
+      </div>
+    </div>
+    @if (!m.nueva && sinGuardar()) { <p class="mt-2 text-dato text-slate-500">Guarda los cambios antes de publicar o despublicar.</p> }
+
+    @if (error()) { <p class="mt-4 text-cuerpo font-semibold text-rose-700" role="alert" data-testid="celebra-error">{{ error() }}</p> }
+    @if (aviso()) { <p class="mt-4 text-cuerpo font-semibold text-verde-texto" role="status" data-testid="celebra-aviso">{{ aviso() }}</p> }
+    @if (problemas().length) {
+      <ul class="mt-4 list-disc space-y-1 pl-5 text-cuerpo text-amber-900" data-testid="celebra-problemas">
+        @for (p of problemas(); track p) { <li>{{ p }}</li> }
+      </ul>
+    }
+
+    <div class="mt-8 space-y-10">
+      <!-- Datos generales -->
+      <fieldset class="space-y-4">
+        <legend class="tipo-titulo-lista text-titulo">Datos generales</legend>
+        <label class="block"><span class="campo__rotulo">Nombre de la edición</span>
+          <input name="nombre" class="campo__control" [ngModel]="m.nombre" (ngModelChange)="campo('nombre', $event)" /></label>
+        <label class="block"><span class="campo__rotulo">Resumen (una o dos frases)</span>
+          <textarea name="resumen" rows="2" maxlength="600" class="campo__control" [ngModel]="m.resumen" (ngModelChange)="campo('resumen', $event)"></textarea></label>
+        <label class="block"><span class="campo__rotulo">Presentación</span>
+          <textarea name="presentacion" rows="6" class="campo__control" [ngModel]="m.presentacion" (ngModelChange)="campo('presentacion', $event)"></textarea>
+          <span class="campo__ayuda">Un párrafo en blanco separa los párrafos.</span></label>
+        <label class="block"><span class="campo__rotulo">Aliados</span>
+          <input name="aliados" class="campo__control" [ngModel]="m.aliados" (ngModelChange)="campo('aliados', $event)" /></label>
+        <div class="grid gap-4 sm:grid-cols-3">
+          <label class="block"><span class="campo__rotulo">Inicio</span>
+            <input name="fechaInicio" type="date" class="campo__control" [ngModel]="m.fechaInicio" (ngModelChange)="campo('fechaInicio', $event)" /></label>
+          <label class="block"><span class="campo__rotulo">Fin</span>
+            <input name="fechaFin" type="date" class="campo__control" [ngModel]="m.fechaFin" (ngModelChange)="campo('fechaFin', $event)" /></label>
+          <label class="block"><span class="campo__rotulo">Etiqueta de campaña (opcional)</span>
+            <input name="hashtag" class="campo__control" [ngModel]="m.hashtag" (ngModelChange)="campo('hashtag', $event)" />
+            <span class="campo__ayuda">Solo si el Ministerio publica una oficial.</span></label>
+        </div>
+        <label class="flex items-start gap-2 text-cuerpo">
+          <input type="checkbox" name="actual" class="mt-1 accent-morado" [ngModel]="m.actual" (ngModelChange)="campo('actual', $event)" />
+          <span>Es la edición vigente: la que abre el micrositio sin año. Solo una a la vez; al marcarla, la anterior deja de serlo.</span>
+        </label>
+      </fieldset>
+
+      <!-- Cifras -->
+      <fieldset>
+        <legend class="tipo-titulo-lista text-titulo">Cifras</legend>
+        <p class="campo__ayuda">Déjalas vacías si la edición no las publica: no se muestran.</p>
+        <div class="mt-3 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          @for (c of [['actividades','Actividades'],['municipios','Municipios'],['departamentos','Departamentos'],['organizaciones','Organizaciones'],['musicos','Músicos']]; track c[0]) {
+            <label class="block"><span class="campo__rotulo">{{ c[1] }}</span>
+              <input [name]="c[0]" [attr.name]="c[0]" type="number" min="0" class="campo__control" [ngModel]="$any(m)[c[0]]" (ngModelChange)="campo($any(c[0]), numero($event))" /></label>
+          }
+        </div>
+      </fieldset>
+
+      <!-- Colores -->
+      <fieldset>
+        <legend class="tipo-titulo-lista text-titulo">Colores de la edición</legend>
+        <div class="mt-3 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label class="block"><span class="campo__rotulo">Color principal (encabezado)</span>
+              <span class="flex items-center gap-3">
+                <input name="colorPrincipalSelector" type="color" class="h-11 w-14 cursor-pointer rounded border border-slate-300" [ngModel]="m.colorPrincipal" (ngModelChange)="campo('colorPrincipal', $event)" aria-label="Elegir el color principal" />
+                <input name="colorPrincipal" class="campo__control font-mono" maxlength="7" [ngModel]="m.colorPrincipal" (ngModelChange)="campo('colorPrincipal', $event)" />
+              </span></label>
+            @if (contrasteDelPrincipal() < minimoAA) {
+              <p class="mt-2 text-dato font-bold text-amber-800" role="status" data-testid="celebra-contraste-principal">
+                Con este color el texto del encabezado no cumple el contraste AA (mejor caso {{ contrasteDelPrincipal().toFixed(1) }}:1, se pide {{ minimoAA }}:1). Elige uno más oscuro o más claro.
+              </p>
+            } @else {
+              <p class="campo__ayuda">Contraste del texto del encabezado: {{ contrasteDelPrincipal().toFixed(1) }}:1 (cumple AA).</p>
+            }
+          </div>
+          <div>
+            <label class="block"><span class="campo__rotulo">Color de acento (filetes y detalles)</span>
+              <span class="flex items-center gap-3">
+                <input name="colorSecundarioSelector" type="color" class="h-11 w-14 cursor-pointer rounded border border-slate-300" [ngModel]="m.colorSecundario" (ngModelChange)="campo('colorSecundario', $event)" aria-label="Elegir el color de acento" />
+                <input name="colorSecundario" class="campo__control font-mono" maxlength="7" [ngModel]="m.colorSecundario" (ngModelChange)="campo('colorSecundario', $event)" />
+              </span></label>
+            @if (contrasteDelSecundario() < minimoAA) {
+              <p class="mt-2 text-dato font-bold text-amber-800" role="status" data-testid="celebra-contraste-secundario">
+                Este color es solo decorativo; no lo uses para texto (contraste {{ contrasteDelSecundario().toFixed(1) }}:1).
+              </p>
+            }
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Portada -->
+      <fieldset>
+        <legend class="tipo-titulo-lista text-titulo">Imagen de portada</legend>
+        @if (m.portada) {
+          <div class="mt-3 flex flex-wrap items-start gap-4">
+            <img [src]="m.portada.url" alt="Imagen de portada actual" width="160" height="120" class="h-28 w-auto rounded-xl border border-slate-200 bg-white object-contain" />
+            <app-boton importancia="destructiva" tamano="menudo" (accion)="campo('portada', null)">Quitar la portada</app-boton>
+          </div>
+        }
+        <div class="mt-3 flex flex-wrap items-center gap-3">
+          <app-boton importancia="secundaria" (accion)="abrirBanco('portada')">Elegir del Banco de archivos</app-boton>
+        </div>
+        <details class="mt-3"><summary class="foco-simus tipo-enlace cursor-pointer text-morado">Subir una imagen nueva</summary>
+          <div class="mt-3"><app-cargador-de-imagen etiqueta="Portada de la edición" (rutaCambia)="alSubirImagen('portada', $event)" /></div>
+        </details>
+      </fieldset>
+
+      <!-- Categorías -->
+      <fieldset>
+        <legend class="tipo-titulo-lista text-titulo">Categorías</legend>
+        <ul class="mt-3 space-y-4" data-testid="celebra-categorias">
+          @for (c of m.categorias; track $index) {
+            <li class="flex flex-wrap items-start gap-3 border-t border-filete pt-3">
+              <div class="grid min-w-0 flex-1 gap-3 sm:grid-cols-2">
+                <label class="block"><span class="campo__rotulo">Nombre</span>
+                  <input [name]="'cat-nombre-' + $index" [attr.name]="'cat-nombre-' + $index" class="campo__control" [ngModel]="c.nombre" (ngModelChange)="editarItem('categorias', $index, { nombre: $event })" /></label>
+                <label class="block"><span class="campo__rotulo">Descripción</span>
+                  <input [name]="'cat-desc-' + $index" [attr.name]="'cat-desc-' + $index" class="campo__control" [ngModel]="c.descripcion" (ngModelChange)="editarItem('categorias', $index, { descripcion: $event })" /></label>
+              </div>
+              <span class="flex items-center gap-1 pt-6">
+                <app-boton importancia="terciaria" tamano="menudo" [deshabilitado]="$first" etiqueta="Mover la categoría arriba" (accion)="mover('categorias', $index, -1)"><svg lucideArrowUp [size]="16" aria-hidden="true"></svg></app-boton>
+                <app-boton importancia="terciaria" tamano="menudo" [deshabilitado]="$last" etiqueta="Mover la categoría abajo" (accion)="mover('categorias', $index, 1)"><svg lucideArrowDown [size]="16" aria-hidden="true"></svg></app-boton>
+                <app-boton importancia="destructiva" tamano="menudo" etiqueta="Quitar la categoría" (accion)="quitar('categorias', $index)"><svg lucideTrash2 [size]="16" aria-hidden="true"></svg></app-boton>
+              </span>
+            </li>
+          }
+        </ul>
+        <div class="mt-3"><app-boton importancia="secundaria" tamano="menudo" (accion)="agregar('categorias')">Añadir una categoría</app-boton></div>
+      </fieldset>
+
+      <!-- Caja de herramientas -->
+      <fieldset>
+        <legend class="tipo-titulo-lista text-titulo">Caja de herramientas</legend>
+        <p class="campo__ayuda">Cada recurso es un documento del Banco de archivos o un enlace https. El grupo agrupa los recursos en la página.</p>
+        <ul class="mt-3 space-y-4" data-testid="celebra-recursos">
+          @for (r of m.recursos; track $index) {
+            <li class="flex flex-wrap items-start gap-3 border-t border-filete pt-3">
+              <div class="grid min-w-0 flex-1 gap-3 sm:grid-cols-2">
+                <label class="block"><span class="campo__rotulo">Grupo</span>
+                  <input [name]="'rec-grupo-' + $index" [attr.name]="'rec-grupo-' + $index" class="campo__control" [ngModel]="r.grupo" (ngModelChange)="editarItem('recursos', $index, { grupo: $event })" /></label>
+                <label class="block"><span class="campo__rotulo">Título</span>
+                  <input [name]="'rec-titulo-' + $index" [attr.name]="'rec-titulo-' + $index" class="campo__control" [ngModel]="r.titulo" (ngModelChange)="editarItem('recursos', $index, { titulo: $event })" /></label>
+                <label class="block sm:col-span-2"><span class="campo__rotulo">Descripción (opcional)</span>
+                  <input [name]="'rec-desc-' + $index" [attr.name]="'rec-desc-' + $index" class="campo__control" [ngModel]="r.descripcion" (ngModelChange)="editarItem('recursos', $index, { descripcion: $event })" /></label>
+                <app-campo-de-seleccion tamano="normal" etiqueta="Qué es" [identificador]="'rec-tipo-' + $index" [nombre]="'rec-tipo-' + $index"
+                  [ngModel]="r.tipo" (ngModelChange)="editarItem('recursos', $index, { tipo: $event })">
+                  <option value="enlace">Un enlace https</option>
+                  <option value="archivo">Un documento del Banco de archivos</option>
+                </app-campo-de-seleccion>
+                @if (r.tipo === 'enlace') {
+                  <label class="block"><span class="campo__rotulo">Enlace</span>
+                    <input [name]="'rec-url-' + $index" [attr.name]="'rec-url-' + $index" type="url" placeholder="https://" class="campo__control" [ngModel]="r.url" (ngModelChange)="editarItem('recursos', $index, { url: $event })" /></label>
+                } @else {
+                  <label class="block"><span class="campo__rotulo">Documento</span>
+                    <input [name]="'rec-archivo-' + $index" [attr.name]="'rec-archivo-' + $index" type="file" class="block w-full text-xs text-slate-600" [disabled]="subiendoRecurso() === $index" (change)="subirRecurso($index, $event)" />
+                    @if (r.archivoId) { <span class="campo__ayuda">Archivo del Banco n.º {{ r.archivoId }}{{ r.archivoNombre ? ' · ' + r.archivoNombre : '' }}</span> }
+                    @if (subiendoRecurso() === $index) { <span class="campo__ayuda" role="status">Subiendo…</span> }
+                  </label>
+                }
+              </div>
+              <span class="flex items-center gap-1 pt-6">
+                <app-boton importancia="terciaria" tamano="menudo" [deshabilitado]="$first" etiqueta="Mover el recurso arriba" (accion)="mover('recursos', $index, -1)"><svg lucideArrowUp [size]="16" aria-hidden="true"></svg></app-boton>
+                <app-boton importancia="terciaria" tamano="menudo" [deshabilitado]="$last" etiqueta="Mover el recurso abajo" (accion)="mover('recursos', $index, 1)"><svg lucideArrowDown [size]="16" aria-hidden="true"></svg></app-boton>
+                <app-boton importancia="destructiva" tamano="menudo" etiqueta="Quitar el recurso" (accion)="quitar('recursos', $index)"><svg lucideTrash2 [size]="16" aria-hidden="true"></svg></app-boton>
+              </span>
+            </li>
+          }
+        </ul>
+        <div class="mt-3"><app-boton importancia="secundaria" tamano="menudo" identificador="celebra-agregar-recurso" (accion)="agregar('recursos')">Añadir un recurso</app-boton></div>
+      </fieldset>
+
+      <!-- Preguntas frecuentes -->
+      <fieldset>
+        <legend class="tipo-titulo-lista text-titulo">Preguntas frecuentes</legend>
+        <ul class="mt-3 space-y-4" data-testid="celebra-preguntas">
+          @for (q of m.preguntas; track $index) {
+            <li class="flex flex-wrap items-start gap-3 border-t border-filete pt-3">
+              <div class="min-w-0 flex-1 space-y-3">
+                <label class="block"><span class="campo__rotulo">Pregunta</span>
+                  <input [name]="'faq-pregunta-' + $index" [attr.name]="'faq-pregunta-' + $index" class="campo__control" [ngModel]="q.pregunta" (ngModelChange)="editarItem('preguntas', $index, { pregunta: $event })" /></label>
+                <label class="block"><span class="campo__rotulo">Respuesta</span>
+                  <textarea [name]="'faq-respuesta-' + $index" [attr.name]="'faq-respuesta-' + $index" rows="3" maxlength="2000" class="campo__control" [ngModel]="q.respuesta" (ngModelChange)="editarItem('preguntas', $index, { respuesta: $event })"></textarea></label>
+              </div>
+              <span class="flex items-center gap-1 pt-6">
+                <app-boton importancia="terciaria" tamano="menudo" [deshabilitado]="$first" etiqueta="Mover la pregunta arriba" (accion)="mover('preguntas', $index, -1)"><svg lucideArrowUp [size]="16" aria-hidden="true"></svg></app-boton>
+                <app-boton importancia="terciaria" tamano="menudo" [deshabilitado]="$last" etiqueta="Mover la pregunta abajo" (accion)="mover('preguntas', $index, 1)"><svg lucideArrowDown [size]="16" aria-hidden="true"></svg></app-boton>
+                <app-boton importancia="destructiva" tamano="menudo" etiqueta="Quitar la pregunta" (accion)="quitar('preguntas', $index)"><svg lucideTrash2 [size]="16" aria-hidden="true"></svg></app-boton>
+              </span>
+            </li>
+          }
+        </ul>
+        <div class="mt-3"><app-boton importancia="secundaria" tamano="menudo" identificador="celebra-agregar-pregunta" (accion)="agregar('preguntas')">Añadir una pregunta</app-boton></div>
+      </fieldset>
+
+      <!-- Galería -->
+      <fieldset>
+        <legend class="tipo-titulo-lista text-titulo">Galería</legend>
+        <p class="campo__ayuda">Cada imagen lleva su texto alternativo y su crédito: sin ellos no se puede guardar.</p>
+        <ul class="mt-3 space-y-4" data-testid="celebra-galeria">
+          @for (g of m.galeria; track g.archivoId) {
+            <li class="flex flex-wrap items-start gap-3 border-t border-filete pt-3">
+              <img [src]="g.url" alt="" width="120" height="80" class="h-20 w-32 rounded-lg border border-slate-200 bg-white object-cover" />
+              <div class="grid min-w-0 flex-1 gap-3 sm:grid-cols-2">
+                <label class="block"><span class="campo__rotulo">Texto alternativo</span>
+                  <input [name]="'gal-alt-' + $index" [attr.name]="'gal-alt-' + $index" class="campo__control" [ngModel]="g.textoAlternativo" (ngModelChange)="editarItem('galeria', $index, { textoAlternativo: $event })" /></label>
+                <label class="block"><span class="campo__rotulo">Crédito</span>
+                  <input [name]="'gal-credito-' + $index" [attr.name]="'gal-credito-' + $index" class="campo__control" [ngModel]="g.credito" (ngModelChange)="editarItem('galeria', $index, { credito: $event })" /></label>
+              </div>
+              <span class="flex items-center gap-1 pt-6">
+                <app-boton importancia="terciaria" tamano="menudo" [deshabilitado]="$first" etiqueta="Mover la imagen antes" (accion)="mover('galeria', $index, -1)"><svg lucideArrowUp [size]="16" aria-hidden="true"></svg></app-boton>
+                <app-boton importancia="terciaria" tamano="menudo" [deshabilitado]="$last" etiqueta="Mover la imagen después" (accion)="mover('galeria', $index, 1)"><svg lucideArrowDown [size]="16" aria-hidden="true"></svg></app-boton>
+                <app-boton importancia="destructiva" tamano="menudo" etiqueta="Quitar la imagen de la galería" (accion)="quitar('galeria', $index)"><svg lucideTrash2 [size]="16" aria-hidden="true"></svg></app-boton>
+              </span>
+            </li>
+          }
+        </ul>
+        <div class="mt-3 flex flex-wrap items-center gap-3">
+          <app-boton importancia="secundaria" tamano="menudo" identificador="celebra-galeria-banco" (accion)="abrirBanco('galeria')">Elegir del Banco de archivos</app-boton>
+        </div>
+        <details class="mt-3"><summary class="foco-simus tipo-enlace cursor-pointer text-morado">Subir una imagen nueva</summary>
+          <div class="mt-3"><app-cargador-de-imagen etiqueta="Imagen de la galería" (rutaCambia)="alSubirImagen('galeria', $event)" /></div>
+        </details>
+      </fieldset>
+
+      <!-- Fuente y validación -->
+      <fieldset class="space-y-4">
+        <legend class="tipo-titulo-lista text-titulo">Fuente del contenido</legend>
+        <label class="block"><span class="campo__rotulo">Fuente</span>
+          <textarea name="fuente" rows="2" maxlength="300" class="campo__control" [ngModel]="m.fuente" (ngModelChange)="campo('fuente', $event)"></textarea>
+          <span class="campo__ayuda">Se muestra al pie de la edición.</span></label>
+        <label class="flex items-start gap-2 text-cuerpo">
+          <input type="checkbox" name="pendienteDeValidar" class="mt-1 accent-morado" [ngModel]="m.pendienteDeValidar" (ngModelChange)="campo('pendienteDeValidar', $event)" />
+          <span>Contenido pendiente de validar por el PNMC (se avisa al pie de la edición).</span>
+        </label>
+      </fieldset>
+
+      <!-- Historial -->
+      @if (!m.nueva) {
+        <section aria-labelledby="celebra-historial-titulo">
+          <h3 id="celebra-historial-titulo" class="tipo-titulo-lista text-titulo">Historial de cambios</h3>
+          @if (historial().length === 0) {
+            <app-estado-de-lista [denso]="true" titulo="Sin cambios registrados" />
+          } @else {
+            <ol class="mt-3 divide-y divide-filete border-y border-filete" data-testid="celebra-historial">
+              @for (c of historial(); track c.fecha + c.resumen) {
+                <li class="py-2 text-cuerpo">
+                  <span class="font-bold text-titulo">{{ c.resumen }}</span>
+                  <span class="block text-dato text-slate-500">{{ c.fecha | fecha: 'fecha-hora' }}@if (c.usuario) { · {{ c.usuario }} }</span>
+                </li>
+              }
+            </ol>
+          }
+        </section>
+      }
+    </div>
+
+    @if (selectorDeBanco()) {
+      <app-dialogo-de-formulario titulo="Elegir una imagen del Banco de archivos" verbo="Cerrar" tono="principal" [guardando]="false" identificador="celebra-banco-cerrar"
+        proposito="Pulsa una imagen para usarla. Si no está, súbela con «Subir una imagen nueva»."
+        (guardar)="selectorDeBanco.set(null)" (cerrar)="selectorDeBanco.set(null)">
+        @if (cargandoBanco()) { <app-estado-de-lista tipo="cargando" titulo="Consultando el Banco…" [denso]="true" /> }
+        @else if (errorDelBanco()) { <p class="text-cuerpo font-semibold text-rose-700" role="alert">{{ errorDelBanco() }}</p> }
+        @else if (archivosDelBanco().length === 0) { <app-estado-de-lista titulo="El Banco no tiene imágenes" [denso]="true" /> }
+        @else {
+          <ul class="grid max-h-[50vh] grid-cols-2 gap-3 overflow-y-auto sm:grid-cols-3" data-testid="celebra-banco">
+            @for (a of archivosDelBanco(); track a.id) {
+              <li>
+                <button type="button" class="foco-simus block w-full cursor-pointer rounded-lg border border-slate-200 p-1 text-left hover:border-morado" (click)="elegirDelBanco(a)">
+                  <img [src]="a.url" [alt]="a.alt || a.nombre" width="160" height="100" loading="lazy" class="h-24 w-full rounded object-cover" />
+                  <span class="mt-1 block truncate text-dato text-slate-600">{{ a.nombre }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </app-dialogo-de-formulario>
+    }
+  }
+</section>

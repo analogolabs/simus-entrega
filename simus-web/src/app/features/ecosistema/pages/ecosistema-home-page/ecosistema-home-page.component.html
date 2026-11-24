@@ -1,0 +1,111 @@
+<div class="min-h-screen bg-[#fbfcfb] pb-20 font-nunito text-titulo">
+  <!--
+    CABECERA PLANA (EC-1): sin imagen de fondo, como la de El Plan. Era el único menú del portal con
+    foto. Es una cabecera, no un banner de llamado a la acción: solo título y descripción corta; los
+    directorios y el mapa tienen su sitio más abajo en la página.
+  -->
+  <app-page-hero [tag]="texto('ecosistema_hero_tag')" [title]="texto('ecosistema_hero_title')" [description]="texto('ecosistema_hero_desc')" (regresoSolicitado)="go('home')">
+  </app-page-hero>
+
+  <section class="mx-auto max-w-7xl px-6 pt-12 lg:px-8">
+    <div class="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-12">
+      <div><p class="tipo-etiqueta text-morado">{{ texto('ecosistema_about_tag') }}</p><h2 class="tipo-seccion mt-3 text-titulo">{{ texto('ecosistema_about_title') }}</h2></div>
+      <div class="max-w-2xl space-y-4 text-[1.02rem] leading-relaxed text-tinta-media">
+        <p>{{ texto('ecosistema_about_p1') }}</p>
+        <p>{{ texto('ecosistema_about_p2') }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!--
+    EL DIRECTORIO DE AGENTES Y ACTORES, CON PROTAGONISMO (mapa 15): es la puerta a las personas de la música y va
+    inmediatamente después de «qué reúne», en un bloque propio de color. Los textos grandes se alternan: «qué reúne» a
+    la izquierda, este bloque con el título a la derecha, los procesos a la izquierda, las lecturas a la derecha…
+    Sin cifras (DIR, decisión 127).
+  -->
+  <section class="mx-auto max-w-7xl px-6 pt-12 lg:px-8" aria-labelledby="directorio-de-agentes" data-testid="entrada-directorio-de-personas">
+    <div class="grid gap-8 rounded-3xl bg-morado px-7 py-10 text-white lg:grid-cols-[1fr_1.1fr] lg:items-center lg:gap-14 lg:px-12 lg:py-12">
+      <div class="order-2 lg:order-1">
+        <p class="max-w-xl text-[1.02rem] leading-relaxed text-white/90">{{ 'ecosistema_personas_desc' | textoWeb }}</p>
+        <a routerLink="/ecosistema/personas" class="mt-6 inline-flex min-h-11 items-center rounded-xl bg-verde px-6 py-2.5 font-alternate text-sm font-bold text-morado-900 no-underline transition hover:bg-verde-claro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-morado">{{ 'ecosistema_personas_boton' | textoWeb }}</a>
+      </div>
+      <div class="order-1 lg:order-2 lg:text-right">
+        <p class="font-alternate text-xs font-bold text-verde-claro">{{ 'ecosistema_personas_tag' | textoWeb }}</p>
+        <h2 id="directorio-de-agentes" class="mt-3 font-alternate text-3xl font-bold leading-tight text-white lg:text-4xl">{{ 'ecosistema_personas_titulo' | textoWeb }}</h2>
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-7xl px-6 pt-14 lg:px-8" aria-labelledby="directorios-publicos">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div><p class="tipo-etiqueta text-morado">{{ texto('ecosistema_processes_tag') }}</p><h2 id="directorios-publicos" class="tipo-seccion mt-2 scroll-mt-28 text-titulo">{{ texto('ecosistema_processes_title') }}</h2></div>
+      <p class="max-w-md text-sm leading-relaxed text-tinta-media">{{ texto('ecosistema_processes_desc') }}</p>
+    </div>
+    <!--
+      SOLO LOS PROCESOS ACTIVOS, EN EL ORDEN DEL CATÁLOGO (decisión 118). Las tarjetas se reparten
+      todo el ancho: cada una crece desde una base de 12 rem y la última fila también se estira,
+      de modo que no quedan huecos con cuatro, cinco o tres. En móvil quedan apiladas.
+    -->
+    <ul class="mt-6 flex list-none flex-wrap gap-x-6 p-0" data-testid="directorios-publicos">
+      @for (category of primaryCategories(); track category.title) {
+      <li class="min-w-[12rem] flex-1 basis-[12rem]">
+        <!--
+          UN PROCESO DISPONIBLE ES UN ENLACE: se puede abrir en otra pestaña. Uno que aún no
+          tiene directorio no es un control: se nombra, con su estado, y no se puede pulsar.
+        -->
+        @if (category.status === 'Disponible' && category.route) {
+          <a [href]="'/' + category.route" (click)="openCategory($event, category)" class="group block min-h-36 cursor-pointer py-4 text-left no-underline">
+            <ng-container *ngTemplateOutlet="contenidoCategoria; context: { $implicit: category }"></ng-container>
+          </a>
+        } @else {
+          <div class="group min-h-36 py-4 text-left">
+            <ng-container *ngTemplateOutlet="contenidoCategoria; context: { $implicit: category }"></ng-container>
+          </div>
+        }
+      </li>
+      }
+    </ul>
+    <button type="button" (click)="openMapLayer()" appBoton="principal" tamano="comodo" class="mt-4">{{ texto('ecosistema_map_cta') }} <svg lucideMap [size]="15"></svg></button>
+  </section>
+
+  <!--
+    PRÁCTICAS Y TERRITORIOS, SIN DIVISIONES (mapa 14): dos lecturas transversales del país musical, sin líneas arriba ni
+    abajo ni entre ellas. El título va a la derecha para alternar con la sección anterior (mapa 13).
+  -->
+  <section class="mx-auto max-w-7xl px-6 pt-14 lg:px-8" aria-labelledby="lecturas-musicales">
+    <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:gap-12">
+      <div class="order-2 grid gap-8 md:grid-cols-2 lg:order-1">
+        <article class="flex flex-col">
+          <h3 class="font-alternate text-base font-bold text-titulo">{{ 'ecosistema_lecturas_practicas_titulo' | textoWeb }}</h3>
+          <p class="mt-2 flex-1 text-sm leading-relaxed text-tinta-media">{{ 'ecosistema_lecturas_practicas_desc' | textoWeb }}</p>
+          <a routerLink="/ecosistema/practicas-musicales" appBoton="secundaria" tamano="comodo" class="mt-4 inline-flex w-fit">{{ 'ecosistema_lecturas_practicas_boton' | textoWeb }}</a>
+        </article>
+        <article class="flex flex-col">
+          <h3 class="font-alternate text-base font-bold text-titulo">{{ 'ecosistema_lecturas_territorios_titulo' | textoWeb }}</h3>
+          <p class="mt-2 flex-1 text-sm leading-relaxed text-tinta-media">{{ 'ecosistema_lecturas_territorios_desc' | textoWeb }}</p>
+          <a routerLink="/ecosistema/territorios-sonoros" appBoton="secundaria" tamano="comodo" class="mt-4 inline-flex w-fit">{{ 'ecosistema_lecturas_territorios_boton' | textoWeb }}</a>
+        </article>
+      </div>
+      <div class="order-1 lg:order-2 lg:text-right"><p class="tipo-etiqueta text-morado">{{ 'ecosistema_lecturas_tag' | textoWeb }}</p><h2 id="lecturas-musicales" class="tipo-seccion mt-2 text-titulo">{{ 'ecosistema_lecturas_titulo' | textoWeb }}</h2><p class="mt-3 text-sm leading-relaxed text-tinta-media">{{ 'ecosistema_lecturas_desc' | textoWeb }}</p></div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-7xl px-6 pt-14 lg:px-8">
+    <div class="grid gap-x-12 gap-y-6 py-4 lg:grid-cols-[0.8fr_1.2fr]">
+      <div><p class="tipo-etiqueta text-morado">{{ texto('ecosistema_explore_tag') }}</p><h2 class="tipo-seccion mt-2 text-titulo">{{ texto('ecosistema_explore_title') }}</h2><p class="mt-3 max-w-md text-sm leading-relaxed text-tinta-media">{{ texto('ecosistema_explore_desc') }}</p></div>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">@for (item of accessPaths(); track item.title) { <button type="button" (click)="item.action()" class="group cursor-pointer border-0 bg-transparent p-0 text-left"><h3 class="font-alternate text-sm font-bold text-titulo group-hover:text-titulo">{{ item.title }}</h3><p class="mt-2 text-sm leading-relaxed text-tinta-media">{{ item.description }}</p><span class="mt-3 inline-flex items-center gap-2 font-alternate text-xs font-bold text-morado">Explorar</span></button> }</div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-7xl px-6 pt-14 lg:px-8">
+    <div class="flex flex-wrap items-end justify-between gap-6 lg:flex-row-reverse"><div class="lg:text-right"><p class="tipo-etiqueta text-morado">{{ texto('ecosistema_join_tag') }}</p><h2 class="tipo-seccion mt-2 text-titulo">{{ texto('ecosistema_join_title') }}</h2><p class="mt-3 max-w-2xl text-sm leading-relaxed text-tinta-media lg:ml-auto">{{ texto('ecosistema_join_desc') }}</p></div><div class="flex flex-wrap gap-3"><button type="button" (click)="go('ecosistema/ayuda')" appBoton="principal" tamano="comodo">{{ texto('ecosistema_join_cta') }}</button><button type="button" (click)="openContact()" appBoton="secundaria" tamano="comodo">Contacto</button></div></div>
+  </section>
+</div>
+
+<ng-template #contenidoCategoria let-category>
+          <span class="flex h-9 w-9 items-center justify-center text-morado">@if (category.icon === 'festivals') { <svg lucideMusic2 [size]="20"></svg> } @else if (category.icon === 'markets') { <svg lucideMapPin [size]="20"></svg> } @else if (category.icon === 'networks') { <svg lucideLibrary [size]="20"></svg> } @else if (category.icon === 'spaces') { <svg lucideLandmark [size]="20"></svg> } @else if (category.icon === 'luthier') { <svg lucideGuitar [size]="20"></svg> } @else { <svg lucideBookOpen [size]="20"></svg> }</span>
+          <h3 class="mt-5 font-alternate text-[0.78rem] font-bold leading-snug text-titulo group-hover:text-titulo">{{ category.title }}</h3>
+          <p class="mt-2 text-sm leading-relaxed text-tinta-media">{{ category.description }}</p>
+          @if (category.countKey) { <p class="mt-3 font-alternate text-xs font-bold text-tinta-media">{{ isLoadingEcosystem() ? 'Cargando registros' : count(category) + (count(category) === 1 ? ' registro disponible' : ' registros disponibles') }}</p> }
+          <span class="mt-4 inline-flex items-center gap-2 font-alternate text-xs font-bold text-morado transition enabled:group-hover:gap-3 enabled:group-hover:text-morado">{{ category.status === 'Disponible' ? 'Explorar' : 'Próximamente' }} @if (category.status === 'Disponible') { }</span>
+</ng-template>

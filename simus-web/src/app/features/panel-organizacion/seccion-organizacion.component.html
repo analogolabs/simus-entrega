@@ -1,0 +1,337 @@
+<!--
+  La ruta «Datos de la organización», en /gestion/organizacion.
+
+  HASTA EL 1 DE SEPTIEMBRE DE 2026 ESTE MISMO ARCHIVO TAMBIÉN LLEVABA «Persona responsable» debajo,
+  como una segunda sección del mismo componente. Se separó en `SeccionResponsableComponent`, su
+  propia ruta en `/gestion/responsable`, porque ya eran dos formularios con dos botones
+  de guardar y dos tablas -`dbo.Entidades` y `dbo.EntidadesResponsable`- sin una sola línea de DOM
+  compartida entre los dos bloques.
+
+  TODO CAMPO LLEVA SU `<label for>` Y SU `id`. No hay `placeholder` haciendo de rótulo: el
+  marcador de posición desaparece al escribir y no lo anuncia ningún lector de pantalla.
+-->
+<div class="space-y-5">
+
+  <!-- ============ Los datos de la organización ============ -->
+  <!--
+    POR OMISIÓN SE LEE. Hasta esta pestaña abría con los dos formularios
+    desplegados y trece campos rellenos, que se leen como un alta a medio hacer y no como la
+    ficha ya registrada. Ahora el formulario —el mismo, sin tocarle un campo ni una validación—
+    vive dentro de la rama de edición y se abre con «Editar los datos de la organización».
+
+    LOS DOS AVISOS VAN FUERA DEL FORMULARIO. Estaban dentro; al guardar bien se vuelve a lectura y
+    el formulario desaparece, así que el «quedaron guardados» se habría ido con él sin llegar a
+    leerse.
+  -->
+  <section class="space-y-5" aria-labelledby="perfil-titulo">
+    @if (errorPerfil()) {
+      <p role="alert" class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ errorPerfil() }}</p>
+    }
+    <!--
+      LA REGIÓN VIVA EXISTE SIEMPRE; lo condicional es su texto y su recuadro. Un `role="status"`
+      que se INSERTA junto con su contenido se pierde a menudo: NVDA y JAWS anuncian con fiabilidad
+      lo que cambia DENTRO de una región que ya estaba en el documento, no la aparición de la
+      región entera. Importa más desde: al guardar bien, el formulario
+      desaparece y este aviso es la única señal de que se guardó.
+
+      El `role="alert"` de arriba sí se pinta condicionalmente, y es correcto: un alert insertado se
+      anuncia de forma fiable, que es justo lo que no ocurre con `status`.
+    -->
+    <p role="status" [class.hidden]="!mensajePerfil()"
+       class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{{ mensajePerfil() }}</p>
+
+    @if (editandoPerfil()) {
+      <form class="space-y-5" novalidate (submit)="$event.preventDefault(); guardarPerfil()">
+        <header class="space-y-1">
+          <h1 id="perfil-titulo">Datos de la organización</h1>
+          <p class="mt-2 text-cuerpo leading-relaxed text-prosa">
+            Trece campos del registro de la organización. El estado del registro y las coordenadas del
+            mapa los administra el equipo del PNMC y no se cambian desde aquí.
+          </p>
+        </header>
+
+        <!--
+          LA FOTO DE PERFIL, Y ES PUBLICA. Decisión de producto:
+          2026. Hasta entonces la organización se veía siempre con sus iniciales, que SIGUEN siendo
+          el respaldo de quien no sube ninguna: no es un hueco, es lo que corresponde.
+
+          VA ARRIBA DEL TODO porque es lo que identifica, y al lado del nombre por lo mismo.
+        -->
+        <section class="flex flex-wrap items-center gap-5 border-b border-slate-200 pb-4" aria-labelledby="perfil-foto-titulo">
+          @if (vistaPreviaDeFoto() || formulario.fotoUrl) {
+            <img [src]="vistaPreviaDeFoto() || formulario.fotoUrl" alt="Foto de perfil de la organización"
+                 width="80" height="80" data-foto-vista
+                 class="h-20 w-20 shrink-0 rounded-full border border-slate-200 object-cover">
+          } @else {
+            <span aria-hidden="true" class="grid h-20 w-20 shrink-0 place-items-center rounded-full bg-morado font-alternate text-2xl font-bold text-white">{{ iniciales() }}</span>
+          }
+          <div class="min-w-0 flex-1">
+            <p id="perfil-foto-titulo" class="text-sm font-bold text-slate-900">Foto de perfil</p>
+            <p class="mt-0.5 text-xs leading-relaxed text-slate-600">
+              Aparece en el portal junto a los procesos que administras. Si no subes ninguna, se usan
+              tus iniciales.
+            </p>
+            <div class="mt-3 flex flex-wrap items-center gap-3">
+              <label class="cursor-pointer rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-morado hover:border-verde-medio">
+                {{ (vistaPreviaDeFoto() || formulario.fotoUrl) ? 'Cambiar foto' : 'Elegir foto' }}
+                <input type="file" class="hidden" accept="image/png,image/jpeg,image/webp"
+                       [disabled]="subiendoFoto() || guardandoPerfil()" (change)="elegirFoto($any($event.target))">
+              </label>
+              @if (vistaPreviaDeFoto() || formulario.fotoUrl) {
+                <button type="button" class="text-xs font-bold text-rose-700 underline underline-offset-4" (click)="quitarFoto()">Quitar</button>
+              }
+            </div>
+            @if (vistaPreviaDeFoto()) { <p class="mt-2 text-xs text-slate-600" data-foto-pendiente>Se subirá al guardar los datos de la organización.</p> }
+            @if (errorDeFoto()) { <p role="alert" class="mt-2 text-xs text-rose-700">{{ errorDeFoto() }}</p> }
+          </div>
+        </section>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label for="perfil-nombre" class="block text-sm font-bold text-slate-900 sm:col-span-2">
+            Nombre de la organización <span class="text-verde-texto">*</span>
+            <input id="perfil-nombre" name="nombre" type="text" required maxlength="240" autocomplete="organization"
+                   [(ngModel)]="formulario.nombre"
+                   [attr.aria-invalid]="erroresPerfil()['name'] ? 'true' : null"
+                   [attr.aria-describedby]="erroresPerfil()['name'] ? 'perfil-nombre-error' : null"
+                   class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+            @if (erroresPerfil()['name']) { <span id="perfil-nombre-error" class="mt-1 block text-xs font-normal text-red-700">{{ erroresPerfil()['name'] }}</span> }
+          </label>
+
+          <label for="perfil-nombre-legal" class="block text-sm font-bold text-slate-900 sm:col-span-2">
+            Razón social <span class="font-normal text-slate-500">(si es distinta del nombre)</span>
+            <input id="perfil-nombre-legal" name="nombreLegal" type="text" maxlength="240"
+                   [(ngModel)]="formulario.nombreLegal"
+                   class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+          </label>
+
+          <!--
+            EL NIT SE CORRIGE SIEMPRE. Hasta se congelaba en cuanto el
+            Programa recibía un registro de la organización, y aquí se pintaba como texto con un
+            «escríbeles si hay un error». La dirección de producto retiró ese bloqueo: una errata en el
+            NIT es justo lo que hay que poder arreglar sin escribir un correo. Sigue siendo único
+            entre organizaciones, y eso lo comprueba el servidor al guardar.
+          -->
+          <app-campo-de-nit name="numeroIdentificacion" identificador="perfil-nit" nombre="numeroIdentificacion"
+                            [(ngModel)]="formulario.numeroIdentificacion" [valorGuardado]="perfil()?.numeroIdentificacion ?? ''"
+                            [error]="erroresPerfil()['identificationNumber'] ?? null" />
+
+          <label for="perfil-correo" class="block text-sm font-bold text-slate-900">
+            Correo de contacto <span class="text-verde-texto">*</span>
+            <input id="perfil-correo" name="correoContacto" type="email" required maxlength="180" autocomplete="email"
+                   [(ngModel)]="formulario.correoContacto"
+                   [attr.aria-invalid]="erroresPerfil()['contactEmail'] ? 'true' : null"
+                   [attr.aria-describedby]="erroresPerfil()['contactEmail'] ? 'perfil-correo-error' : null"
+                   class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+            @if (erroresPerfil()['contactEmail']) { <span id="perfil-correo-error" class="mt-1 block text-xs font-normal text-red-700">{{ erroresPerfil()['contactEmail'] }}</span> }
+          </label>
+
+          <label for="perfil-telefono" class="block text-sm font-bold text-slate-900">
+            Teléfono de contacto
+            <input id="perfil-telefono" name="telefonoContacto" type="tel" maxlength="80" autocomplete="tel"
+                   [(ngModel)]="formulario.telefonoContacto"
+                   class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio" [attr.aria-invalid]="erroresPerfil()['telefonoContacto'] ? 'true' : null" aria-describedby="perfil-telefono-error">
+          
+            <app-error-de-campo identificador="perfil-telefono-error" [mensaje]="erroresPerfil()['telefonoContacto']" />
+          </label>
+
+          <label for="perfil-direccion" class="block text-sm font-bold text-slate-900">
+            Dirección
+            <input id="perfil-direccion" name="direccion" type="text" maxlength="300" autocomplete="street-address"
+                   [(ngModel)]="formulario.direccion"
+                   class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio" [attr.aria-invalid]="erroresPerfil()['direccion'] ? 'true' : null" aria-describedby="perfil-direccion-error">
+          
+            <app-error-de-campo identificador="perfil-direccion-error" [mensaje]="erroresPerfil()['direccion']" />
+          </label>
+
+          <label for="perfil-descripcion" class="block text-sm font-bold text-slate-900 sm:col-span-2">
+            Descripción <span class="font-normal text-slate-500">(hasta 2.000 caracteres)</span>
+            <textarea id="perfil-descripcion" name="descripcion" rows="4" maxlength="2000"
+                      [(ngModel)]="formulario.descripcion"
+                      class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio" [attr.aria-invalid]="erroresPerfil()['descripcion'] ? 'true' : null" aria-describedby="perfil-descripcion-error"></textarea>
+          
+            <app-error-de-campo identificador="perfil-descripcion-error" [mensaje]="erroresPerfil()['descripcion']" />
+          </label>
+        </div>
+
+        <fieldset class="space-y-4 rounded-xl border border-slate-200 p-4">
+          <legend class="t-rotulo px-2">Sede de la organización</legend>
+          <p class="text-sm text-slate-500">Indica dónde tiene su sede principal la organización.</p>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="block"><app-campo-de-seleccion tamano="comodo" etiqueta="Departamento" identificador="perfil-departamento" [obligatorio]="true" name="codigoDepartamentoSede" required [(ngModel)]="formulario.codigoDepartamentoSede" (ngModelChange)="alCambiarDepartamento()" [invalido]="!!(erroresPerfil()['headquartersDepartmentCode'])">
+                <option value="" class="text-slate-900">Elige un departamento</option>@for (departamento of departamentos(); track departamento.code) { <option [value]="departamento.code" class="text-slate-900">{{ departamento.name | nombrePropio }}</option> }
+              </app-campo-de-seleccion>
+              @if (erroresPerfil()['headquartersDepartmentCode']) { <span class="mt-1 block text-xs font-normal text-red-700">{{ erroresPerfil()['headquartersDepartmentCode'] }}</span> }
+            </div>
+            <div class="block"><app-campo-de-seleccion tamano="comodo" etiqueta="Municipio" identificador="perfil-municipio" [obligatorio]="true" name="codigoMunicipioSede" required [(ngModel)]="formulario.codigoMunicipioSede" [invalido]="!!(erroresPerfil()['headquartersMunicipalityCode'])">
+                <option value="" class="text-slate-900">Elige un municipio</option>@for (municipio of municipios(); track municipio.municipalityCode) { <option [value]="municipio.municipalityCode" class="text-slate-900">{{ municipio.municipalityName | nombrePropio }}</option> }
+              </app-campo-de-seleccion>
+              @if (erroresPerfil()['headquartersMunicipalityCode']) { <span class="mt-1 block text-xs font-normal text-red-700">{{ erroresPerfil()['headquartersMunicipalityCode'] }}</span> }
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="grid gap-4 rounded-xl border border-slate-200 p-4 sm:grid-cols-2">
+          <legend class="t-rotulo px-2">Enlaces</legend>
+          <label for="perfil-sitio" class="block text-sm font-bold text-slate-900">
+            Sitio web
+            <input id="perfil-sitio" name="sitioWeb" type="text" maxlength="500" inputmode="url"
+                   [(ngModel)]="formulario.sitioWeb"
+                   class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio" [attr.aria-invalid]="erroresPerfil()['sitioWeb'] ? 'true' : null" aria-describedby="perfil-sitio-error">
+          
+            <app-error-de-campo identificador="perfil-sitio-error" [mensaje]="erroresPerfil()['sitioWeb']" />
+          </label>
+          <label for="perfil-facebook" class="block text-sm font-bold text-slate-900">
+            Facebook
+            <input id="perfil-facebook" name="facebook" type="text" maxlength="500" inputmode="url"
+                   [(ngModel)]="formulario.facebook"
+                   class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio" [attr.aria-invalid]="erroresPerfil()['facebook'] ? 'true' : null" aria-describedby="perfil-facebook-error">
+          
+            <app-error-de-campo identificador="perfil-facebook-error" [mensaje]="erroresPerfil()['facebook']" />
+          </label>
+          <label for="perfil-instagram" class="block text-sm font-bold text-slate-900">
+            Instagram
+            <input id="perfil-instagram" name="instagram" type="text" maxlength="500" inputmode="url"
+                   [(ngModel)]="formulario.instagram"
+                   class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio" [attr.aria-invalid]="erroresPerfil()['instagram'] ? 'true' : null" aria-describedby="perfil-instagram-error">
+          
+            <app-error-de-campo identificador="perfil-instagram-error" [mensaje]="erroresPerfil()['instagram']" />
+          </label>
+          <label for="perfil-otro-enlace" class="block text-sm font-bold text-slate-900">
+            Otro enlace
+            <input id="perfil-otro-enlace" name="otroEnlace" type="text" maxlength="500" inputmode="url"
+                   [(ngModel)]="formulario.otroEnlace"
+                   class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio" [attr.aria-invalid]="erroresPerfil()['otroEnlace'] ? 'true' : null" aria-describedby="perfil-otro-enlace-error">
+          
+            <app-error-de-campo identificador="perfil-otro-enlace-error" [mensaje]="erroresPerfil()['otroEnlace']" />
+          </label>
+        </fieldset>
+
+        <!--
+          «Cancelar» va deshabilitado mientras el PUT viaja: volver a lectura con la petición en vuelo
+          dejaría en pantalla los datos viejos justo cuando el servidor está escribiendo los nuevos.
+        -->
+        <div class="flex flex-wrap gap-3">
+          <button type="submit" [disabled]="guardandoPerfil()"
+                  appBoton="confirmar">
+            {{ guardandoPerfil() ? 'Guardando…' : 'Guardar datos de la organización' }}
+          </button>
+          <button type="button" data-testid="perfil-cancelar" [disabled]="guardandoPerfil()" (click)="cancelarPerfil()"
+                  aria-label="Cancelar la edición de los datos de la organización"
+                  appBoton="secundaria">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    } @else {
+      <!--
+        LA VISTA POR OMISIÓN: los trece campos del registro con sus etiquetas, no con sus códigos.
+        Van `nombreDepartamentoSede` y `nombreMunicipioSede`, no sus códigos:
+        «05001» no es un dato legible, es el identificador de DIVIPOLA con el que la base guarda a
+        Medellín.
+      -->
+      <div data-testid="perfil-lectura" class="max-w-6xl space-y-8">
+        <!--
+          LA LECTURA, EN CUATRO MOMENTOS (P4, prototipo B4): quién es (la foto, el nombre, el NIT, la sede y el estado), cómo se
+          le escribe (Contacto, con icono), dónde se le encuentra (En línea, con icono y enlace) y qué hace. Los trece datos
+          del registro siguen todos aquí, con sus etiquetas y no con sus códigos: «05001» no es un dato legible, es el
+          identificador de DIVIPOLA con el que la base guarda a Medellín.
+
+          LA FOTO SE MUESTRA (decisión de P4, 21 de noviembre de 2026): la subida ya existía dentro de «Editar» y la foto es
+          pública, pero en la lectura solo se veía en la cabecera. Sin foto, las iniciales siguen siendo el respaldo.
+          «Cambiar foto» abre la edición, que es donde la foto se elige y se sube al guardar.
+        -->
+        <header class="flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
+          <div class="min-w-0">
+            <h1 id="perfil-titulo">Datos de la organización</h1>
+          </div>
+
+          <!--
+            EDITAR ES UNA OPCION, NO EL ASUNTO DE LA PANTALLA: arriba, junto al título de lo que corrige, en la variante
+            secundaria. El rótulo visible es «Editar» y el accesible dice sobre qué.
+          -->
+          @if (perfil() && esAdministradora()) {
+            <app-boton
+              importancia="secundaria" tamano="normal"
+              identificador="perfil-editar"
+              etiqueta="Editar los datos de la organización"
+              (accion)="editarPerfil()">
+              <svg lucidePencilLine [size]="16" aria-hidden="true"></svg>
+              Editar
+            </app-boton>
+          }
+        </header>
+
+        @if (perfil() && !esAdministradora()) {
+          <app-aviso-solo-administracion texto="Cambiar los datos de la organización lo hace quien la administra. Tu rol es editor." />
+        }
+
+        @if (perfil(); as p) {
+          <section class="flex flex-wrap items-start gap-x-6 gap-y-4" aria-labelledby="org-nombre" data-testid="perfil-identidad">
+            @if (p.fotoUrl) {
+              <img [src]="p.fotoUrl" [alt]="'Foto de perfil de ' + (p.nombre || 'la organización')" width="112" height="112" data-foto-lectura
+                   class="h-28 w-28 shrink-0 rounded-2xl border border-slate-200 object-cover">
+            } @else {
+              <span aria-hidden="true" data-iniciales-lectura class="grid h-28 w-28 shrink-0 place-items-center rounded-2xl bg-morado font-alternate text-4xl font-bold text-white">{{ inicialesDe(p.nombre) }}</span>
+            }
+            <div class="min-w-0 flex-1 space-y-2">
+              <h2 id="org-nombre" data-testid="perfil-nombre">{{ p.nombre || 'Sin registrar' }}</h2>
+              @if (p.nombreLegal && p.nombreLegal !== p.nombre) { <p class="text-cuerpo text-prosa" data-testid="perfil-razon-social">Razón social: {{ p.nombreLegal }}</p> }
+              <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-lectura text-prosa">
+                <span data-testid="perfil-nit">{{ p.numeroIdentificacion ? (p.tipoIdentificacion || 'NIT') + ' ' + p.numeroIdentificacion : 'NIT sin registrar' }}</span>
+                <span aria-hidden="true">·</span>
+                <span data-testid="perfil-sede">{{ sedeDe(p) }}</span>
+                @if (p.estadoRegistroEtiqueta; as etiqueta) {
+                  <span aria-hidden="true">·</span>
+                  <span data-estado-organizacion>
+                    <app-indicador-de-estado
+                      [etiqueta]="etiqueta"
+                      [tono]="tonoDelEstado(p.estadoRegistro)"
+                      [matiz]="matizDelEstado(p.estadoRegistro)"
+                      [conTexto]="true"></app-indicador-de-estado>
+                  </span>
+                }
+              </p>
+              @if (p.estadoRegistroEtiqueta) { <p class="text-cuerpo text-prosa" data-explicacion-estado>{{ explicacionDelEstado() }}</p> }
+              @if (p.fechaActualizacion) { <p class="t-ayuda">Última actualización: {{ p.fechaActualizacion | fecha }}.</p> }
+              @if (esAdministradora()) {
+                <p>
+                  <button type="button" appBoton="secundaria" data-testid="perfil-cambiar-foto" (click)="editarPerfil()"
+                          [attr.aria-label]="(p.fotoUrl ? 'Cambiar foto' : 'Subir foto') + ' de la organización (abre la edición de los datos)'">{{ p.fotoUrl ? 'Cambiar foto' : 'Subir foto' }}</button>
+                </p>
+              }
+            </div>
+          </section>
+
+          <app-panel-de-seccion titulo="Contacto" idDelTitulo="org-contacto">
+            <dl class="grid gap-x-10 gap-y-5 grid-cols-[repeat(auto-fit,minmax(18rem,1fr))]" data-testid="perfil-contacto">
+              <div app-dato-con-icono rotulo="Dirección" icono="direccion" [valor]="p.direccion"></div>
+              <div app-dato-con-icono rotulo="Teléfono de contacto" icono="telefono" [valor]="p.telefonoContacto" vinculoDe="tel"></div>
+              <div app-dato-con-icono rotulo="Correo de contacto" icono="correo" [valor]="p.correoContacto" vinculoDe="mailto"></div>
+            </dl>
+          </app-panel-de-seccion>
+          <app-panel-de-seccion titulo="En línea" idDelTitulo="org-enlaces">
+            <dl class="grid gap-x-10 gap-y-5 grid-cols-[repeat(auto-fit,minmax(18rem,1fr))]" data-testid="perfil-en-linea">
+              <div app-dato-con-icono rotulo="Sitio web" icono="sitioWeb" [valor]="p.sitioWeb" [enlace]="true"></div>
+              <div app-dato-con-icono rotulo="Facebook" icono="facebook" [valor]="p.facebook" [enlace]="true"></div>
+              <div app-dato-con-icono rotulo="Instagram" icono="instagram" [valor]="p.instagram" [enlace]="true"></div>
+              <div app-dato-con-icono rotulo="Otro enlace" icono="otroEnlace" [valor]="p.otroEnlace" [enlace]="true"></div>
+            </dl>
+          </app-panel-de-seccion>
+          <app-panel-de-seccion titulo="Qué hace la organización" idDelTitulo="org-descripcion">
+            <p class="max-w-3xl whitespace-pre-line text-lectura" data-testid="perfil-descripcion"
+               [class.text-valor]="p.descripcion" [class.text-rotulo]="!p.descripcion">{{ p.descripcion || 'Sin registrar' }}</p>
+          </app-panel-de-seccion>
+        } @else {
+          <!-- El perfil lo pide la página, no esta pestaña: mientras no llega no hay nada que editar. -->
+          <p class="text-cuerpo text-prosa">
+            Los datos de la organización todavía no han llegado.
+          </p>
+        }
+      </div>
+    }
+  </section>
+
+  <section id="responsable" class="scroll-mt-24 pt-6" aria-label="Persona responsable de la organización">
+    <app-seccion-responsable></app-seccion-responsable>
+  </section>
+</div>

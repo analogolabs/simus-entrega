@@ -1,0 +1,303 @@
+<!-- Cabecera de página y pestañas: se reutilizan en cada vista para que el título y las pestañas no cambien de sitio. -->
+<ng-template #encabezadoTpl>
+  <div class="envoltorio">
+    <header class="cabecera">
+      <p class="et">{{ 'galeria_etiqueta' | textoWeb }}</p>
+      <h1 class="h1 tipo-seccion" id="galeria-titulo">{{ 'galeria_titulo' | textoWeb }}</h1>
+      <p class="lead">{{ 'galeria_descripcion' | textoWeb }}</p>
+    </header>
+  </div>
+</ng-template>
+
+<ng-template #pestanasTpl>
+  <div class="envoltorio" data-testid="galeria-pestanas">
+    <app-pestanas etiquetaDelGrupo="Secciones de la Galería" [opciones]="pestanas()" [elegida]="pestanaElegida()" controla="galeria-panel" (elegir)="irA($event)" />
+  </div>
+</ng-template>
+
+<ng-template #iconoDeTipo let-a>
+  @if (a.totalVideos > 0 && a.totalFotos === 0) { <svg lucideVideo [size]="14" aria-hidden="true"></svg> } @else { <svg lucideImage [size]="14" aria-hidden="true"></svg> }
+</ng-template>
+
+<div class="galeria">
+  @if (cargando()) {
+    <ng-container *ngTemplateOutlet="encabezadoTpl" />
+    <div class="envoltorio"><app-esqueleto variante="tarjeta" [cantidad]="6" etiqueta="Cargando la Galería" /></div>
+  } @else if (error()) {
+    <ng-container *ngTemplateOutlet="encabezadoTpl" />
+    <div class="envoltorio">
+      <div class="estado estado--error" role="alert" data-testid="galeria-error">
+        <p class="et et--error">{{ 'galeria_error_etiqueta' | textoWeb }}</p>
+        <h2 class="estado__titulo tipo-titulo">{{ 'galeria_error_titulo' | textoWeb }}</h2>
+        <p>{{ error() }} Sus fotos y videos no se han perdido; vuelva a intentarlo en unos segundos.</p>
+        <button type="button" class="btn btn--k" (click)="reintentar(null)">{{ 'galeria_reintentar' | textoWeb }}</button>
+      </div>
+    </div>
+  } @else if (!hayAlbumes()) {
+    <ng-container *ngTemplateOutlet="encabezadoTpl" />
+    <div class="envoltorio">
+      <section class="estado" aria-labelledby="galeria-vacia-titulo" data-testid="galeria-vacia">
+        <p class="et">{{ 'galeria_vacia_etiqueta' | textoWeb }}</p>
+        <h2 id="galeria-vacia-titulo" class="estado__titulo tipo-titulo">{{ 'galeria_vacia_titulo' | textoWeb }}</h2>
+        <p>{{ 'galeria_vacia_texto' | textoWeb }}</p>
+      </section>
+    </div>
+  } @else if (vista() === 'album') {
+    <!-- UN ÁLBUM: cabecera con la portada difuminada, mosaico de fotos y, si tiene videos, su reproductor -->
+    @if (cargandoAlbum()) {
+      <ng-container *ngTemplateOutlet="encabezadoTpl" />
+      <div class="envoltorio"><app-esqueleto variante="tarjeta" [cantidad]="6" etiqueta="Cargando el álbum" /></div>
+    } @else if (albumNoEncontrado()) {
+      <ng-container *ngTemplateOutlet="encabezadoTpl" />
+      <div class="envoltorio">
+        <div class="estado" role="status" data-testid="galeria-album-no-existe">
+          <h2 class="estado__titulo tipo-titulo">{{ 'galeria_album_no_encontrado' | textoWeb }}</h2>
+          <p>{{ 'galeria_album_no_encontrado_texto' | textoWeb }}</p>
+          <a class="btn btn--k" routerLink="/galeria">{{ 'galeria_ver_albumes' | textoWeb }}</a>
+        </div>
+      </div>
+    } @else if (album(); as al) {
+      <article data-testid="galeria-album" aria-labelledby="galeria-album-titulo">
+        <section class="albhead">
+          @if (al.portadaUrl) { <img class="albhead__fondo" [src]="al.portadaUrl" alt="" width="1280" height="720" /> }
+          <div class="envoltorio albhead__cuerpo">
+            <button type="button" class="volver" (click)="volver()" data-testid="galeria-volver-boton"><svg lucideArrowLeft [size]="16" aria-hidden="true"></svg> Volver a {{ rotuloDeOrigen() }}</button>
+            <nav class="crumb" aria-label="Ruta">
+              <a routerLink="/galeria" data-testid="galeria-volver">{{ 'galeria_titulo' | textoWeb }}</a><span aria-hidden="true">›</span>
+              <a [routerLink]="vistaDeOrigen() === 'albumes' ? ['/galeria'] : ['/galeria', vistaDeOrigen()]" data-testid="galeria-miga-origen">{{ rotuloDeOrigen() }}</a><span aria-hidden="true">›</span>
+              <span aria-current="page">{{ al.titulo }}</span>
+            </nav>
+            <h1 class="h1 h1--claro tipo-seccion" id="galeria-album-titulo">{{ al.titulo }}</h1>
+            @if (al.descripcion) { <p class="lead lead--claro">{{ al.descripcion }}</p> }
+            <p class="meta">
+              @if (al.lugar) { <span>{{ al.lugar }}</span> }
+              @if (al.fechaReferencia) { <span>{{ fechaLarga(al.fechaReferencia) }}</span> }
+              <span>{{ conteo(fotosDelAlbum().length, videosDelAlbum().length) }}</span>
+            </p>
+            <div class="acc">
+              <button type="button" class="btn btn--o" (click)="copiar(urlDe('album', al.slug))"><svg lucideLink [size]="16" aria-hidden="true"></svg> {{ 'galeria_copiar_enlace' | textoWeb }}</button>
+              @if (al.listaOrigenUrl) {
+                <a class="btn btn--g" [href]="al.listaOrigenUrl" target="_blank" rel="noopener noreferrer" data-testid="galeria-lista">{{ 'galeria_ver_youtube' | textoWeb }}<span class="sr-only"> (se abre en una pestaña nueva)</span></a>
+              }
+            </div>
+          </div>
+        </section>
+        <div class="envoltorio" id="galeria-panel">
+          @if (al.items.length === 0) { <p class="vacio-texto">{{ 'galeria_album_vacio' | textoWeb }}</p> }
+          @if (fotosDelAlbum().length > 0) {
+            <ul class="rejilla" aria-label="Fotografías del álbum" data-testid="galeria-items">
+              @for (f of fotosDelAlbum(); track f.id; let i = $index) {
+                <li class="celda" [class.celda--vertical]="f.razon < 0.9">
+                  <button type="button" (click)="abrirFoto(f)" [attr.aria-label]="'Abrir la foto ' + (i + 1) + ' de ' + fotosDelAlbum().length + ': ' + (f.titulo ?? f.alt)" [attr.data-testid]="'foto-' + f.id">
+                    <img [src]="f.url" [alt]="f.alt" width="480" height="320" loading="lazy" decoding="async" />
+                    <span class="celda__pie">{{ f.titulo ?? f.alt }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+          @if (videosDelAlbum().length > 0) {
+            <app-galeria-reproductor [videos]="videosDelAlbum()" [elegidoId]="videoId()"
+              [rotuloDeLista]="videosDelAlbum().length === 1 ? '1 video del álbum' : videosDelAlbum().length + ' videos del álbum'" [rotuloDeVuelta]="rotuloDeOrigen()" (volver)="volver()"
+              (elegir)="elegirVideo($event)" (copiar)="copiarVideo($event)" />
+          }
+        </div>
+      </article>
+    }
+  } @else {
+    @if (vista() === 'albumes' && destacadoActual(); as m) {
+      <!-- PORTADA: carrusel de los tres álbumes más recientes («Destacados»); pausa con el puntero, el foco o el botón y respeta «reducir movimiento» -->
+      <section class="hero" aria-roledescription="carrusel" aria-label="Destacados de la Galería" data-testid="galeria-hero"
+        (pointerenter)="alPuntero(true)" (pointerleave)="alPuntero(false)" (focusin)="alFoco(true)" (focusout)="alFoco(false)">
+        <div class="envoltorio hero__cuerpo">
+          @for (d of [m]; track d.slug) {
+            <div class="hero__texto" [attr.aria-live]="rotando() ? 'off' : 'polite'" aria-atomic="true">
+              <p class="et et--oro">{{ 'galeria_destacados' | textoWeb }}</p>
+              <h1 class="h1 h1--claro tipo-seccion" id="galeria-titulo">{{ d.titulo }}</h1>
+              @if (d.descripcion) { <p class="lead lead--claro lead--recorte">{{ d.descripcion }}</p> }
+              <p class="meta meta--hero">
+                @if (d.lugar) { <span>{{ d.lugar }}</span> }
+                @if (d.fechaReferencia) { <span>{{ fechaLarga(d.fechaReferencia) }}</span> }
+                <span>{{ rotuloDelAlbum(d) }}</span>
+              </p>
+              <div class="acc"><a class="btn btn--p" [routerLink]="['/galeria/album', d.slug]" data-testid="galeria-hero-ver">{{ 'galeria_ver_album' | textoWeb }} <svg lucideArrowRight [size]="16" aria-hidden="true"></svg></a></div>
+            </div>
+            @if (portadaImagenes().length > 0) {
+              <div class="mosa" [class.mosa--una]="portadaImagenes().length === 1" aria-label="Imágenes del álbum destacado">
+                @for (im of portadaImagenes(); track im.url; let i = $index) {
+                  @if (im.id !== null) {
+                    <button type="button" (click)="abrirFoto({ id: im.id, url: im.url, alt: im.alt, titulo: null, credito: null, fecha: null, lugar: null, albumSlug: d.slug, albumTitulo: d.titulo, razon: 1.5 })"
+                      [attr.aria-label]="'Abrir la foto: ' + im.alt"><img [src]="im.url" [alt]="im.alt" width="640" height="440" [attr.loading]="i === 0 ? null : 'lazy'" decoding="async" /></button>
+                  } @else {
+                    <a [routerLink]="['/galeria/album', d.slug]" [queryParams]="im.videoId ? { video: im.videoId } : null" [attr.aria-label]="im.alt" data-testid="galeria-hero-video"><img [src]="im.url" alt="" width="640" height="440" [attr.loading]="i === 0 ? null : 'lazy'" decoding="async" /></a>
+                  }
+                }
+              </div>
+            }
+          }
+          @if (recientes().length > 1) {
+            <div class="hero__ctl" data-testid="galeria-hero-controles">
+              @if (puedeRotar()) {
+                <button type="button" class="pausa" (click)="alternarPausa()" [attr.aria-label]="pausaManual() ? 'Reanudar la rotación de los destacados' : 'Pausar la rotación de los destacados'" data-testid="galeria-hero-pausa">
+                  @if (pausaManual()) { <svg lucidePlay [size]="16" aria-hidden="true"></svg> } @else { <svg lucidePause [size]="16" aria-hidden="true"></svg> }
+                </button>
+              }
+              <div class="puntos" role="group" aria-label="Elegir un destacado">
+                @for (r of recientes(); track r.slug; let i = $index) {
+                  <button type="button" class="punto" [class.punto--activo]="i === diapositiva()" (click)="elegirDiapositiva(i)"
+                    [attr.aria-label]="'Destacado ' + (i + 1) + ' de ' + recientes().length + ': ' + r.titulo" [attr.aria-current]="i === diapositiva() ? 'true' : null" [attr.data-testid]="'galeria-hero-punto-' + i"><span></span></button>
+                }
+              </div>
+              <span class="sr-only" role="status" aria-live="polite">{{ pausaManual() || !puedeRotar() ? 'Destacado ' + (diapositiva() + 1) + ' de ' + recientes().length + ': ' + m.titulo : '' }}</span>
+            </div>
+          }
+        </div>
+      </section>
+    } @else {
+      <ng-container *ngTemplateOutlet="encabezadoTpl" />
+    }
+    <ng-container *ngTemplateOutlet="pestanasTpl" />
+
+    <div class="envoltorio panel" id="galeria-panel" role="tabpanel" [attr.aria-labelledby]="'pestana-' + pestanaElegida()">
+      @switch (vista()) {
+        @case ('albumes') {
+          <section class="seccion" aria-labelledby="galeria-albumes-titulo">
+            <div class="seccion__cab">
+              <h2 class="h2 tipo-titulo-grande" id="galeria-albumes-titulo">{{ tarjetas().length > 0 ? 'Más álbumes' : 'Álbumes' }}</h2>
+              <p class="sm" aria-live="polite">{{ totales().albumes }} {{ totales().albumes === 1 ? 'álbum' : 'álbumes' }}</p>
+            </div>
+            @if (tarjetas().length > 0) {
+              <ul class="bento" data-testid="galeria-albumes">
+                @for (t of tarjetas(); track t.album.slug) {
+                  <li class="alb" [class.alb--grande]="t.forma === 'grande'" [class.alb--media]="t.forma === 'media'" [class.alb--ancha]="t.forma === 'ancha'">
+                    <a [routerLink]="['/galeria/album', t.album.slug]" [attr.data-testid]="'album-' + t.album.slug" [attr.aria-label]="t.album.titulo + '. ' + rotuloDelAlbum(t.album)">
+                      @if (t.album.portadaUrl) { <img [src]="t.album.portadaUrl" alt="" width="640" height="427" loading="lazy" decoding="async" /> }
+                      <span class="alb__cnt">
+                        <ng-container *ngTemplateOutlet="iconoDeTipo; context: { $implicit: t.album }" />{{ rotuloDelAlbum(t.album) }}
+                      </span>
+                      <span class="alb__tx">
+                        @if (t.forma === 'grande') { <span class="insignia">Álbum destacado</span> }
+                        <span class="alb__t tipo-titulo">{{ t.album.titulo }}</span>
+                        @if (t.forma === 'grande' && t.album.descripcion) { <span class="alb__res">{{ t.album.descripcion }}</span> }
+                        <span class="alb__m">@if (t.album.lugar) { {{ t.album.lugar }} · }{{ mesYAnio(t.album.fechaReferencia) }}</span>
+                        @if (t.forma === 'grande') { <span class="alb__lleva">{{ 'galeria_ver_album' | textoWeb }} <svg lucideArrowRight [size]="16" aria-hidden="true"></svg></span> }
+                      </span>
+                    </a>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+        }
+
+        @case ('fotos') {
+          @let ls = lista('fotos');
+          <section class="seccion" aria-labelledby="galeria-fotos-titulo">
+            <div class="seccion__cab">
+              <h2 class="h2 tipo-titulo-grande" id="galeria-fotos-titulo">Fotos</h2>
+              <p class="sm" aria-live="polite">{{ ls.total }} {{ ls.total === 1 ? 'foto' : 'fotos' }}</p>
+            </div>
+            @if (ls.error) {
+              <div class="estado estado--error" role="alert"><p>{{ ls.error }}</p><button type="button" class="btn btn--k" (click)="reintentar('fotos')">{{ 'galeria_reintentar' | textoWeb }}</button></div>
+            } @else if (!ls.cargada) {
+              <app-esqueleto variante="tarjeta" [cantidad]="6" etiqueta="Cargando fotos" />
+            } @else if (fotosDeLista().length === 0) {
+              <p class="vacio-texto" data-testid="galeria-sin-fotos">{{ 'galeria_sin_fotos' | textoWeb }}</p>
+            } @else {
+              <div data-testid="galeria-fotos">
+                @for (g of gruposDeFotos(); track g.clave) {
+                  <section class="grupo" [attr.aria-label]="g.titulo">
+                    <div class="grupo__cab">
+                      <h3 class="h3 tipo-titulo">{{ g.titulo }}</h3>
+                      <span class="sm">@if (g.sub) { {{ g.sub }} · }{{ totalDeFotos(g.slug) ?? g.fotos.length }} {{ (totalDeFotos(g.slug) ?? g.fotos.length) === 1 ? 'foto' : 'fotos' }}</span>
+                      @if (g.slug) { <a class="ver" [routerLink]="['/galeria/album', g.slug]">{{ 'galeria_ver_album' | textoWeb }} <svg lucideArrowRight [size]="14" aria-hidden="true"></svg></a> }
+                    </div>
+                    <app-galeria-muro #m [fotos]="g.fotos" [maxFilas]="filasDePrevisualizacion" [etiqueta]="'Fotos de ' + g.titulo" (abrir)="abrirFoto($event)" />
+                    @if (g.slug && (m.ocultas() > 0 || (totalDeFotos(g.slug) ?? 0) > g.fotos.length)) {
+                      <a class="btn btn--vermas" [routerLink]="['/galeria/album', g.slug]" [attr.data-testid]="'ver-album-' + g.slug">
+                        Ver álbum completo@if (totalDeFotos(g.slug); as t) { ({{ t }} {{ t === 1 ? 'foto' : 'fotos' }}) } <svg lucideArrowRight [size]="16" aria-hidden="true"></svg>
+                      </a>
+                    } @else if (!g.slug && m.ocultas() > 0) {
+                      <a class="btn btn--vermas" routerLink="/galeria/sin-album" data-testid="ver-sin-album">{{ 'galeria_ver_sin_album' | textoWeb }} <svg lucideArrowRight [size]="16" aria-hidden="true"></svg></a>
+                    }
+                  </section>
+                }
+                <div class="mas">
+                  @if (fotosDeLista().length < ls.total) {
+                    <button type="button" class="btn btn--k" (click)="masFotos('fotos')" [disabled]="ls.cargando">{{ 'galeria_mas_fotos' | textoWeb }}</button>
+                    <span class="sm">Mostrando {{ fotosDeLista().length }} de {{ ls.total }}. Se cargan por tandas para mantener la página ligera.</span>
+                  } @else { <span class="sm">Fin de las fotos: {{ ls.total }} en total.</span> }
+                </div>
+              </div>
+            }
+          </section>
+        }
+
+        @case ('videos') {
+          @let lv = lista('videos');
+          <section aria-label="Videos">
+            @if (lv.error) {
+              <div class="estado estado--error" role="alert"><p>{{ lv.error }}</p><button type="button" class="btn btn--k" (click)="reintentar('videos')">{{ 'galeria_reintentar' | textoWeb }}</button></div>
+            } @else if (!lv.cargada) {
+              <app-esqueleto variante="tarjeta" [cantidad]="6" etiqueta="Cargando videos" />
+            } @else if (videosDeLista().length === 0) {
+              <p class="vacio-texto" data-testid="galeria-sin-videos">{{ 'galeria_sin_videos' | textoWeb }}</p>
+            } @else {
+              <app-galeria-reproductor [videos]="videosDeLista()" [elegidoId]="videoId()" [rotuloDeLista]="lv.total + (lv.total === 1 ? ' video' : ' videos')"
+                (elegir)="elegirVideo($event)" (copiar)="copiarVideo($event)" />
+            }
+          </section>
+        }
+
+        @case ('sin-album') {
+          @let lsa = lista('sueltos');
+          <section class="seccion" aria-labelledby="galeria-sueltos-titulo">
+            <div class="seccion__cab">
+              <h2 class="h2 tipo-titulo-grande" id="galeria-sueltos-titulo">{{ 'galeria_sin_album_titulo' | textoWeb }}</h2>
+              <p class="sm" aria-live="polite">{{ lsa.total }} {{ lsa.total === 1 ? 'archivo' : 'archivos' }}</p>
+            </div>
+            <p class="sm sm--intro">{{ 'galeria_sin_album_texto' | textoWeb }}</p>
+            @if (lsa.error) {
+              <div class="estado estado--error" role="alert"><p>{{ lsa.error }}</p><button type="button" class="btn btn--k" (click)="reintentar('sueltos')">{{ 'galeria_reintentar' | textoWeb }}</button></div>
+            } @else if (!lsa.cargada) {
+              <app-esqueleto variante="tarjeta" [cantidad]="6" etiqueta="Cargando archivos" />
+            } @else if (sueltos().length === 0) {
+              <p class="vacio-texto" data-testid="galeria-sin-sueltos">{{ 'galeria_sin_sueltos' | textoWeb }}</p>
+            } @else {
+              <ul class="muro" data-testid="galeria-sueltos">
+                @for (i of sueltos(); track i.id) {
+                  @if (i.tipoItem === 'foto') {
+                    <li class="tile" [style]="estiloDeFoto({ id: i.id, url: i.url ?? '', alt: '', titulo: null, credito: null, fecha: null, lugar: null, albumSlug: null, albumTitulo: null, razon: (i.ancho && i.alto) ? i.ancho / i.alto : 1.5 }, 210)">
+                      <button type="button" (click)="abrirFoto({ id: i.id, url: i.url ?? '', alt: i.textoAlternativo ?? '', titulo: i.titulo, credito: i.credito, fecha: i.fecha, lugar: null, albumSlug: null, albumTitulo: null, razon: 1.5 })"
+                        [attr.aria-label]="'Abrir la foto: ' + (i.titulo ?? i.textoAlternativo)" [attr.data-testid]="'foto-' + i.id">
+                        <img [src]="i.url" [alt]="i.textoAlternativo ?? ''" width="315" height="210" loading="lazy" decoding="async" />
+                        <span class="tile__pie">{{ i.titulo ?? i.textoAlternativo }}</span>
+                      </button>
+                    </li>
+                  } @else {
+                    <li class="tile tile--video" [style]="estiloDeFoto({ id: i.id, url: '', alt: '', titulo: null, credito: null, fecha: null, lugar: null, albumSlug: null, albumTitulo: null, razon: 16 / 9 }, 210)">
+                      <a [routerLink]="['/galeria/videos']" [queryParams]="{ video: i.videoId }" [attr.aria-label]="'Ver el video: ' + i.titulo + (i.duracionSegundos ? ' (' + duracion(i.duracionSegundos) + ')' : '')">
+                        @if (i.miniaturaUrl) { <img [src]="i.miniaturaUrl" alt="" width="373" height="210" loading="lazy" decoding="async" /> }
+                        <span class="play"><svg lucidePlay [size]="22" aria-hidden="true"></svg></span>
+                        @if (i.duracionSegundos) { <span class="dur">{{ duracion(i.duracionSegundos) }}</span> }
+                        <span class="tile__pie tile__pie--fijo">Video · {{ i.titulo }}</span>
+                      </a>
+                    </li>
+                  }
+                }
+              </ul>
+              @if (sueltos().length < lsa.total) {
+                <div class="mas"><button type="button" class="btn btn--k" (click)="masFotos('sueltos')" [disabled]="lsa.cargando">{{ 'galeria_mostrar_mas' | textoWeb }}</button></div>
+              }
+            }
+          </section>
+        }
+      }
+    </div>
+  }
+
+  <p class="sr-only" role="status" aria-live="polite" data-testid="galeria-aviso">{{ aviso() }}</p>
+  @if (aviso()) { <p class="toast" aria-hidden="true">{{ aviso() }}</p> }
+
+  <app-galeria-visor [fotos]="fotosDelVisor()" [indice]="indiceDelVisor()" [rotuloDeVuelta]="rotuloDeVista()" (ir)="irAFoto($event)" (cerrar)="cerrarVisor()" (copiar)="copiarFoto($event)" (aviso)="aviso.set($event)" />
+</div>

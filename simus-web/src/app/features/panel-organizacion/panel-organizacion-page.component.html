@@ -1,0 +1,121 @@
+@if (comprobandoSesion()) { <main id="contenido-principal" tabindex="-1" class="min-h-screen"><p role="status" class="py-16 text-center text-sm text-slate-500">Comprobando la sesión…</p></main> }
+@else if (sesion() && sinAcceso()) {
+  <!--
+    UNA ORGANIZACIÓN QUE NO ES DE LA CUENTA. Un enlace a una organización ajena, o a una que
+    la cuenta dejó, no abre otra en silencio: dice qué pasa y ofrece las suyas. Lleva la cabecera del
+    panel (marca, avisos y menú de cuenta) para que quien llegó por un enlace ajeno pueda salir o cambiar de sitio.
+  -->
+  <div class="admin-foundation">
+    <app-cabecera-del-panel organizacionId="" />
+    <main id="contenido-principal" tabindex="-1" data-testid="panel-sin-acceso" class="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+      <p class="text-dato font-bold text-verde-texto">SIMUS · Espacio de gestión</p>
+      <h1 class="mt-3">No formas parte de esta organización</h1>
+      <p class="mt-4 text-base leading-relaxed text-slate-700">El enlace que abriste es del panel de una organización en la que tu cuenta no participa, o de la que ya saliste. Si deberías tener acceso, pide a quien la administra que te invite con el correo de tu cuenta.</p>
+      @if (organizaciones().length) {
+        <h2 class="mt-8">Tus organizaciones</h2>
+        <ul class="mt-3 divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white">
+          @for (organizacion of organizaciones(); track organizacion.id) {
+            <li><a [routerLink]="enlaceA(organizacion.id)" class="flex min-h-11 items-center justify-between gap-3 px-4 py-3 text-sm font-bold text-morado no-underline hover:bg-slate-50">{{ organizacion.name }}<span aria-hidden="true">→</span></a></li>
+          }
+        </ul>
+      }
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a [routerLink]="rutasDeLaCuenta.miEspacio" appBoton="principal" tamano="comodo">Ir a mi espacio</a>
+      </div>
+    </main>
+  </div>
+}
+@else if (sesion()) {
+  <!--
+    EL ARMAZÓN COMPARTIDO DEL ESPACIO EXTERNO (PANEL, decisión 126): el mismo que usa Mi espacio. Aquí solo se
+    aporta la identidad de la organización —rol, nombre y ciudad, lo que funcionaba—, los destinos y el contenido.
+  -->
+  <app-armazon-de-gestion
+    pruebaId="panel-de-organizacion" pruebaIdDeLaBarra="barra-lateral-panel" idDeLaBarra="navegacion-del-panel" prefijo="panel-"
+    etiquetaDeLaBarra="Navegación de la organización" etiquetaDeLaNavegacion="Secciones del panel de la organización"
+    [grupos]="grupos()" [clavePlegados]="clavePlegados" [plegadosPorOmision]="plegadosPorOmision"
+    [organizacionId]="organizacionId()" [marcaA]="enlace('resumen')" tituloDeLaMarca="Ir al inicio de la organización"
+    [nombreDeLaIdentidad]="nombreDeLaOrganizacion()">
+    <!--
+      LA ORGANIZACIÓN ACTIVA, ARRIBA Y FIJA (maqueta de UI1). El rol primero, luego el nombre de la entidad (dos líneas
+      como máximo) y su ciudad; con varias organizaciones, el selector que navega a la misma sección de la otra.
+    -->
+    <div identidad class="identidad-de-gestion">
+      @if (store.rol()) { <p class="identidad-de-gestion__rol" data-testid="rol-en-organizacion">{{ store.esAdministradora() ? 'Administrador' : 'Editor' }}</p> }
+      <p class="identidad-de-gestion__nombre" data-testid="nombre-organizacion-activa" [attr.title]="nombreDeLaOrganizacion()">{{ nombreDeLaOrganizacion() }}</p>
+      @if (ubicacionOrganizacion(); as ubicacion) { <p class="identidad-de-gestion__dato">{{ ubicacion }}</p> }
+      @if (hayVariasOrganizaciones()) {
+        <app-campo-de-seleccion class="identidad-de-gestion__cambiar" identificador="selector-organizacion" etiqueta="Cambiar de organización"
+          [opciones]="opcionesDeOrganizacion()" [ngModel]="organizacionDeLaUrl"
+          (cambiar)="cambiarDeOrganizacion($event)" />
+      }
+    </div>
+
+    @if (avisoDeCambio()) {
+          <p role="status" data-testid="aviso-cambio-de-organizacion" class="aviso aviso--info">
+            <span>{{ avisoDeCambio() }}</span>
+            <button type="button" (click)="cerrarAvisoDeCambio()" appBoton="terciaria" tamano="menudo">Entendido</button>
+          </p>
+        }
+        @if (rolAlUnirse(); as rol) {
+          <!-- LA BIENVENIDA DE QUIEN ACEPTÓ UNA INVITACIÓN, con su rol y lo que ese rol puede hacer. -->
+          <section data-testid="bienvenida-invitacion" aria-labelledby="bienvenida-invitacion-titulo" class="aviso aviso--bienvenida">
+            <div>
+              <h2 id="bienvenida-invitacion-titulo">Te uniste a «{{ store.organizacionElegida()?.name }}» como {{ rol === 'administrador' ? 'administradora o administrador' : 'editora o editor' }}</h2>
+              <p>
+                @if (rol === 'administrador') { Puedes administrar los datos, el equipo y los procesos de la organización. }
+                @else { Puedes preparar y editar los borradores de los procesos; enviarlos a revisión y administrar el equipo les corresponde a las personas administradoras. }
+              </p>
+            </div>
+            <button type="button" (click)="cerrarBienvenidaDeInvitacion()" appBoton="terciaria" tamano="menudo">Cerrar</button>
+          </section>
+        }
+        @if (recienRegistrada()) {
+          <!-- LA TRANSICIÓN DE ROL SE DICE: quien registra una organización pasa a administrarla. -->
+          <section data-testid="bienvenida-organizacion" aria-labelledby="bienvenida-organizacion-titulo" class="aviso aviso--bienvenida aviso--en-columna">
+            <div class="aviso__fila">
+              <div>
+                <h2 id="bienvenida-organizacion-titulo">Registraste «{{ store.organizacionElegida()?.name }}»</h2>
+                <p>Ahora eres su administradora o administrador. Estos son los siguientes pasos:</p>
+              </div>
+              <button type="button" (click)="cerrarBienvenidaDeOrganizacion()" appBoton="terciaria" tamano="menudo">Cerrar</button>
+            </div>
+            <ol class="pasos">
+              <li><a [routerLink]="enlace('organizacion')" appBoton="secundaria">1 · Completa sus datos</a></li>
+              <li><a [routerLink]="enlace('equipo')" appBoton="secundaria">2 · Invita a tu equipo</a></li>
+              <li><a [routerLink]="enlace('procesos')" appBoton="secundaria">3 · Registra un proceso</a></li>
+            </ol>
+          </section>
+        }
+        @if (errorPerfil()) { <p role="alert" class="aviso aviso--error">{{ errorPerfil() }}</p> }
+        <!--
+          MARGEN INFERIOR PARA EL BOTON FLOTANTE. «Asistente» flota en la esquina
+          inferior derecha y tapaba «Acciones» de la fila que pasara por ahí y «Guardar contacto». Con
+          este relleno al final, cualquier control puede desplazarse hasta quedar por encima del botón.
+        -->
+    <div class="panel-vista"><router-outlet></router-outlet></div>
+
+    <div aparte>
+      <!--
+          LA MISMA CAPACIDAD, DEL OTRO LADO DE LA PUERTA. Una organización tiene exactamente las
+          mismas preguntas que el PNMC -«¿qué me falta?», «¿qué espera algo de mí?»- y hasta el 12
+          de septiembre de 2026 las respondía recorriendo cuatro pantallas y contando a ojo. El ámbito
+          lo decide el servidor por la ruta: aquí solo se ven los registros de esta organización.
+        -->
+        @if (organizacionId(); as id) {
+          <app-cajon-de-consulta-guiada
+            [base]="'/api/v1/externo/organizaciones/' + id + '/consulta-guiada'"
+            [contexto]="{ organizacionId: +id }"
+            [ocultarLanzador]="sinAsistente()"
+            saludo="Escribe tu pregunta o elige una de las frecuentes. Puedo decirte qué necesita tu atención, qué información les falta a tus Festivales, cómo van tus procesos y dónde están registrados."
+            limite="Solo lectura, y solo sobre los registros de tu organización. No puede crear, enviar, aprobar ni publicar nada por ti." />
+        }
+    </div>
+  </app-armazon-de-gestion>
+
+  <!--
+      CAMBIAR DE ORGANIZACIÓN CON TRABAJO A MEDIAS. Lo pide `confirmarCambioDeOrganizacion`
+      desde el asistente; lo escrito se queda en ESTA organización y nunca pasa a la otra.
+    -->
+    <app-dialogo-de-cambio-pendiente />
+} @else { <main id="contenido-principal" tabindex="-1" class="min-h-screen"><p role="status" class="py-16 text-center text-sm text-slate-500">Necesitas iniciar sesión para ver tu panel.</p></main> }

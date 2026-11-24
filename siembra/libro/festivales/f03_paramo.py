@@ -1,0 +1,48 @@
+from ._comun import ed
+
+FESTIVAL = dict(
+    clave="festival-cuerdas-del-paramo", nombre="Festival Cuerdas del Páramo", org="fund-cuerdas-del-paramo", muni="15238", estado="publicado", trayectoria="directo",
+    periodicidad="anual", periodicidad_detalle="Se celebra a finales de septiembre y recorre una sede distinta cada año dentro de la provincia; no hubo edición en 2020 y 2021 por la pandemia ni en 2023 y 2024, años dedicados a reparar instrumentos y ordenar el archivo de partituras.",
+    practicas=["musicas-populares-tradicionales-regionales-y-patrimoniales", "musicas-campesinas-rurales-y-de-raiz-territorial", "musicas-academicas-de-camara-contemporaneas-experimentales-y-de-vanguardia"],
+    territorio="canta-y-torbellino", director="Gustavo Alarcón Pinzón", tipo_organizador="fundacion", cobertura="nacional",
+    desc=("Cuerdas del Páramo empezó en 2018 como un concierto de fin de curso de la escuela de tiple de una vereda de Duitama. Los padres de familia pidieron que se repitiera y, en vez de repetirlo en el mismo salón, la fundación decidió llevarlo a otros pueblos de páramo para que los niños tocaran frente a públicos que casi nunca escuchan música en vivo.\n\n"
+          "El festival es hoy un circuito de conciertos de tiple, requinto, bandola, guitarra y voz que recorre iglesias, plazas y escuelas; incluye clínicas con maestros constructores, una jornada de lectura de partituras manuscritas y una noche de duetos tradicionales. "
+          "Busca formar nuevos públicos para la música de cuerdas andinas, dar trabajo remunerado a instrumentistas jóvenes y mantener una colección abierta de partituras que sus autores guardaban en cajones.\n\n"
+          "Su identidad está hecha de frío y de afecto: los conciertos son de tarde, con aguapanela caliente, y cada pueblo de la gira aporta un grupo local que abre la función. El nombre alude a las cuerdas de los instrumentos y a las cuerdas de piedra que dividen los cultivos de papa en las laderas."),
+    contacto=dict(correo_organizador="fundacion@cuerdasdelparamo.test", telefono_organizador="+57 608 555 0320", sitio_organizador="https://cuerdasdelparamo.test",
+                  instagram="https://instagram.test/cuerdasdelparamo", facebook="https://facebook.test/cuerdasdelparamo", otro="https://cuerdasdelparamo.test/partituras",
+                  telefono="+57 608 555 0321", obs="Se atiende en el taller de lutería de lunes a sábado, de 8:00 a 17:00."),
+    aliados=["Escuela de Cuerdas de la Vereda San Lorenzo", "Asociación de Padres de Familia de la Escuela Rural", "Taller de Lutería Familiar Alarcón"],
+    enlaces=[("https://cuerdasdelparamo.test/programa-2025.pdf", "Programa de la gira 2025 con itinerario por pueblos."), ("https://cuerdasdelparamo.test/catalogo-de-partituras.pdf", "Catálogo de partituras manuscritas digitalizadas.")],
+    ediciones=[
+        ed(2018, 1, ((9, 22), (9, 23)), "Primer toque", "Escuela rural de la vereda San Lorenzo, Duitama",
+           "Nació como concierto de fin de curso en la escuela de tiple de la vereda. Participaron los treinta alumnos del año y tres maestros, y los padres cocinaron para todos en una olla comunal.",
+           [(0, "15:00", "Concierto de fin de curso", "conciertos-y-presentaciones", "Escuela rural de San Lorenzo", "Treinta niños tocan bambucos y pasillos en tiples prestados por la fundación.")],
+           cifras=dict(agrupaciones=1, artistas=34, asistentes=180, talleres=0, comunidades=1), director="Gustavo Alarcón Pinzón", tipologia="encuentros", fuente1="recursos-propios"),
+        ed(2019, 2, ((9, 20), (9, 22)), "Cuerdas que suben", "Parque principal de Tuta y plaza de Paipa",
+           "Primera gira por dos municipios vecinos, con un grupo local de apertura en cada uno. El taller de lutería abierto en la plaza atrajo más público que el propio concierto.",
+           [(0, "16:00", "Taller abierto de lutería", "formacion", "Plaza de Paipa", "Un maestro luthier arma un tiple de principio a fin delante del público en una sola tarde."),
+            (1, "17:00", "Concierto de gira en Tuta", "conciertos-y-presentaciones", "Parque principal de Tuta", "Estudiantina local y el ensamble de la fundación comparten programa.")],
+           cifras=dict(agrupaciones=4, artistas=52, asistentes=640, talleres=1, comunidades=2), tipologia="encuentros", fuente1="alcaldia", fuente2="recursos-propios"),
+        ed(2022, 3, ((9, 24), (9, 25)), "Reencuentro", "Teatro municipal de Duitama",
+           "Después de dos años de silencio, el festival volvió con un solo concierto grande en el teatro municipal y una clínica de requinto para ochenta estudiantes. El archivo de partituras abrió su primera sala de consulta.",
+           [(0, "19:00", "Concierto de reencuentro", "conciertos-y-presentaciones", "Teatro municipal", "Ensamble de Cuerdas del Páramo y Dueto Alba Fría repasan repertorio de bambucos y torbellinos."),
+            (1, "10:00", "Clínica de requinto", "formacion", "Biblioteca municipal", "Maestros del altiplano trabajan técnica y acompañamiento con ochenta estudiantes.")],
+           formacion="Clínica de dos jornadas para estudiantes de escuelas rurales con cuarenta cupos becados.",
+           cifras=dict(agrupaciones=5, artistas=60, asistentes=900, talleres=2, comunidades=3), tipologia="festival-de-musica", fuente1="alcaldia", fuente2="aportes-privados"),
+        ed(2025, 4, ((9, 26), (9, 28)), "Páramo adentro", "Sogamoso, Aquitania y Mongui",
+           "La gira más larga hasta ahora: tres municipios en tres tardes, con conciertos al aire libre y una función de cámara en una iglesia colonial. Se entregó el primer volumen impreso del catálogo de partituras.",
+           [(0, "16:30", "Concierto al aire libre en Sogamoso", "conciertos-y-presentaciones", "Parque de la Villa, Sogamoso", "Cuatro grupos de cuerdas, entre ellos el Cuarteto Piedra y Frailejón."),
+            (1, "17:00", "Función de cámara", "conciertos-y-presentaciones", "Iglesia de Monguí", "Programa de tiple, guitarra y voz con obras de compositores de la provincia."),
+            (2, "10:00", "Lectura colectiva de partituras manuscritas", "formacion", "Biblioteca de Aquitania", "Instrumentistas descifran piezas que sus autores nunca publicaron.")],
+           convocatoria="Convocatoria abierta a ensambles de cuerdas del 1 al 31 de julio; 15 postulaciones, siete seleccionadas, incluido un grupo juvenil.",
+           cifras=dict(agrupaciones=7, artistas=71, asistentes=1850, talleres=3, comunidades=4), tipologia="festival-de-musica", fuente1="gobernacion", fuente2="recursos-propios", agenda=False),
+        ed(2026, 5, ((9, 25), (9, 27)), "La cuerda no se rompe", "Duitama, Tibasosa y Nobsa",
+           "Quinta edición, con foco en la formación de luthiers: dos aprendices construyeron su primer tiple durante el festival. Los conciertos se distribuyeron entre Duitama, Tibasosa y Nobsa.",
+           [(0, "17:00", "Concierto de apertura en Duitama", "conciertos-y-presentaciones", "Teatro municipal de Duitama", "Ensamble de la fundación y estudiantina juvenil de la provincia."),
+            (1, "15:00", "Construcción de un tiple en vivo", "formacion", "Plaza de Tibasosa", "Dos aprendices terminan su primer instrumento bajo la guía de un maestro."),
+            (2, "16:00", "Concierto de clausura", "conciertos-y-presentaciones", "Parque de Nobsa", "Duetos tradicionales, como el Dueto Alba Fría, cierran la gira.")],
+           formacion="Programa de aprendices de lutería con dos cupos, acompañado de clases abiertas sobre barnices y afinación.",
+           cifras=dict(agrupaciones=8, artistas=82, asistentes=2100, talleres=4, comunidades=4), tipologia="festival-de-musica", fuente1="gobernacion", fuente2="aportes-privados", agenda=True),
+    ],
+)

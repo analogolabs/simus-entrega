@@ -1,0 +1,134 @@
+@if (!enabled()) {
+  <app-estado-de-lista titulo="Su rol no permite administrar el sitio público" />
+} @else {
+  <div class="space-y-6">
+    <!--
+      SIN UN SEGUNDO ENCABEZADO COMPLETO. Aquí había antetítulo «SITIO PÚBLICO», título «GESTIÓN
+      DEL SITIO» y descripción, justo debajo de los que ya pone la consola —«Páginas y bloques
+      (CMS) · Gestión unificada de textos, imágenes, equipo y diseño del portal ciudadano»—. Era la
+      duplicación más completa de la consola: dos jerarquías enteras, una encima de otra.
+
+      Y a su derecha, «91 CAMBIOS PENDIENTES» en una píldora ámbar, con el mismo 91 repetido en la
+      cuarta casilla justo debajo. El proyecto no usa píldoras, y una cifra se dice una vez.
+
+      LO QUE SI SE QUEDA es el criterio de trabajo, que el armazón no sabe: guardar borrador no
+      cambia el portal. Va donde se decide —en la casilla de cambios pendientes— y no como una
+      tercera descripción de la pantalla.
+    -->
+    <h2 id="gestion-sitio-titulo" class="sr-only">Gestión del sitio público</h2>
+
+    <!--
+      LAS SEIS AREAS ERAN SEIS TARJETAS con su borde, su sombra y la elegida rellena de morado. Son
+      seis posiciones de un mismo control, que es lo que dibuja el selector segmentado.
+    -->
+    <app-selector-segmentado
+      [opciones]="areasDelSitio()"
+      [elegida]="vista()"
+      etiquetaDelGrupo="Áreas de Gestión del sitio"
+      (elegir)="seleccionar($any($event))" />
+
+    @if (error()) {
+      <app-estado-de-lista tipo="error" titulo="No fue posible leer el estado del sitio" [detalle]="error()">
+        <app-boton importancia="secundaria" tamano="menudo" (accion)="cargarResumen()">Reintentar</app-boton>
+      </app-estado-de-lista>
+    }
+
+    @if (vista() === 'textos') {
+      <app-admin-web-texts-panel
+        [enabled]="true"
+        [session]="session"
+        [modo]="'textos'"
+        [grupoInicial]="grupoAbierto()"
+        [puedePublicar]="puedePublicar()"
+      ></app-admin-web-texts-panel>
+    } @else if (vista() === 'imagenes') {
+      <app-admin-web-texts-panel
+        [enabled]="true"
+        [session]="session"
+        [modo]="'imagenes'"
+        [grupoInicial]="grupoAbierto()"
+        [puedePublicar]="puedePublicar()"
+      ></app-admin-web-texts-panel>
+    } @else if (vista() === 'equipo') {
+      <app-admin-web-texts-panel
+        [enabled]="true"
+        [session]="session"
+        [modo]="'equipo'"
+        [puedePublicar]="puedePublicar()"
+      ></app-admin-web-texts-panel>
+    } @else if (vista() === 'pendientes') {
+      <!--
+        UN SOLO APARTADO PARA LO QUE SE HACE ANTES Y DESPUÉS DE PUBLICAR. «Resumen», «Cambios pendientes» y
+        «Respaldos» eran tres áreas con lo mismo repetido: el resumen contaba los pendientes, los pendientes
+        explicaban el circuito y los respaldos volvían a decir qué se guarda. Ahora: lo que espera publicación
+        (con el circuito en una línea), y debajo las copias del contenido.
+      -->
+      @if (cargando() && !resumen()) {
+        <app-estado-de-lista tipo="cargando" titulo="Revisando borradores…" />
+      } @else if (resumen(); as estado) {
+        <section aria-labelledby="titulo-cambios-pendientes" class="space-y-4">
+          <div>
+            <h3 id="titulo-cambios-pendientes" class="titulo-de-apartado">Cambios pendientes{{ estado.pendingTotal > 0 ? ' · ' + estado.pendingTotal : '' }}</h3>
+            <p class="text-dato text-prosa">
+              Guardar un borrador no cambia el portal: lo guarda, se revisa con la vista previa y un webmaster lo publica.
+              @if (coberturaDelSitio()) { <span data-testid="cobertura-del-sitio"> {{ coberturaDelSitio() }}</span> }
+            </p>
+          </div>
+          @if (estado.pendingTotal === 0) {
+            <app-estado-de-lista titulo="No hay cambios pendientes de publicación" detalle="Lo que ve el público es exactamente lo último que se guardó." />
+          } @else {
+            <div class="grid gap-8 lg:grid-cols-2">
+              <section aria-labelledby="pendientes-textos" data-pendientes-de-textos>
+                <h4 id="pendientes-textos" class="titulo-de-apartado">Textos y páginas · {{ estado.texts.pending }}</h4>
+                <ng-container *ngTemplateOutlet="pendientes; context: { grupos: gruposPendientes(estado.texts.groups), area: 'textos', vacio: 'Sin textos pendientes.' }" />
+              </section>
+              <section aria-labelledby="pendientes-imagenes" data-pendientes-de-imagenes>
+                <h4 id="pendientes-imagenes" class="titulo-de-apartado">Imágenes del sitio · {{ estado.images.pending }}</h4>
+                <ng-container *ngTemplateOutlet="pendientes; context: { grupos: gruposPendientes(estado.images.groups), area: 'imagenes', vacio: 'Sin imágenes pendientes.' }" />
+                @if (estado.team.pending) {
+                  <table class="tabla-administrativa tabla-administrativa--densa tabla-de-pendientes mt-4">
+                    <colgroup><col class="tabla-de-pendientes__grupo" /><col class="tabla-de-pendientes__cuantos" /><col class="tabla-de-pendientes__acciones" /></colgroup>
+                    <tbody>
+                      <tr class="tabla-administrativa__fila">
+                        <td><span class="tabla-administrativa__principal">Nómina del equipo</span><span class="tabla-administrativa__secundaria">Equipo</span></td>
+                        <td class="text-prosa">Pendiente</td>
+                        <td class="tabla-administrativa__acciones"><app-boton importancia="secundaria" tamano="menudo" etiqueta="Abrir la nómina del equipo" (accion)="seleccionar('equipo')">Abrir</app-boton></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                }
+              </section>
+            </div>
+          }
+        </section>
+      }
+      <section class="mt-8 border-t border-slate-200 pt-6">
+        <app-admin-respaldos-sitio [session]="session"></app-admin-respaldos-sitio>
+      </section>
+    }
+  </div>
+}
+
+<!-- Una lista de pendientes: el grupo, su sección, cuántos esperan y abrirlo. -->
+<ng-template #pendientes let-grupos="grupos" let-area="area" let-vacio="vacio">
+  @if (grupos.length) {
+    <table class="tabla-administrativa tabla-administrativa--densa tabla-de-pendientes">
+      <colgroup>
+        <col class="tabla-de-pendientes__grupo" />
+        <col class="tabla-de-pendientes__cuantos" />
+        <col class="tabla-de-pendientes__acciones" />
+      </colgroup>
+      <tbody>
+        @for (grupo of grupos; track grupo.id) {
+          <tr class="tabla-administrativa__fila">
+            <td><span class="tabla-administrativa__principal">{{ grupo.label }}</span><span class="tabla-administrativa__secundaria">{{ grupo.section }}</span></td>
+            <td><span class="tabla-administrativa__cifra">{{ grupo.pending }}</span></td>
+            <td class="tabla-administrativa__acciones"><app-boton importancia="secundaria" tamano="menudo" [etiqueta]="'Abrir ' + grupo.label" (accion)="seleccionar(area, grupo.id)">Abrir</app-boton></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <app-estado-de-lista [titulo]="vacio" />
+  }
+</ng-template>

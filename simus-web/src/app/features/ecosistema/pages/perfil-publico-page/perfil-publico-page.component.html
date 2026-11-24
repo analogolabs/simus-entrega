@@ -1,0 +1,105 @@
+<section class="min-h-screen bg-slate-50 pb-24 font-nunito text-titulo">
+  @if (estado() === 'listo' && perfil(); as p) {
+    <app-compact-hero [backLabel]="'personas_titulo_corto' | textoWeb" [current]="p.nombreVisible" [title]="p.nombreVisible" [subtitle]="'perfil_subtitulo' | textoWeb" (regresoSolicitado)="volver()"></app-compact-hero>
+    <div class="mx-auto max-w-7xl px-6 pt-10 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-8 lg:px-8">
+      <article class="rounded-2xl border border-filete bg-white p-8" aria-labelledby="perfil-nombre">
+        <div class="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
+          @if (p.fotoUrl) {
+            <img [src]="p.fotoUrl" [alt]="p.fotoTextoAlternativo || ('Foto de ' + p.nombreVisible)" class="h-36 w-36 rounded-2xl border border-filete object-cover sm:h-44 sm:w-44" width="176" height="176" />
+          } @else {
+            <span aria-hidden="true" data-iniciales class="flex h-36 w-36 items-center justify-center rounded-2xl bg-morado/10 font-alternate text-4xl font-bold text-morado sm:h-44 sm:w-44">{{ iniciales(p.nombreVisible) }}</span>
+          }
+          <div>
+            <h2 id="perfil-nombre" class="font-alternate text-2xl font-bold text-titulo">{{ p.nombreVisible }}</h2>
+            @if (p.nombreCivil) {
+              <p data-nombre-civil class="mt-1 text-base text-tinta-media"><span class="sr-only">Nombre: </span>{{ p.nombreCivil }}</p>
+            }
+            @if (p.municipio) {
+              <p class="mt-1 text-sm text-tinta-media">{{ lugar(p.municipio, p.departamento) }}</p>
+            }
+            @if (p.biografiaCorta) {
+              <p data-biografia-corta class="mt-3 max-w-2xl text-base text-titulo">{{ p.biografiaCorta }}</p>
+            }
+          </div>
+        </div>
+
+        @if (p.biografiaLarga) {
+          <section class="mt-8 border-t border-filete pt-6" aria-labelledby="perfil-biografia">
+            <h3 id="perfil-biografia" class="font-alternate text-sm font-bold text-tinta-media">{{ 'perfil_biografia' | textoWeb }}</h3>
+            <p class="mt-3 max-w-3xl whitespace-pre-line text-base leading-relaxed text-titulo">{{ p.biografiaLarga }}</p>
+          </section>
+        }
+
+        @if (p.oficios?.length) {
+          <section class="mt-8 border-t border-filete pt-6" aria-labelledby="perfil-oficios">
+            <h3 id="perfil-oficios" class="font-alternate text-sm font-bold text-tinta-media">{{ 'perfil_oficios' | textoWeb }}</h3>
+            <ul class="mt-3 flex flex-wrap gap-2">
+              @for (oficio of p.oficios; track oficio) {
+                <li class="inline-flex min-h-8 items-center rounded-full bg-morado/10 px-3 text-sm text-morado">{{ oficio }}</li>
+              }
+            </ul>
+          </section>
+        }
+
+        @if (p.practicas.length) {
+          <section class="mt-8 border-t border-filete pt-6" aria-labelledby="perfil-practicas">
+            <h3 id="perfil-practicas" class="font-alternate text-xs font-bold text-tinta-media">{{ 'perfil_practicas' | textoWeb }}</h3>
+            <ul class="mt-3 flex flex-wrap gap-2">
+              @for (practica of p.practicas; track practica.id) {
+                <li><a [routerLink]="['/ecosistema/practicas-musicales', practica.slug]" class="inline-flex min-h-8 items-center rounded-full border border-filete px-3 text-sm text-morado no-underline hover:border-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado">{{ practica.nombre }}</a></li>
+              }
+            </ul>
+          </section>
+        }
+
+        @if (p.organizaciones.length) {
+          <section class="mt-8 border-t border-filete pt-6" aria-labelledby="perfil-organizaciones">
+            <h3 id="perfil-organizaciones" class="font-alternate text-xs font-bold text-tinta-media">{{ 'perfil_organizaciones' | textoWeb }}</h3>
+            <ul class="mt-3 space-y-2">
+              @for (organizacion of p.organizaciones; track organizacion.id) {
+                <li><a [routerLink]="['/ecosistema/organizaciones', organizacion.id]" class="inline-flex min-h-8 items-center text-morado underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado">{{ organizacion.nombre }}</a></li>
+              }
+            </ul>
+          </section>
+        }
+
+        @if (p.portafolio?.length) {
+          <section class="mt-8 border-t border-filete pt-6" aria-labelledby="perfil-portafolio">
+            <h3 id="perfil-portafolio" class="font-alternate text-sm font-bold text-tinta-media">{{ 'perfil_portafolio' | textoWeb }}</h3>
+            <ul class="mt-3 space-y-2">
+              @for (item of p.portafolio; track item.url) {
+                <li>
+                  <a [href]="item.url" target="_blank" rel="noopener noreferrer nofollow ugc" class="inline-flex min-h-8 items-center gap-2 text-morado underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado"><span class="rounded border border-filete px-1.5 text-xs text-tinta-media">{{ etiquetaDeClase(item.tipo) }}</span>{{ item.titulo }}@if (item.anio) { <span class="text-xs text-tinta-media">({{ item.anio }})</span> }<span class="sr-only"> (se abre en una pestaña nueva)</span></a>
+                  @if (item.descripcion) { <p class="text-sm text-tinta-media">{{ item.descripcion }}</p> }
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        @if (p.enlaces.length) {
+          <section class="mt-8 border-t border-filete pt-6" aria-labelledby="perfil-enlaces">
+            <h3 id="perfil-enlaces" class="font-alternate text-xs font-bold text-tinta-media">{{ 'perfil_enlaces' | textoWeb }}</h3>
+            <ul class="mt-3 space-y-2">
+              @for (enlace of p.enlaces; track enlace; let i = $index) {
+                <li><a [href]="enlace" target="_blank" rel="noopener noreferrer nofollow ugc" class="inline-flex min-h-8 items-center gap-2 text-morado underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado"><app-icono-de-enlace [tipo]="iconoDeRed(enlace)" [tamano]="16" />{{ rotuloDeRed(enlace, p.etiquetasDeEnlaces?.[i]) }}<span class="sr-only"> (se abre en una pestaña nueva)</span></a></li>
+              }
+            </ul>
+          </section>
+        }
+      </article>
+      <!-- PERFILES SIMILARES AL LADO (DIR): en pantallas angostas quedan debajo de la ficha. -->
+      <div class="mt-8 lg:mt-0 lg:sticky lg:top-28"><app-perfiles-similares [clave]="p.clave" /></div>
+    </div>
+  } @else if (estado() === 'no-disponible') {
+    <app-recurso-no-encontrado
+      idBase="perfil"
+      [titulo]="'perfil_no_disponible' | textoWeb"
+      causa="Puede que la dirección esté mal escrita o que su titular no lo tenga publicado."
+      etiquetaDeLista="Ver el directorio de agentes y actores"
+      rutaDeLista="/ecosistema/personas"
+    />
+  } @else {
+    <div class="mx-auto max-w-7xl px-6 pt-28"><app-esqueleto variante="ficha" [etiqueta]="'perfil_cargando' | textoWeb" /></div>
+  }
+</section>

@@ -1,0 +1,698 @@
+[
+ {
+  "alias": "img.festival.festival-de-arrullos-y-alabaos-del-baudo.portada",
+  "para": "n1.festival.festival-de-arrullos-y-alabaos-del-baudo",
+  "rol": "portada",
+  "alt": "Escena del Festival de Arrullos y Alabaos del Baudó: público y agrupaciones en el escenario principal."
+ },
+ {
+  "alias": "img.festival.festival-de-arrullos-y-alabaos-del-baudo.logo",
+  "para": "n1.festival.festival-de-arrullos-y-alabaos-del-baudo",
+  "rol": "logo",
+  "alt": "Logotipo del Festival de Arrullos y Alabaos del Baudó."
+ },
+ {
+  "alias": "img.festival.festival-de-arrullos-y-alabaos-del-baudo.galeria.1",
+  "para": "n1.festival.festival-de-arrullos-y-alabaos-del-baudo",
+  "rol": "galeria",
+  "alt": "Imagen 1 de la galería del Festival de Arrullos y Alabaos del Baudó."
+ },
+ {
+  "alias": "img.festival.festival-de-arrullos-y-alabaos-del-baudo.galeria.2",
+  "para": "n1.festival.festival-de-arrullos-y-alabaos-del-baudo",
+  "rol": "galeria",
+  "alt": "Imagen 2 de la galería del Festival de Arrullos y Alabaos del Baudó."
+ },
+ {
+  "alias": "img.festival.festival-de-arrullos-y-alabaos-del-baudo.galeria.3",
+  "para": "n1.festival.festival-de-arrullos-y-alabaos-del-baudo",
+  "rol": "galeria",
+  "alt": "Imagen 3 de la galería del Festival de Arrullos y Alabaos del Baudó."
+ },
+ {
+  "alias": "img.edicion.festival-de-arrullos-y-alabaos-del-baudo-2012.afiche",
+  "para": "n1.edicion.festival-de-arrullos-y-alabaos-del-baudo-2012",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2012 del Festival de Arrullos y Alabaos del Baudó, «Cantar de frente»."
+ },
+ {
+  "alias": "img.edicion.festival-de-arrullos-y-alabaos-del-baudo-2013.afiche",
+  "para": "n1.edicion.festival-de-arrullos-y-alabaos-del-baudo-2013",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2013 del Festival de Arrullos y Alabaos del Baudó, «Con todos los santos»."
+ },
+ {
+  "alias": "img.edicion.festival-de-arrullos-y-alabaos-del-baudo-2014.afiche",
+  "para": "n1.edicion.festival-de-arrullos-y-alabaos-del-baudo-2014",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2014 del Festival de Arrullos y Alabaos del Baudó, «El río también responde»."
+ },
+ {
+  "alias": "img.edicion.festival-de-arrullos-y-alabaos-del-baudo-2015.afiche",
+  "para": "n1.edicion.festival-de-arrullos-y-alabaos-del-baudo-2015",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2015 del Festival de Arrullos y Alabaos del Baudó, «Voces de agua dulce»."
+ },
+ {
+  "alias": "img.edicion.festival-de-arrullos-y-alabaos-del-baudo-2016.afiche",
+  "para": "n1.edicion.festival-de-arrullos-y-alabaos-del-baudo-2016",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2016 del Festival de Arrullos y Alabaos del Baudó, «Alabaos para los que se fueron»."
+ },
+ {
+  "alias": "img.edicion.festival-de-arrullos-y-alabaos-del-baudo-2017.afiche",
+  "para": "n1.edicion.festival-de-arrullos-y-alabaos-del-baudo-2017",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2017 del Festival de Arrullos y Alabaos del Baudó, «Rumbo a la mar»."
+ },
+ {
+  "alias": "img.edicion.festival-de-arrullos-y-alabaos-del-baudo-2018.afiche",
+  "para": "n1.edicion.festival-de-arrullos-y-alabaos-del-baudo-2018",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2018 del Festival de Arrullos y Alabaos del Baudó, «Cuatro puntos del río»."
+ },
+ {
+  "alias": "img.edicion.festival-de-arrullos-y-alabaos-del-baudo-2019.afiche",
+  "para": "n1.edicion.festival-de-arrullos-y-alabaos-del-baudo-2019",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2019 del Festival de Arrullos y Alabaos del Baudó, «Siete años cantando»."
+ },
+ {
+  "alias": "img.edicion.festival-de-arrullos-y-alabaos-del-baudo-2022.afiche",
+  "para": "n1.edicion.festival-de-arrullos-y-alabaos-del-baudo-2022",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2022 del Festival de Arrullos y Alabaos del Baudó, «Volver a cantar»."
+ },
+ {
+  "alias": "img.edicion.festival-de-arrullos-y-alabaos-del-baudo-2023.afiche",
+  "para": "n1.edicion.festival-de-arrullos-y-alabaos-del-baudo-2023",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2023 del Festival de Arrullos y Alabaos del Baudó, «Las que enseñan»."
+ },
+ {
+  "alias": "img.edicion.festival-de-arrullos-y-alabaos-del-baudo-2024.afiche",
+  "para": "n1.edicion.festival-de-arrullos-y-alabaos-del-baudo-2024",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2024 del Festival de Arrullos y Alabaos del Baudó, «Un río de voces»."
+ },
+ {
+  "alias": "img.edicion.festival-de-arrullos-y-alabaos-del-baudo-2025.afiche",
+  "para": "n1.edicion.festival-de-arrullos-y-alabaos-del-baudo-2025",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2025 del Festival de Arrullos y Alabaos del Baudó, «Entre la selva y el mar»."
+ },
+ {
+  "alias": "img.edicion.festival-de-arrullos-y-alabaos-del-baudo-2026.afiche",
+  "para": "n1.edicion.festival-de-arrullos-y-alabaos-del-baudo-2026",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2026 del Festival de Arrullos y Alabaos del Baudó, «Cantar la memoria del río»."
+ },
+ {
+  "alias": "img.edicion.festival-de-arrullos-y-alabaos-del-baudo-2027.afiche",
+  "para": "n1.edicion.festival-de-arrullos-y-alabaos-del-baudo-2027",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2027 del Festival de Arrullos y Alabaos del Baudó, «A catorce voces»."
+ },
+ {
+  "alias": "img.festival.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande.portada",
+  "para": "n1.festival.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande",
+  "rol": "portada",
+  "alt": "Escena del Encuentro de Bullerengue y Tambor de la Ciénaga Grande: público y agrupaciones en el escenario principal."
+ },
+ {
+  "alias": "img.festival.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande.logo",
+  "para": "n1.festival.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande",
+  "rol": "logo",
+  "alt": "Logotipo del Encuentro de Bullerengue y Tambor de la Ciénaga Grande."
+ },
+ {
+  "alias": "img.festival.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande.galeria.1",
+  "para": "n1.festival.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande",
+  "rol": "galeria",
+  "alt": "Imagen 1 de la galería del Encuentro de Bullerengue y Tambor de la Ciénaga Grande."
+ },
+ {
+  "alias": "img.festival.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande.galeria.2",
+  "para": "n1.festival.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande",
+  "rol": "galeria",
+  "alt": "Imagen 2 de la galería del Encuentro de Bullerengue y Tambor de la Ciénaga Grande."
+ },
+ {
+  "alias": "img.festival.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande.galeria.3",
+  "para": "n1.festival.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande",
+  "rol": "galeria",
+  "alt": "Imagen 3 de la galería del Encuentro de Bullerengue y Tambor de la Ciénaga Grande."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande-2021.afiche",
+  "para": "n1.edicion.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande-2021",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2021 del Encuentro de Bullerengue y Tambor de la Ciénaga Grande, «Cantar en la cocina»."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande-2022.afiche",
+  "para": "n1.edicion.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande-2022",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2022 del Encuentro de Bullerengue y Tambor de la Ciénaga Grande, «El tambor vuelve a la cancha»."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande-2023.afiche",
+  "para": "n1.edicion.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande-2023",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2023 del Encuentro de Bullerengue y Tambor de la Ciénaga Grande, «Pulso de mujeres»."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande-2024.afiche",
+  "para": "n1.edicion.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande-2024",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2024 del Encuentro de Bullerengue y Tambor de la Ciénaga Grande, «De la ciénaga al patio»."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande-2025.afiche",
+  "para": "n1.edicion.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande-2025",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2025 del Encuentro de Bullerengue y Tambor de la Ciénaga Grande, «Versos con sal»."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande-2026.afiche",
+  "para": "n1.edicion.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande-2026",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2026 del Encuentro de Bullerengue y Tambor de la Ciénaga Grande, «Una ronda larga»."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande-2027.afiche",
+  "para": "n1.edicion.encuentro-de-bullerengue-y-tambor-de-la-cienaga-grande-2027",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2027 del Encuentro de Bullerengue y Tambor de la Ciénaga Grande, «Para quienes vienen»."
+ },
+ {
+  "alias": "img.festival.festival-cuerdas-del-paramo.portada",
+  "para": "n1.festival.festival-cuerdas-del-paramo",
+  "rol": "portada",
+  "alt": "Escena del Festival Cuerdas del Páramo: público y agrupaciones en el escenario principal."
+ },
+ {
+  "alias": "img.festival.festival-cuerdas-del-paramo.logo",
+  "para": "n1.festival.festival-cuerdas-del-paramo",
+  "rol": "logo",
+  "alt": "Logotipo del Festival Cuerdas del Páramo."
+ },
+ {
+  "alias": "img.festival.festival-cuerdas-del-paramo.galeria.1",
+  "para": "n1.festival.festival-cuerdas-del-paramo",
+  "rol": "galeria",
+  "alt": "Imagen 1 de la galería del Festival Cuerdas del Páramo."
+ },
+ {
+  "alias": "img.festival.festival-cuerdas-del-paramo.galeria.2",
+  "para": "n1.festival.festival-cuerdas-del-paramo",
+  "rol": "galeria",
+  "alt": "Imagen 2 de la galería del Festival Cuerdas del Páramo."
+ },
+ {
+  "alias": "img.festival.festival-cuerdas-del-paramo.galeria.3",
+  "para": "n1.festival.festival-cuerdas-del-paramo",
+  "rol": "galeria",
+  "alt": "Imagen 3 de la galería del Festival Cuerdas del Páramo."
+ },
+ {
+  "alias": "img.edicion.festival-cuerdas-del-paramo-2018.afiche",
+  "para": "n1.edicion.festival-cuerdas-del-paramo-2018",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2018 del Festival Cuerdas del Páramo, «Primer toque»."
+ },
+ {
+  "alias": "img.edicion.festival-cuerdas-del-paramo-2019.afiche",
+  "para": "n1.edicion.festival-cuerdas-del-paramo-2019",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2019 del Festival Cuerdas del Páramo, «Cuerdas que suben»."
+ },
+ {
+  "alias": "img.edicion.festival-cuerdas-del-paramo-2022.afiche",
+  "para": "n1.edicion.festival-cuerdas-del-paramo-2022",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2022 del Festival Cuerdas del Páramo, «Reencuentro»."
+ },
+ {
+  "alias": "img.edicion.festival-cuerdas-del-paramo-2025.afiche",
+  "para": "n1.edicion.festival-cuerdas-del-paramo-2025",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2025 del Festival Cuerdas del Páramo, «Páramo adentro»."
+ },
+ {
+  "alias": "img.edicion.festival-cuerdas-del-paramo-2026.afiche",
+  "para": "n1.edicion.festival-cuerdas-del-paramo-2026",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2026 del Festival Cuerdas del Páramo, «La cuerda no se rompe»."
+ },
+ {
+  "alias": "img.festival.encuentro-de-arpas-y-cuatros-del-ariari.portada",
+  "para": "n1.festival.encuentro-de-arpas-y-cuatros-del-ariari",
+  "rol": "portada",
+  "alt": "Escena del Encuentro de Arpas y Cuatros del Ariari: público y agrupaciones en el escenario principal."
+ },
+ {
+  "alias": "img.festival.encuentro-de-arpas-y-cuatros-del-ariari.logo",
+  "para": "n1.festival.encuentro-de-arpas-y-cuatros-del-ariari",
+  "rol": "logo",
+  "alt": "Logotipo del Encuentro de Arpas y Cuatros del Ariari."
+ },
+ {
+  "alias": "img.festival.encuentro-de-arpas-y-cuatros-del-ariari.galeria.1",
+  "para": "n1.festival.encuentro-de-arpas-y-cuatros-del-ariari",
+  "rol": "galeria",
+  "alt": "Imagen 1 de la galería del Encuentro de Arpas y Cuatros del Ariari."
+ },
+ {
+  "alias": "img.festival.encuentro-de-arpas-y-cuatros-del-ariari.galeria.2",
+  "para": "n1.festival.encuentro-de-arpas-y-cuatros-del-ariari",
+  "rol": "galeria",
+  "alt": "Imagen 2 de la galería del Encuentro de Arpas y Cuatros del Ariari."
+ },
+ {
+  "alias": "img.festival.encuentro-de-arpas-y-cuatros-del-ariari.galeria.3",
+  "para": "n1.festival.encuentro-de-arpas-y-cuatros-del-ariari",
+  "rol": "galeria",
+  "alt": "Imagen 3 de la galería del Encuentro de Arpas y Cuatros del Ariari."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-arpas-y-cuatros-del-ariari-2016.afiche",
+  "para": "n1.edicion.encuentro-de-arpas-y-cuatros-del-ariari-2016",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2016 del Encuentro de Arpas y Cuatros del Ariari, «Arpa y cuatro, cara a cara»."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-arpas-y-cuatros-del-ariari-2017.afiche",
+  "para": "n1.edicion.encuentro-de-arpas-y-cuatros-del-ariari-2017",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2017 del Encuentro de Arpas y Cuatros del Ariari, «Con la sabana en los dedos»."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-arpas-y-cuatros-del-ariari-2018.afiche",
+  "para": "n1.edicion.encuentro-de-arpas-y-cuatros-del-ariari-2018",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2018 del Encuentro de Arpas y Cuatros del Ariari, «Cuerdas de piedemonte»."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-arpas-y-cuatros-del-ariari-2019.afiche",
+  "para": "n1.edicion.encuentro-de-arpas-y-cuatros-del-ariari-2019",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2019 del Encuentro de Arpas y Cuatros del Ariari, «Joropo a campo abierto»."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-arpas-y-cuatros-del-ariari-2022.afiche",
+  "para": "n1.edicion.encuentro-de-arpas-y-cuatros-del-ariari-2022",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2022 del Encuentro de Arpas y Cuatros del Ariari, «De vuelta a la tierra»."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-arpas-y-cuatros-del-ariari-2025.afiche",
+  "para": "n1.edicion.encuentro-de-arpas-y-cuatros-del-ariari-2025",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2025 del Encuentro de Arpas y Cuatros del Ariari, «Cuatro cuerdas, cuatro regiones»."
+ },
+ {
+  "alias": "img.festival.encuentro-de-coplas-del-cravo-sur.portada",
+  "para": "n1.festival.encuentro-de-coplas-del-cravo-sur",
+  "rol": "portada",
+  "alt": "Escena del Encuentro de Coplas del Cravo Sur: público y agrupaciones en el escenario principal."
+ },
+ {
+  "alias": "img.festival.encuentro-de-coplas-del-cravo-sur.logo",
+  "para": "n1.festival.encuentro-de-coplas-del-cravo-sur",
+  "rol": "logo",
+  "alt": "Logotipo del Encuentro de Coplas del Cravo Sur."
+ },
+ {
+  "alias": "img.festival.encuentro-de-coplas-del-cravo-sur.galeria.1",
+  "para": "n1.festival.encuentro-de-coplas-del-cravo-sur",
+  "rol": "galeria",
+  "alt": "Imagen 1 de la galería del Encuentro de Coplas del Cravo Sur."
+ },
+ {
+  "alias": "img.festival.encuentro-de-coplas-del-cravo-sur.galeria.2",
+  "para": "n1.festival.encuentro-de-coplas-del-cravo-sur",
+  "rol": "galeria",
+  "alt": "Imagen 2 de la galería del Encuentro de Coplas del Cravo Sur."
+ },
+ {
+  "alias": "img.festival.encuentro-de-coplas-del-cravo-sur.galeria.3",
+  "para": "n1.festival.encuentro-de-coplas-del-cravo-sur",
+  "rol": "galeria",
+  "alt": "Imagen 3 de la galería del Encuentro de Coplas del Cravo Sur."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-coplas-del-cravo-sur-2023.afiche",
+  "para": "n1.edicion.encuentro-de-coplas-del-cravo-sur-2023",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2023 del Encuentro de Coplas del Cravo Sur, «Verso a verso»."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-coplas-del-cravo-sur-2024.afiche",
+  "para": "n1.edicion.encuentro-de-coplas-del-cravo-sur-2024",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2024 del Encuentro de Coplas del Cravo Sur, «Coplas de a caballo»."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-coplas-del-cravo-sur-2025.afiche",
+  "para": "n1.edicion.encuentro-de-coplas-del-cravo-sur-2025",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2025 del Encuentro de Coplas del Cravo Sur, «Palabra de llano»."
+ },
+ {
+  "alias": "img.festival.muestra-de-cantos-del-rio-caqueta.portada",
+  "para": "n1.festival.muestra-de-cantos-del-rio-caqueta",
+  "rol": "portada",
+  "alt": "Escena del Muestra de Cantos del Río Caquetá: público y agrupaciones en el escenario principal."
+ },
+ {
+  "alias": "img.festival.muestra-de-cantos-del-rio-caqueta.logo",
+  "para": "n1.festival.muestra-de-cantos-del-rio-caqueta",
+  "rol": "logo",
+  "alt": "Logotipo del Muestra de Cantos del Río Caquetá."
+ },
+ {
+  "alias": "img.festival.muestra-de-cantos-del-rio-caqueta.galeria.1",
+  "para": "n1.festival.muestra-de-cantos-del-rio-caqueta",
+  "rol": "galeria",
+  "alt": "Imagen 1 de la galería del Muestra de Cantos del Río Caquetá."
+ },
+ {
+  "alias": "img.festival.muestra-de-cantos-del-rio-caqueta.galeria.2",
+  "para": "n1.festival.muestra-de-cantos-del-rio-caqueta",
+  "rol": "galeria",
+  "alt": "Imagen 2 de la galería del Muestra de Cantos del Río Caquetá."
+ },
+ {
+  "alias": "img.festival.muestra-de-cantos-del-rio-caqueta.galeria.3",
+  "para": "n1.festival.muestra-de-cantos-del-rio-caqueta",
+  "rol": "galeria",
+  "alt": "Imagen 3 de la galería del Muestra de Cantos del Río Caquetá."
+ },
+ {
+  "alias": "img.edicion.muestra-de-cantos-del-rio-caqueta-2024.afiche",
+  "para": "n1.edicion.muestra-de-cantos-del-rio-caqueta-2024",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2024 del Muestra de Cantos del Río Caquetá, «Del río a la sala»."
+ },
+ {
+  "alias": "img.edicion.muestra-de-cantos-del-rio-caqueta-2026.afiche",
+  "para": "n1.edicion.muestra-de-cantos-del-rio-caqueta-2026",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2026 del Muestra de Cantos del Río Caquetá, «Orillas»."
+ },
+ {
+  "alias": "img.festival.encuentro-de-quadrille-y-calipso-del-cove.portada",
+  "para": "n1.festival.encuentro-de-quadrille-y-calipso-del-cove",
+  "rol": "portada",
+  "alt": "Escena del Encuentro de Quadrille y Calipso del Cove: público y agrupaciones en el escenario principal."
+ },
+ {
+  "alias": "img.festival.encuentro-de-quadrille-y-calipso-del-cove.logo",
+  "para": "n1.festival.encuentro-de-quadrille-y-calipso-del-cove",
+  "rol": "logo",
+  "alt": "Logotipo del Encuentro de Quadrille y Calipso del Cove."
+ },
+ {
+  "alias": "img.festival.encuentro-de-quadrille-y-calipso-del-cove.galeria.1",
+  "para": "n1.festival.encuentro-de-quadrille-y-calipso-del-cove",
+  "rol": "galeria",
+  "alt": "Imagen 1 de la galería del Encuentro de Quadrille y Calipso del Cove."
+ },
+ {
+  "alias": "img.festival.encuentro-de-quadrille-y-calipso-del-cove.galeria.2",
+  "para": "n1.festival.encuentro-de-quadrille-y-calipso-del-cove",
+  "rol": "galeria",
+  "alt": "Imagen 2 de la galería del Encuentro de Quadrille y Calipso del Cove."
+ },
+ {
+  "alias": "img.festival.encuentro-de-quadrille-y-calipso-del-cove.galeria.3",
+  "para": "n1.festival.encuentro-de-quadrille-y-calipso-del-cove",
+  "rol": "galeria",
+  "alt": "Imagen 3 de la galería del Encuentro de Quadrille y Calipso del Cove."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-quadrille-y-calipso-del-cove-2027.afiche",
+  "para": "n1.edicion.encuentro-de-quadrille-y-calipso-del-cove-2027",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2027 del Encuentro de Quadrille y Calipso del Cove, «Tablones y calipso»."
+ },
+ {
+  "alias": "img.festival.encuentro-de-musicas-del-orinoco-y-la-frontera.portada",
+  "para": "n1.festival.encuentro-de-musicas-del-orinoco-y-la-frontera",
+  "rol": "portada",
+  "alt": "Escena del Encuentro de Músicas del Orinoco y la Frontera: público y agrupaciones en el escenario principal."
+ },
+ {
+  "alias": "img.festival.encuentro-de-musicas-del-orinoco-y-la-frontera.logo",
+  "para": "n1.festival.encuentro-de-musicas-del-orinoco-y-la-frontera",
+  "rol": "logo",
+  "alt": "Logotipo del Encuentro de Músicas del Orinoco y la Frontera."
+ },
+ {
+  "alias": "img.festival.encuentro-de-musicas-del-orinoco-y-la-frontera.galeria.1",
+  "para": "n1.festival.encuentro-de-musicas-del-orinoco-y-la-frontera",
+  "rol": "galeria",
+  "alt": "Imagen 1 de la galería del Encuentro de Músicas del Orinoco y la Frontera."
+ },
+ {
+  "alias": "img.festival.encuentro-de-musicas-del-orinoco-y-la-frontera.galeria.2",
+  "para": "n1.festival.encuentro-de-musicas-del-orinoco-y-la-frontera",
+  "rol": "galeria",
+  "alt": "Imagen 2 de la galería del Encuentro de Músicas del Orinoco y la Frontera."
+ },
+ {
+  "alias": "img.festival.encuentro-de-musicas-del-orinoco-y-la-frontera.galeria.3",
+  "para": "n1.festival.encuentro-de-musicas-del-orinoco-y-la-frontera",
+  "rol": "galeria",
+  "alt": "Imagen 3 de la galería del Encuentro de Músicas del Orinoco y la Frontera."
+ },
+ {
+  "alias": "img.festival.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina.portada",
+  "para": "n1.festival.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina",
+  "rol": "portada",
+  "alt": "Escena del Festival del Torbellino y el Tiple de la Provincia Guanentina: público y agrupaciones en el escenario principal."
+ },
+ {
+  "alias": "img.festival.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina.logo",
+  "para": "n1.festival.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina",
+  "rol": "logo",
+  "alt": "Logotipo del Festival del Torbellino y el Tiple de la Provincia Guanentina."
+ },
+ {
+  "alias": "img.festival.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina.galeria.1",
+  "para": "n1.festival.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina",
+  "rol": "galeria",
+  "alt": "Imagen 1 de la galería del Festival del Torbellino y el Tiple de la Provincia Guanentina."
+ },
+ {
+  "alias": "img.festival.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina.galeria.2",
+  "para": "n1.festival.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina",
+  "rol": "galeria",
+  "alt": "Imagen 2 de la galería del Festival del Torbellino y el Tiple de la Provincia Guanentina."
+ },
+ {
+  "alias": "img.festival.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina.galeria.3",
+  "para": "n1.festival.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina",
+  "rol": "galeria",
+  "alt": "Imagen 3 de la galería del Festival del Torbellino y el Tiple de la Provincia Guanentina."
+ },
+ {
+  "alias": "img.edicion.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina-2014.afiche",
+  "para": "n1.edicion.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina-2014",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2014 del Festival del Torbellino y el Tiple de la Provincia Guanentina, «Tiple de ida y vuelta»."
+ },
+ {
+  "alias": "img.edicion.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina-2015.afiche",
+  "para": "n1.edicion.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina-2015",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2015 del Festival del Torbellino y el Tiple de la Provincia Guanentina, «Cuerdas del Chicamocha»."
+ },
+ {
+  "alias": "img.edicion.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina-2016.afiche",
+  "para": "n1.edicion.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina-2016",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2016 del Festival del Torbellino y el Tiple de la Provincia Guanentina, «Torbellino de ida»."
+ },
+ {
+  "alias": "img.edicion.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina-2019.afiche",
+  "para": "n1.edicion.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina-2019",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2019 del Festival del Torbellino y el Tiple de la Provincia Guanentina, «Tres años de silencio»."
+ },
+ {
+  "alias": "img.edicion.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina-2023.afiche",
+  "para": "n1.edicion.festival-del-torbellino-y-el-tiple-de-la-provincia-guanentina-2023",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2023 del Festival del Torbellino y el Tiple de la Provincia Guanentina, «El último torbellino»."
+ },
+ {
+  "alias": "img.festival.encuentro-de-flautas-y-tambores-del-valle-alto.portada",
+  "para": "n1.festival.encuentro-de-flautas-y-tambores-del-valle-alto",
+  "rol": "portada",
+  "alt": "Escena del Encuentro de Flautas y Tambores del Valle Alto: público y agrupaciones en el escenario principal."
+ },
+ {
+  "alias": "img.festival.encuentro-de-flautas-y-tambores-del-valle-alto.logo",
+  "para": "n1.festival.encuentro-de-flautas-y-tambores-del-valle-alto",
+  "rol": "logo",
+  "alt": "Logotipo del Encuentro de Flautas y Tambores del Valle Alto."
+ },
+ {
+  "alias": "img.festival.encuentro-de-flautas-y-tambores-del-valle-alto.galeria.1",
+  "para": "n1.festival.encuentro-de-flautas-y-tambores-del-valle-alto",
+  "rol": "galeria",
+  "alt": "Imagen 1 de la galería del Encuentro de Flautas y Tambores del Valle Alto."
+ },
+ {
+  "alias": "img.festival.encuentro-de-flautas-y-tambores-del-valle-alto.galeria.2",
+  "para": "n1.festival.encuentro-de-flautas-y-tambores-del-valle-alto",
+  "rol": "galeria",
+  "alt": "Imagen 2 de la galería del Encuentro de Flautas y Tambores del Valle Alto."
+ },
+ {
+  "alias": "img.festival.encuentro-de-flautas-y-tambores-del-valle-alto.galeria.3",
+  "para": "n1.festival.encuentro-de-flautas-y-tambores-del-valle-alto",
+  "rol": "galeria",
+  "alt": "Imagen 3 de la galería del Encuentro de Flautas y Tambores del Valle Alto."
+ },
+ {
+  "alias": "img.edicion.encuentro-de-flautas-y-tambores-del-valle-alto-2027.afiche",
+  "para": "n1.edicion.encuentro-de-flautas-y-tambores-del-valle-alto-2027",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2027 del Encuentro de Flautas y Tambores del Valle Alto, «Flautas al amanecer»."
+ },
+ {
+  "alias": "img.mercado.feria-de-circulacion-musical-del-golfo.portada",
+  "para": "n1.mercado.feria-de-circulacion-musical-del-golfo",
+  "rol": "portada",
+  "alt": "Citas de negocio y presentaciones en Feria de Circulación Musical del Golfo."
+ },
+ {
+  "alias": "img.mercado.feria-de-circulacion-musical-del-golfo.logo",
+  "para": "n1.mercado.feria-de-circulacion-musical-del-golfo",
+  "rol": "logo",
+  "alt": "Logotipo de Feria de Circulación Musical del Golfo."
+ },
+ {
+  "alias": "img.edicion.feria-de-circulacion-musical-del-golfo-2023.afiche",
+  "para": "n1.edicion.feria-de-circulacion-musical-del-golfo-2023",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2023 de Feria de Circulación Musical del Golfo, «Citas junto al mar»."
+ },
+ {
+  "alias": "img.edicion.feria-de-circulacion-musical-del-golfo-2024.afiche",
+  "para": "n1.edicion.feria-de-circulacion-musical-del-golfo-2024",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2024 de Feria de Circulación Musical del Golfo, «Contratos con sal»."
+ },
+ {
+  "alias": "img.edicion.feria-de-circulacion-musical-del-golfo-2025.afiche",
+  "para": "n1.edicion.feria-de-circulacion-musical-del-golfo-2025",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2025 de Feria de Circulación Musical del Golfo, «Tarifas claras»."
+ },
+ {
+  "alias": "img.edicion.feria-de-circulacion-musical-del-golfo-2026.afiche",
+  "para": "n1.edicion.feria-de-circulacion-musical-del-golfo-2026",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2026 de Feria de Circulación Musical del Golfo, «Con el oído abierto»."
+ },
+ {
+  "alias": "img.edicion.feria-de-circulacion-musical-del-golfo-2027.afiche",
+  "para": "n1.edicion.feria-de-circulacion-musical-del-golfo-2027",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2027 de Feria de Circulación Musical del Golfo, «Ruta de ida y vuelta»."
+ },
+ {
+  "alias": "img.mercado.vitrina-cafetera-de-musicas.portada",
+  "para": "n1.mercado.vitrina-cafetera-de-musicas",
+  "rol": "portada",
+  "alt": "Citas de negocio y presentaciones en Vitrina Cafetera de Músicas."
+ },
+ {
+  "alias": "img.mercado.vitrina-cafetera-de-musicas.logo",
+  "para": "n1.mercado.vitrina-cafetera-de-musicas",
+  "rol": "logo",
+  "alt": "Logotipo de Vitrina Cafetera de Músicas."
+ },
+ {
+  "alias": "img.edicion.vitrina-cafetera-de-musicas-2025.afiche",
+  "para": "n1.edicion.vitrina-cafetera-de-musicas-2025",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2025 de Vitrina Cafetera de Músicas, «Primera vitrina»."
+ },
+ {
+  "alias": "img.edicion.vitrina-cafetera-de-musicas-2026.afiche",
+  "para": "n1.edicion.vitrina-cafetera-de-musicas-2026",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2026 de Vitrina Cafetera de Músicas, «Con el café servido»."
+ },
+ {
+  "alias": "img.mercado.vitrina-de-musicas-del-llano-y-la-selva.portada",
+  "para": "n1.mercado.vitrina-de-musicas-del-llano-y-la-selva",
+  "rol": "portada",
+  "alt": "Citas de negocio y presentaciones en Vitrina de Músicas del Llano y la Selva."
+ },
+ {
+  "alias": "img.mercado.vitrina-de-musicas-del-llano-y-la-selva.logo",
+  "para": "n1.mercado.vitrina-de-musicas-del-llano-y-la-selva",
+  "rol": "logo",
+  "alt": "Logotipo de Vitrina de Músicas del Llano y la Selva."
+ },
+ {
+  "alias": "img.edicion.vitrina-de-musicas-del-llano-y-la-selva-2027.afiche",
+  "para": "n1.edicion.vitrina-de-musicas-del-llano-y-la-selva-2027",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2027 de Vitrina de Músicas del Llano y la Selva, «Del patio a la pantalla»."
+ },
+ {
+  "alias": "img.mercado.mercado-de-musicas-de-frontera-del-nororiente.portada",
+  "para": "n1.mercado.mercado-de-musicas-de-frontera-del-nororiente",
+  "rol": "portada",
+  "alt": "Citas de negocio y presentaciones en Mercado de Músicas de Frontera del Nororiente."
+ },
+ {
+  "alias": "img.mercado.mercado-de-musicas-de-frontera-del-nororiente.logo",
+  "para": "n1.mercado.mercado-de-musicas-de-frontera-del-nororiente",
+  "rol": "logo",
+  "alt": "Logotipo de Mercado de Músicas de Frontera del Nororiente."
+ },
+ {
+  "alias": "img.edicion.mercado-de-musicas-de-frontera-del-nororiente-2026.afiche",
+  "para": "n1.edicion.mercado-de-musicas-de-frontera-del-nororiente-2026",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2026 de Mercado de Músicas de Frontera del Nororiente, «Una orilla, dos orillas»."
+ },
+ {
+  "alias": "img.edicion.mercado-de-musicas-de-frontera-del-nororiente-2027.afiche",
+  "para": "n1.edicion.mercado-de-musicas-de-frontera-del-nororiente-2027",
+  "rol": "afiche",
+  "alt": "Afiche de la edición 2027 de Mercado de Músicas de Frontera del Nororiente, «Cruce de caminos»."
+ },
+ {
+  "alias": "img.festival.encuentro-de-cuerdas-del-paramo.portada",
+  "para": "n1.historico.encuentro-de-cuerdas-del-paramo",
+  "rol": "portada",
+  "alt": "Archivo fotográfico del Encuentro de Cuerdas del Páramo."
+ },
+ {
+  "alias": "img.festival.festival-de-cuerdas-y-paramo.portada",
+  "para": "n1.historico.festival-de-cuerdas-y-paramo",
+  "rol": "portada",
+  "alt": "Archivo fotográfico del Festival de Cuerdas y Páramo."
+ },
+ {
+  "alias": "img.festival.festival-de-gaitas-del-alto-sinu.portada",
+  "para": "n1.historico.festival-de-gaitas-del-alto-sinu",
+  "rol": "portada",
+  "alt": "Archivo fotográfico del Festival de Gaitas del Alto Sinú."
+ },
+ {
+  "alias": "img.festival.encuentro-de-bandas-del-valle-de-tenza.portada",
+  "para": "n1.historico.encuentro-de-bandas-del-valle-de-tenza",
+  "rol": "portada",
+  "alt": "Archivo fotográfico del Encuentro de Bandas del Valle de Tenza."
+ }
+]

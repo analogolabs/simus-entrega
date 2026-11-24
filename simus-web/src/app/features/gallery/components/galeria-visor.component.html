@@ -1,0 +1,40 @@
+<dialog #dialogo class="visor" aria-label="Visor de fotografías" (close)="alCerrarElDialogo()" data-testid="galeria-visor">
+  @if (foto(); as f) {
+    <div class="lb">
+      <div class="im" (pointerdown)="alPulsar($event)" (pointerup)="alSoltar($event)">
+        <div class="im__fondo" [style.background-image]="'url(' + f.url + ')'" aria-hidden="true"></div>
+        <img class="im__foto" [src]="f.url" [alt]="f.alt" width="1600" height="1070" />
+        @if (indice()! > 0) {
+          <button type="button" class="nv nv--ant" (click)="mover(-1)" aria-label="Foto anterior"><svg lucideChevronLeft [size]="22" aria-hidden="true"></svg></button>
+        }
+        @if (indice()! < fotos().length - 1) {
+          <button type="button" class="nv nv--sig" (click)="mover(1)" aria-label="Foto siguiente"><svg lucideChevronRight [size]="22" aria-hidden="true"></svg></button>
+        }
+        <div class="top">
+          <button type="button" class="volver" (click)="cerrar.emit()" data-testid="galeria-visor-volver"><svg lucideArrowLeft [size]="18" aria-hidden="true"></svg> Volver a {{ rotuloDeVuelta() }}</button>
+          <span class="cuenta" aria-live="polite">{{ indice()! + 1 }} / {{ fotos().length }}</span>
+          <button type="button" class="cerrar" (click)="cerrar.emit()" aria-label="Cerrar el visor" data-testid="galeria-visor-cerrar"><svg lucideX [size]="22" aria-hidden="true"></svg></button>
+        </div>
+      </div>
+      <aside class="info" aria-label="Información de la foto" data-testid="galeria-visor-info">
+        @if (f.albumTitulo) { <p class="et">{{ f.albumTitulo }}</p> }
+        <p class="pie">{{ f.titulo ?? f.alt }}</p>
+        <dl>
+          @if (f.credito) { <dt>Crédito</dt><dd>{{ f.credito }}</dd> }
+          @if (f.fecha) { <dt>Fecha</dt><dd>{{ fechaLarga(f.fecha) }}</dd> }
+          @if (f.lugar) { <dt>Lugar</dt><dd>{{ f.lugar }}</dd> }
+          <dt>Álbum</dt>
+          <dd>
+            @if (f.albumSlug) { <a class="enlace" [routerLink]="['/galeria/album', f.albumSlug]">{{ f.albumTitulo }}</a> }
+            @else { Sin álbum }
+          </dd>
+        </dl>
+        <div class="acc">
+          <button type="button" class="btn btn--k" (click)="descargar(f)" [disabled]="descargando()" data-testid="galeria-visor-descargar" [attr.aria-label]="'Descargar la foto: ' + (f.titulo ?? f.alt)"><svg lucideDownload [size]="16" aria-hidden="true"></svg> Descargar</button>
+          <button type="button" class="btn" (click)="copiar.emit(f)"><svg lucideLink [size]="16" aria-hidden="true"></svg> Copiar enlace</button>
+        </div>
+        @if (f.titulo && f.alt) { <p class="alt"><strong>Texto alternativo:</strong> {{ f.alt }}</p> }
+      </aside>
+    </div>
+  }
+</dialog>

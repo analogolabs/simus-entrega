@@ -1,0 +1,169 @@
+<div class="relative">
+  <app-portada-encabezado></app-portada-encabezado>
+
+  <!--
+    LA PORTADA COMO RECORRIDO: SIMUS → conoce → explora → el territorio → actualidad → cierre.
+    Dos encabezados (mensaje y título de sección), un solo borde izquierdo y el mismo relleno
+    vertical. Ritmo de color: morado (encabezado) → blanco (Qué es) → gris claro (Explora) →
+    blanco (territorio) → morado (boletín) → blanco (Actualidad) → pie morado. Magenta, cian y
+    amarillo solo como acentos.
+  -->
+  <app-pregunta-destacada />
+
+  <section>
+    <div #previewSection>
+      <app-pnmc-preview-section></app-pnmc-preview-section>
+    </div>
+
+    <app-home-strategies-section></app-home-strategies-section>
+
+    <app-portada-territorio></app-portada-territorio>
+
+    <!--
+      EL BOLETÍN COMO PAUSA DEL RECORRIDO: una franja morada entre el territorio y la actualidad.
+      Encima del pie se leía como un pie gigante.
+    -->
+    <div
+      data-testid="home-bulletin-banner"
+      class="relative w-full bg-morado py-20 text-white lg:py-24"
+    >
+      <!--
+        UNA FILA, DOS GRUPOS. A la izquierda la etiqueta, el título y la descripción; a la derecha
+        un solo grupo que lleva el formulario y las redes pegados con `md:gap-6`. Las redes estaban
+        en una segunda fila propia, debajo y centradas tras un `border-t`; suben al renglón del
+        formulario porque se pidió «pon las redes sociales al lado de registrarme».
+
+        NO ES LA MAQUETACIÓN DE TRES COLUMNAS QUE SE RETIRÓ EL 27 DE AGOSTO. Aquella tenía tres
+        hijos disputándose el renglón con `justify-between`, y las redes quedaban clavadas contra
+        el borde derecho, separadas por un filete vertical, como una nota al margen del boletín.
+        Esta fila tiene DOS hijos: las redes viajan DENTRO del grupo del formulario, a 24 px del
+        botón, y el filete vertical no vuelve.
+
+        EL MARGEN. La banda usa la columna común de la portada (`max-w-7xl`, `px-6 lg:px-8`), la
+        misma que los demás bloques y el pie: su contenido arranca y termina alineado con ellos.
+
+        LAS MEDIDAS DE ABAJO ESTÁN MEDIDAS, no estimadas: se imprimieron con
+        `getBoundingClientRect()` desde el Chrome de las pruebas, con el texto de fábrica y el
+        formulario montado de verdad.
+
+          1280 px  riel 1260, relleno 64 · izquierda 450 + hueco 48 + acciones 634 = 1132, que es
+                   exactamente el contenido disponible (1260 − 2×64). Sin holgura de sobra.
+          1920 px  riel 1600 (aquí sí recorta), relleno 64 · izquierda 490, hueco 349, acciones 634.
+          1024 px  la fila está APILADA, no en renglón. Ver el porqué en el comentario del grupo.
+      -->
+      <div
+        data-testid="home-bulletin-rail"
+        class="max-w-7xl mx-auto px-6 lg:px-8"
+      >
+        <div
+          data-testid="home-bulletin-row"
+          class="flex flex-col xl:flex-row items-center justify-between gap-10 xl:gap-12"
+        >
+          <!--
+            ESTE BLOQUE YA NO LLEVA `shrink-0`: con el renglón horizontal, quien cede ancho es el
+            texto, que puede partirse en dos líneas —`leading-tight` ya estaba puesto para eso—, no
+            el campo de correo, que tiene 280 px escritos. La etiqueta sí lo lleva: «BOLETÍN»
+            partido en dos líneas no es una degradación aceptable.
+
+            El título conserva su `lg:text-3xl` de siempre. Se probó subirlo a `xl:text-3xl` para
+            ganar ancho entre 1024 y 1279 px, y ya no hace falta: en esa franja la fila está
+            apilada y el bloque dispone de los 490 px que pide.
+          -->
+          <!-- Encabezado de MENSAJE, como «Qué es SIMUS»: antetítulo, frase y texto, juntos. -->
+          <div class="flex flex-col items-center text-center sm:items-start sm:text-left">
+            <p class="tipo-etiqueta mb-4 text-white/70">{{ getWebText('home_bulletin_etiqueta') }}</p>
+            <h2 data-testid="home-bulletin-title" class="tipo-enunciado max-w-xl break-words text-white">
+              {{ getWebText('home_bulletin_title') }}
+            </h2>
+            <p class="tipo-subtitulo mt-4 text-white/75">
+              {{ getWebText('home_bulletin_desc') }}
+            </p>
+          </div>
+
+          <!--
+            EL GRUPO DERECHO: formulario y redes en el mismo renglón desde 768 px. Mide 634 px, y
+            ese ancho no depende de la anchura de la pantalla.
+
+            `md:flex-row` y no `sm:flex-row`: a 640 px el riel ofrece 592 px de contenido y el grupo
+            pide 634, no cabe. A 768 px ofrece 688 y sobran 54.
+
+            LA FILA EXTERIOR SE PONE HORIZONTAL EN `xl` (1280) Y NO EN `lg` (1024), y es una
+            corrección medida, no una preferencia. A 1024 px el riel ofrece 908 px de contenido; el
+            grupo pide 634 y el bloque de texto no baja de 286, así que con el hueco de 32 px la
+            fila pedía 952 y se comía 44 px de relleno. No se veía como desborde —la banda lleva
+            `overflow-hidden` (:63), así que recorta en vez de empujar la página—: se veía como que
+            el margen derecho desaparecía, que es justo lo que se pidió arreglar. Apilando en esa
+            franja, el grupo queda centrado y sobran 195 px a cada lado.
+
+            AQUÍ HUBO UN `md:flex-wrap` Y SE RETIRÓ. Se le atribuía ser la válvula para un
+            `home_bulletin_btn` largo —el panel admite 40 caracteres,
+            core/cms/registro-de-textos-web.ts—, pero un mutante que lo borraba dejaba las nueve
+            pruebas en verde, incluida la que monta los textos del CMS en su tope. No hacía nada.
+          -->
+          <div
+            data-testid="home-bulletin-actions"
+            class="flex w-full flex-col items-center gap-8 md:w-auto md:flex-row md:items-center md:justify-center md:gap-6"
+          >
+            <!--
+              El campo y el boton vivian aqui sueltos, sin manejador: se escribia un correo, se
+              pulsaba y no pasaba nada. Ahora son un componente propio con su paso de autorizacion
+              de tratamiento de datos, porque un correo es dato personal y la Ley 1581 de 2012 pide
+              un acto expreso de la persona antes de usarlo. Los textos siguen saliendo del CMS.
+            -->
+            <div class="flex w-full justify-center sm:w-auto">
+              <app-boletin-form
+                class="block w-full min-w-0 sm:w-auto"
+                [placeholder]="getWebText('home_bulletin_placeholder')"
+                [textoDelBoton]="getWebText('home_bulletin_btn')"
+              ></app-boletin-form>
+            </div>
+
+            <!--
+              ANCHO FIJO DE 10rem (160 px) DESDE 768 px, Y ES LA PIEZA QUE SOSTIENE EL RENGLÓN.
+
+              Sin `md:w-40` esta columna se dimensiona a `max-content`: «Síguenos en nuestras redes
+              oficiales» ronda los 175 px en una línea, y un `home_social_desc` en el tope del campo
+              —120 caracteres, core/cms/registro-de-textos-web.ts— pasa de 550 px. Eso empujaría al
+              formulario y le comería el sitio al botón, que es justo lo que hay que evitar. Con el
+              ancho fijo el texto se parte dentro de la columna y crece hacia abajo. Los tres
+              iconos miden 136 px (3 x 40 + 2 x 8 de `gap-2`) y caben con 24 px de sobra;
+              `md:items-end` los deja a ras del margen derecho de la banda.
+
+              LAS DOS CLAVES SIGUEN LEYÉNDOSE DESDE AQUÍ, y es obligatorio: `npm run cms:huerfanas`
+              (tools/claves-sin-lector.mjs) se pone en rojo si `home_social_title` u
+              `home_social_desc` se quedan sin nadie que los nombre en `src/app`.
+
+              `tracking-[0.2em]` del h5 se deja como estaba, y conviene saber que NO hace nada:
+              `.font-alternate` fija `letter-spacing: 0.04em !important` en styles.css:87, y gana.
+            -->
+            <div
+              data-testid="home-social-block"
+              class="flex w-full flex-col items-center gap-3 text-center md:w-40 md:shrink-0 md:items-end md:text-right"
+            >
+              <div class="space-y-0.5">
+                <h3 class="tipo-etiqueta text-white/60">
+                  {{ getWebText('home_social_title') }}
+                </h3>
+                <p class="tipo-pequeno text-white/70">
+                  {{ getWebText('home_social_desc') }}
+                </p>
+              </div>
+              <div data-testid="home-social-links" class="flex items-center justify-center gap-2 md:justify-end">
+                @for (red of redes(); track red.id) {
+                  <a [href]="red.href" target="_blank" rel="noopener noreferrer" class="w-10 h-10 pointer-coarse:w-11 pointer-coarse:h-11 rounded-xl bg-white/10 border border-white/30 hover:border-white hover:bg-white hover:text-morado transition-colors flex items-center justify-center text-white/70" [attr.aria-label]="'Síguenos en ' + red.nombre">
+                    <app-icono-de-red [red]="red.id" class="w-4 h-4" />
+                  </a>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <app-noticias-agenda-preview></app-noticias-agenda-preview>
+
+    <app-footer></app-footer>
+  </section>
+</div>

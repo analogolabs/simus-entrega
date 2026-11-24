@@ -1,0 +1,153 @@
+<section class="min-h-screen bg-hueso pb-24 font-nunito text-titulo">
+  <app-compact-hero
+    [backLabel]="'sobre_mapa_miga' | textoWeb"
+    current="Sobre este mapa"
+    [title]="'sobre_mapa_titulo' | textoWeb"
+    [subtitle]="'sobre_mapa_subtitulo' | textoWeb"
+    (regresoSolicitado)="volver()"
+  ></app-compact-hero>
+
+  <div class="mx-auto max-w-7xl px-6 pt-10 lg:px-8">
+
+    <!--
+      LA APERTURA DICE QUE ES Y QUE NO ES. Un mapa que no declara sus límites invita a leer en él
+      cosas que no contiene, y este contiene lo que las organizaciones han registrado y publicado:
+      ni el ecosistema musical entero ni una muestra estadística de él.
+    -->
+    <div class="max-w-3xl">
+      <p class="font-alternate text-xs font-bold text-morado">{{ 'sobre_mapa_s1_etiqueta' | textoWeb }}</p>
+      <h2 class="mt-2 font-alternate text-3xl uppercase text-morado">{{ 'sobre_mapa_s1_titulo' | textoWeb }}</h2>
+      <p class="mt-4 leading-relaxed text-tinta-media">
+        {{ 'sobre_mapa_s1_p1' | textoWeb }}
+      </p>
+      <p class="mt-4 leading-relaxed text-tinta-media">
+        {{ 'sobre_mapa_s1_p2' | textoWeb }}
+      </p>
+    </div>
+
+    <!-- ═══════════ Las tres formas de dibujar ═══════════ -->
+    <div class="mt-16 max-w-3xl">
+      <p class="font-alternate text-xs font-bold text-morado">{{ 'sobre_mapa_s2_etiqueta' | textoWeb }}</p>
+      <h2 class="mt-2 font-alternate text-3xl uppercase text-morado">{{ 'sobre_mapa_s2_titulo' | textoWeb }}</h2>
+      <p class="mt-4 leading-relaxed text-tinta-media">
+        {{ 'sobre_mapa_s2_p1' | textoWeb }}
+      </p>
+    </div>
+
+    <div class="mt-8 grid gap-4 lg:grid-cols-3">
+      @for (forma of formasDeDibujar; track forma.nombre) {
+        <article class="flex flex-col rounded-2xl border border-filete bg-white p-6 shadow-sm">
+          <h3 class="font-alternate text-base font-bold text-morado">{{ forma.nombre }}</h3>
+          <p class="mt-3 font-alternate text-sm font-bold text-morado">{{ forma.responde }}</p>
+          <p class="mt-3 text-sm leading-relaxed text-tinta-media">{{ forma.como }}</p>
+
+          <!--
+            EL SESGO VA EN SU PROPIO BLOQUE Y CON SU ROTULO. Escondido en el párrafo se lee como una
+            salvedad menor; separado se lee como lo que es: la condición para usar bien la técnica.
+          -->
+          <div class="mt-4 rounded-xl bg-amber-50/70 px-4 py-3">
+            <p class="font-alternate text-xs font-bold text-amber-800">{{ 'sobre_mapa_deforma' | textoWeb }}</p>
+            <p class="mt-1.5 text-sm leading-relaxed text-amber-900">{{ forma.sesgo }}</p>
+          </div>
+
+          <div class="mt-4 border-t border-filete pt-4">
+            <p class="font-alternate text-xs font-bold text-tinta-media">{{ 'sobre_mapa_de_donde_viene' | textoWeb }}</p>
+            <p class="mt-1.5 text-sm leading-relaxed text-tinta-media">{{ forma.referente }}</p>
+          </div>
+        </article>
+      }
+    </div>
+
+    <!-- ═══════════ Los lentes ═══════════ -->
+    <div class="mt-16 max-w-3xl">
+      <p class="font-alternate text-xs font-bold text-morado">{{ 'sobre_mapa_s3_etiqueta' | textoWeb }}</p>
+      <h2 class="mt-2 font-alternate text-3xl uppercase text-morado">{{ 'sobre_mapa_s3_titulo' | textoWeb }}</h2>
+      <p class="mt-4 leading-relaxed text-tinta-media">
+        {{ 'sobre_mapa_s3_p1' | textoWeb }}
+      </p>
+    </div>
+
+    <div class="mt-8 grid gap-4 md:grid-cols-3">
+      @for (lente of lentes; track lente.nombre) {
+        <article class="rounded-2xl border border-filete bg-white p-6 shadow-sm">
+          <h3 class="font-alternate text-base font-bold text-morado">{{ lente.nombre }}</h3>
+          <p class="mt-3 text-sm leading-relaxed text-tinta-media">{{ lente.que }}</p>
+          <p class="mt-3 text-sm leading-relaxed text-tinta-media">{{ lente.porque }}</p>
+        </article>
+      }
+    </div>
+
+    <p class="mt-6 max-w-3xl text-sm leading-relaxed text-tinta-media">
+      {{ 'sobre_mapa_fichas_a' | textoWeb }}
+      <a routerLink="/ecosistema/territorios-sonoros" class="font-bold text-morado no-underline hover:text-morado-claro">{{ 'sobre_mapa_enlace_territorios' | textoWeb }}</a>
+      y en el
+      <a routerLink="/ecosistema/practicas-musicales" class="font-bold text-morado no-underline hover:text-morado-claro">{{ 'sobre_mapa_enlace_practicas' | textoWeb }}</a>.
+    </p>
+
+    <!-- ═══════════ La procedencia ═══════════ -->
+    <div class="mt-16 max-w-3xl">
+      <p class="font-alternate text-xs font-bold text-morado">{{ 'sobre_mapa_s4_etiqueta' | textoWeb }}</p>
+      <h2 class="mt-2 font-alternate text-3xl uppercase text-morado">{{ 'sobre_mapa_s4_titulo' | textoWeb }}</h2>
+      <p class="mt-4 leading-relaxed text-tinta-media">
+        {{ 'sobre_mapa_s4_p1' | textoWeb }}
+      </p>
+    </div>
+
+    <div class="mt-8 overflow-hidden rounded-2xl border border-filete bg-white shadow-sm">
+      <table class="w-full border-collapse text-left">
+        <caption class="sr-only">{{ 'sobre_mapa_tabla_titulo' | textoWeb }}</caption>
+        <thead>
+          <tr class="border-b border-filete bg-niebla">
+            <th scope="col" class="px-6 py-3 font-alternate text-xs font-bold text-tinta-media">{{ 'sobre_mapa_col_dato' | textoWeb }}</th>
+            <th scope="col" class="px-6 py-3 font-alternate text-xs font-bold text-tinta-media">{{ 'sobre_mapa_col_fuente' | textoWeb }}</th>
+            <th scope="col" class="px-6 py-3 font-alternate text-xs font-bold text-tinta-media">{{ 'sobre_mapa_col_alcance' | textoWeb }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (fila of procedencias; track fila.dato) {
+            <tr class="border-b border-filete last:border-0 align-top">
+              <th scope="row" class="px-6 py-4 font-alternate text-sm font-bold text-morado">{{ fila.dato }}</th>
+              <td class="px-6 py-4 text-sm font-semibold text-morado">{{ fila.fuente }}</td>
+              <td class="px-6 py-4 text-sm leading-relaxed text-tinta-media">{{ fila.detalle }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═══════════ Los marcos ═══════════ -->
+    <div class="mt-16 max-w-3xl">
+      <p class="font-alternate text-xs font-bold text-morado">{{ 'sobre_mapa_referentes_etiqueta' | textoWeb }}</p>
+      <h2 class="mt-2 font-alternate text-3xl uppercase text-morado">{{ 'sobre_mapa_referentes_titulo' | textoWeb }}</h2>
+    </div>
+
+    <div class="mt-8 grid gap-4 md:grid-cols-2">
+      @for (marco of marcos; track marco.titulo) {
+        <article class="rounded-2xl border border-filete bg-white p-6 shadow-sm">
+          <p class="font-alternate text-xs font-bold text-tinta-media">{{ marco.ambito }}</p>
+          <h3 class="mt-2 font-alternate text-base font-bold text-morado">{{ marco.titulo }}</h3>
+          <p class="mt-3 text-sm leading-relaxed text-tinta-media">{{ marco.detalle }}</p>
+        </article>
+      }
+    </div>
+
+    <!--
+      LA SALIDA DEVUELVE AL MAPA. Una página que explica una herramienta y no lleva de vuelta a ella
+      obliga a usar el botón del navegador, que es pedirle al lector que deshaga lo que hizo en vez
+      de continuar.
+    -->
+    <div class="mt-16 rounded-2xl border border-filete bg-white p-8 text-center shadow-sm">
+      <h2 class="font-alternate text-2xl uppercase text-morado">{{ 'sobre_mapa_volver' | textoWeb }}</h2>
+      <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-tinta-media">
+        {{ 'sobre_mapa_cierre' | textoWeb }}
+      </p>
+      <a
+        routerLink="/mapa-ecosistemico"
+        class="mt-6 inline-flex items-center gap-2 rounded-full bg-morado px-6 py-3 font-alternate text-xs font-bold text-white no-underline transition hover:bg-morado-claro"
+      >
+        {{ 'sobre_mapa_abrir' | textoWeb }}
+      </a>
+    </div>
+
+  </div>
+</section>

@@ -1,0 +1,101 @@
+name: Publicar SIMUS demo
+
+# SOLO A MANO: la demo de Azure se actualiza una vez, al terminar todos los issues (decisión del
+# 5 de noviembre de 2026). Antes se lanzaba en cada fusión a main y fallaba al entrar a Azure.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: simus-demo
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    name: Verificar y publicar demo
+    runs-on: ubuntu-latest
+    environment: demo
+    timeout-minutes: 45
+    env:
+      RESOURCE_GROUP: <grupo-de-recursos>
+      WEBAPP_NAME: <aplicacion-web>
+      SQL_SERVER: <servidor-sql>
+      SQL_DATABASE: simus_demo
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: simus-web/package-lock.json
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verificar frontend
+        working-directory: simus-web
+        run: |
+          npm ci
+          npm run lint
+          npm run trinquete
+          npm test
+          npm run build
+
+      - name: Verificar y empaquetar API
+        working-directory: simus-api
+        run: |
+          dotnet restore SIMUS.Api.sln
+          dotnet build SIMUS.Api.sln --configuration Release --no-restore
+          dotnet test tests/SIMUS.Api.Tests/SIMUS.Api.Tests.csproj --configuration Release --no-build --no-restore
+          dotnet publish src/SIMUS.Api/SIMUS.Api.csproj --configuration Release --no-build --output ../publish
+
+      - name: Incluir frontend en el paquete
+        run: |
+          mkdir -p publish/wwwroot
+          cp -R simus-web/dist/simus-web/browser/. publish/wwwroot/
+          test -f publish/wwwroot/index.html
+          cd publish && zip -r ../simus-demo.zip .
+
+      - name: Iniciar sesion en Azure con OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Abrir acceso SQL temporal para migrar
+        id: firewall
+        run: |
+          IP="$(curl --fail --retry 3 -s https://api.ipify.org)"
+          RULE="github-${GITHUB_RUN_ID}"
+          az sql server firewall-rule create --resource-group "$RESOURCE_GROUP" --server "$SQL_SERVER" --name "$RULE" --start-ip-address "$IP" --end-ip-address "$IP"
+          echo "rule=$RULE" >> "$GITHUB_OUTPUT"
+
+      - name: Aplicar migraciones versionadas
+        working-directory: simus-api
+        env:
+          SIMUS_MIGRADOR_CONEXION: ${{ secrets.SIMUS_SQL_CONNECTION_STRING }}
+        run: |
+          dotnet run --project src/SIMUS.Migrador --configuration Release --no-launch-profile -- migrar
+          dotnet run --project src/SIMUS.Migrador --configuration Release --no-launch-profile -- estado
+
+      - name: Publicar paquete
+        run: az webapp deploy --resource-group "$RESOURCE_GROUP" --name "$WEBAPP_NAME" --src-path simus-demo.zip --type zip --async false
+
+      - name: Comprobacion de humo HTTPS
+        run: |
+          for intento in $(seq 1 24); do
+            codigo="$(curl -s -o /dev/null -w '%{http_code}' "https://${WEBAPP_NAME}.azurewebsites.net/health/ready" || true)"
+            [ "$codigo" = 200 ] && exit 0
+            sleep 10
+          done
+          exit 1
+
+      - name: Cerrar acceso SQL temporal
+        if: always() && steps.firewall.outputs.rule != ''
+        run: az sql server firewall-rule delete --resource-group "$RESOURCE_GROUP" --server "$SQL_SERVER" --name "${{ steps.firewall.outputs.rule }}" --yes

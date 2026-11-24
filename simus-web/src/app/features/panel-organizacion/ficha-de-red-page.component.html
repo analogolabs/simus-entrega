@@ -1,0 +1,327 @@
+<!--
+  La ficha de una red o centro de documentación en el panel: alta y edición en la misma pantalla.
+
+  UNA SOLA PANTALLA PARA DOS RESPONSABLES —una organización o el propio persona responsable—; la
+  ruta decide a dónde se vuelve. Lo que se puede hacer depende del estado, y solo se ofrece lo que
+  aplica: no hay botones apagados sin explicación.
+-->
+<div class="space-y-6 vista-de-proceso pb-10">
+  @if (cargando()) {
+    <p role="status" class="py-10 text-center text-sm text-slate-500">Abriendo la red…</p>
+  } @else if (noEncontrado()) {
+    <p role="alert" class="border border-red-200 rounded-lg bg-red-50 p-4 text-sm text-red-800">{{ error() || 'No encontramos esa red.' }}</p>
+    <a [routerLink]="rutaDeLaLista()" class="text-dato font-bold text-verde-texto no-underline hover:underline">Volver a las redes</a>
+  } @else {
+    <header class="border-b border-slate-200 pb-6">
+      <nav aria-label="Ubicación dentro de Gestión" class="flex flex-wrap items-center gap-1.5 text-dato font-bold">
+        <a [routerLink]="rutaDeLaLista()" class="text-slate-500 no-underline transition hover:text-morado">Redes y documentación</a>
+        <span aria-hidden="true" class="text-slate-300">/</span>
+        <span class="text-morado">{{ esNuevo() ? 'Registrar una red' : red()!.nombre }}</span>
+      </nav>
+
+      <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div class="min-w-0">
+          <h1>
+            {{ esNuevo() ? 'Registrar una red o centro de documentación' : red()!.nombre }}
+          </h1>
+          @if (esNuevo()) {
+            <p class="mt-2 max-w-2xl text-cuerpo leading-relaxed text-prosa">
+              Cuéntanos qué hace tu red. Lo guardamos como borrador: lo completas cuando puedas y lo envías a revisión cuando esté listo.
+            </p>
+          } @else {
+            <p class="mt-2 text-sm text-slate-600">
+              {{ esPersona() ? 'Red de tu cuenta' : 'Red de ' + (red()!.organizacionNombre || 'tu organización') }}
+              @if (red()!.fechaActualizacion) { · actualizado {{ red()!.fechaActualizacion | fecha }} }
+            </p>
+          }
+        </div>
+        @if (!esNuevo()) {
+          <app-indicador-de-estado
+            [etiqueta]="etiquetaDeEstado(estado())"
+            [tono]="tonoDelEstado(estado())"
+            [matiz]="matizDelEstado(estado())"
+            [conTexto]="true"></app-indicador-de-estado>
+        }
+      </div>
+    </header>
+
+    <!-- Lo que dijo el PNMC, en el estado que lo origina. -->
+    @if (red(); as t) {
+      @if (t.estadoRegistro === 'ajustes_solicitados' && t.motivoDeLaDecision) {
+        <section role="status" data-testid="ajustes-del-red" class="border border-amber-200 rounded-lg bg-amber-50 p-4 text-sm text-amber-900">
+          <p class="font-bold">El PNMC pidió ajustes</p>
+          <p class="mt-1 whitespace-pre-line">{{ t.motivoDeLaDecision }}</p>
+          <p class="mt-2">Corrige lo que se pide, guarda y vuelve a enviarlo a revisión.</p>
+        </section>
+      }
+      @if (t.estadoRegistro === 'rechazado') {
+        <section role="status" class="border border-red-200 rounded-lg bg-red-50 p-4 text-sm text-red-900">
+          <p class="font-bold">El PNMC rechazó esta red</p>
+          @if (t.motivoDeLaDecision) { <p class="mt-1 whitespace-pre-line">{{ t.motivoDeLaDecision }}</p> }
+        </section>
+      }
+      @if (t.estadoRegistro === 'en_revision') {
+        <section role="status" class="border border-sky-200 rounded-lg bg-sky-50 p-4 text-sm text-sky-900">
+          La red está en revisión{{ t.fechaEnvioARevision ? ' desde ' : '' }}{{ t.fechaEnvioARevision | fecha }}. No se edita hasta que el PNMC decida; si te equivocaste, puedes retirarlo de la revisión.
+        </section>
+      }
+      @if (t.estadoRegistro === 'archivado' && t.motivoDeLaDecision) {
+        <section role="status" class="border border-slate-200 rounded-lg bg-slate-50 p-4 text-sm text-slate-700">
+          <p class="font-bold">Retirado del ecosistema</p>
+          <p class="mt-1 whitespace-pre-line">{{ t.motivoDeLaDecision }}</p>
+        </section>
+      }
+    }
+
+    @if (error()) { <p role="alert" data-testid="error-del-red" class="border border-red-200 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{ error() }}</p> }
+    @if (aviso()) { <p role="status" data-testid="aviso-del-red" class="border border-emerald-200 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">{{ aviso() }}</p> }
+
+    <form (ngSubmit)="guardar()" class="space-y-8" novalidate>
+      <fieldset [disabled]="!editable()" class="space-y-8">
+        <!-- ───────────── Qué es la red ───────────── -->
+        <section aria-labelledby="red-que-es" class="space-y-4">
+          <h3 id="red-que-es" class="border-t border-filete pt-4 rotulo-de-seccion">La red</h3>
+
+          <div>
+            <label for="red-nombre" class="block text-sm font-bold text-slate-900">Nombre de la red</label>
+            <input id="red-nombre" name="nombre" type="text" maxlength="240" required
+                   [ngModel]="formulario().nombre" (ngModelChange)="cambiar('nombre', $event)"
+                   [attr.aria-invalid]="erroresDeCampo()['nombre'] ? true : null"
+                   class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+            @if (erroresDeCampo()['nombre']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['nombre'] }}</p> }
+          </div>
+
+          <div>
+            <label for="red-descripcion" class="block text-sm font-bold text-slate-900">Descripción</label>
+            <p class="text-xs text-slate-500">Qué hace la red, desde cuándo y qué la distingue.</p>
+            <textarea id="red-descripcion" name="descripcion" rows="4" maxlength="4000"
+                      [ngModel]="formulario().descripcion" (ngModelChange)="cambiar('descripcion', $event)"
+                      [attr.aria-invalid]="erroresDeCampo()['descripcion'] ? true : null"
+                      class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm"></textarea>
+            @if (erroresDeCampo()['descripcion']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['descripcion'] }}</p> }
+          </div>
+
+          <app-foto-del-proceso idBase="red-foto"
+            [fotoUrl]="formulario().fotoUrl" [fotoAlt]="formulario().fotoAlt"
+            [errorExterno]="erroresDeCampo()['archivoFotoId']"
+            [subir]="subirFoto" (cambio)="cambiarFoto($event)" />
+
+          <fieldset>
+            <legend class="text-sm font-bold text-slate-900">Qué tipo de nodo es</legend>
+            <div class="mt-2 grid gap-2 sm:grid-cols-3">
+              @for (m of tiposDeNodo; track m.valor) {
+                <label class="flex cursor-pointer items-start gap-2 rounded-lg border border-slate-200 p-3 text-sm has-[:checked]:border-morado has-[:checked]:bg-slate-50">
+                  <input type="radio" name="tipoDeNodo" [value]="m.valor" [checked]="formulario().tipoDeNodo === m.valor"
+                         (change)="cambiar('tipoDeNodo', m.valor)" class="mt-1" />
+                  <span><span class="font-bold">{{ m.etiqueta }}</span><span class="block text-xs text-slate-500">{{ m.ayuda }}</span></span>
+                </label>
+              }
+            </div>
+            @if (erroresDeCampo()['tipoDeNodo']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['tipoDeNodo'] }}</p> }
+          </fieldset>
+
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="accesoAbierto" [ngModel]="formulario().accesoAbierto"
+                   (ngModelChange)="cambiar('accesoAbierto', $event)" />
+            <span>Acceso abierto al público</span>
+          </label>
+        </section>
+
+        <!-- ───────────── Cómo se consulta y qué documentación guarda ───────────── -->
+        <section aria-labelledby="red-oficio" class="space-y-4">
+          <h3 id="red-oficio" class="border-t border-filete pt-4 rotulo-de-seccion">Cómo se consulta y qué documentación guarda</h3>
+
+          <fieldset>
+            <legend class="text-sm font-bold text-slate-900">Formas de acceso</legend>
+            <div class="mt-2 grid gap-2 sm:grid-cols-2">
+              @for (s of catalogos().formasDeAcceso; track s.id) {
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" [name]="'forma-de-acceso-' + s.id" [checked]="formulario().formasDeAccesoIds.includes(s.id)" (change)="alternar('formasDeAccesoIds', s.id)" />
+                  <span>{{ s.nombre }}</span>
+                </label>
+              }
+            </div>
+            @if (erroresDeCampo()['formasDeAccesoIds']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['formasDeAccesoIds'] }}</p> }
+          </fieldset>
+
+          <fieldset>
+            <legend class="text-sm font-bold text-slate-900">Formatos de documentación</legend>
+            <p class="text-xs text-slate-500">Elige los formatos en los que guarda su documentación. En impreso puedes precisar si son partituras, o libros y publicaciones periódicas.</p>
+            <div class="mt-2 space-y-2">
+              @for (f of formatosPrincipales(); track f.id) {
+                <div>
+                  <label class="flex items-center gap-2 text-sm">
+                    <input type="checkbox" [name]="'formato-' + f.id" [checked]="formulario().formatosIds.includes(f.id)" (change)="alternar('formatosIds', f.id)" />
+                    <span class="font-bold">{{ f.nombre }}</span>
+                  </label>
+                  @for (sub of subniveles(f); track sub.id) {
+                    <label class="ml-6 flex items-center gap-2 text-sm">
+                      <input type="checkbox" [name]="'formato-' + sub.id" [checked]="formulario().formatosIds.includes(sub.id)" (change)="alternar('formatosIds', sub.id)" />
+                      <span>{{ sub.nombre }}</span>
+                    </label>
+                  }
+                </div>
+              }
+            </div>
+            @if (erroresDeCampo()['formatosIds']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['formatosIds'] }}</p> }
+          </fieldset>
+
+          <app-selector-multiple
+            etiqueta="Prácticas musicales" ayuda="(opcional)" identificador="ficha-red-practicas"
+            [opciones]="catalogos().practicasMusicales" [seleccionados]="formulario().practicasMusicalesIds"
+            textoVacio="Sin prácticas registradas"
+            (alternar)="alternar('practicasMusicalesIds', $event)" />
+
+          <div>
+            <label for="red-acervos" class="block text-sm font-bold text-slate-900">Acervos y colecciones de la red</label>
+            <p class="text-xs text-slate-500">En tus palabras: los acervos y las colecciones que conserva la red. Es texto libre: nadie lo valida.</p>
+            <textarea id="red-acervos" name="acervos" rows="3" maxlength="2000"
+                      [ngModel]="formulario().acervosYColecciones" (ngModelChange)="cambiar('acervosYColecciones', $event)"
+                      class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm"></textarea>
+          </div>
+        </section>
+
+        <!-- ───────────── Dónde está ───────────── -->
+        <section aria-labelledby="red-donde" class="space-y-4">
+          <h3 id="red-donde" class="border-t border-filete pt-4 rotulo-de-seccion">Dónde trabaja</h3>
+
+          <div class="grid gap-4 sm:grid-cols-3">
+            <div>
+              <app-campo-de-seleccion tamano="comodo" etiqueta="Alcance" identificador="red-nivel" name="nivel" [ngModel]="formulario().nivelCobertura" (ngModelChange)="cambiar('nivelCobertura', $event)">
+                <option value="municipal">Un municipio</option>
+                <option value="departamental">Un departamento</option>
+                <option value="nacional">Todo el país</option>
+              </app-campo-de-seleccion>
+              @if (erroresDeCampo()['nivelCobertura']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['nivelCobertura'] }}</p> }
+            </div>
+            @if (formulario().nivelCobertura !== 'nacional') {
+              <div>
+                <label for="red-departamento" class="block text-sm font-bold text-slate-900">Departamento</label>
+                <app-filtro-desplegable completo tamano="comodo" etiqueta="Departamento" idDelControl="red-departamento" name="departamento" [ngModel]="formulario().codigoDepartamento" (ngModelChange)="elegirDepartamento($event)" [opciones]="departamentos() | opcionesDesde:'codigo':'nombre':'Elige un departamento'" />
+                @if (erroresDeCampo()['codigoDepartamento']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['codigoDepartamento'] }}</p> }
+              </div>
+            }
+            @if (formulario().nivelCobertura === 'municipal') {
+              <div>
+                <label for="red-municipio" class="block text-sm font-bold text-slate-900">Municipio</label>
+                <app-filtro-desplegable completo tamano="comodo" etiqueta="Municipio" idDelControl="red-municipio" name="municipio" [ngModel]="formulario().codigoMunicipio" (ngModelChange)="cambiar('codigoMunicipio', $event)" [opciones]="municipios() | opcionesDesde:'municipalityCode':'municipalityName':'Elige un municipio'" />
+              </div>
+            }
+          </div>
+
+          <div>
+            <h4 class="text-sm font-bold text-slate-900">Sede principal</h4>
+            <p class="text-xs text-slate-500">Dónde está la red o el centro de documentación. Sirve para situarla en el mapa, aunque su cobertura sea un departamento o todo el país.</p>
+            <app-selector-de-sede class="mt-2" idBase="red" [ubicaciones]="ubicaciones()"
+              [departamento]="formulario().sedeCodigoDepartamento" [municipio]="formulario().sedeCodigoMunicipio"
+              [errorDepartamento]="erroresDeCampo()['sedeCodigoDepartamento']" [errorMunicipio]="erroresDeCampo()['sedeCodigoMunicipio']"
+              (cambiar)="elegirSede($event)" />
+          </div>
+
+          <div>
+            <label for="red-lugar" class="block text-sm font-bold text-slate-900">Lugar</label>
+            <p class="text-xs text-slate-500">Barrio, vereda o dirección, si quieres que se vea. Es opcional.</p>
+            <input id="red-lugar" name="lugar" type="text" maxlength="300"
+                   [ngModel]="formulario().lugarEspecifico" (ngModelChange)="cambiar('lugarEspecifico', $event)"
+                   class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+          </div>
+        </section>
+
+        <!-- ───────────── Cómo contactarlo ───────────── -->
+        <section aria-labelledby="red-contacto" class="space-y-4">
+          <h3 id="red-contacto" class="border-t border-filete pt-4 rotulo-de-seccion">Cómo contactarlo</h3>
+          <p class="text-xs text-slate-500">Es lo que se verá en el portal. Para enviarlo a revisión basta con una forma de contacto.</p>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="red-correo" class="block text-sm font-bold text-slate-900">Correo de la red</label>
+              <input id="red-correo" name="correo" type="email" maxlength="180"
+                     [ngModel]="formulario().correoRed" (ngModelChange)="cambiar('correoRed', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['correoRed']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['correoRed'] }}</p> }
+            </div>
+            <div>
+              <label for="red-telefono" class="block text-sm font-bold text-slate-900">Teléfono</label>
+              <input id="red-telefono" name="telefono" type="tel" maxlength="80"
+                     [ngModel]="formulario().telefonoRed" (ngModelChange)="cambiar('telefonoRed', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['telefonoRed']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['telefonoRed'] }}</p> }
+            </div>
+            <div>
+              <label for="red-sitio" class="block text-sm font-bold text-slate-900">Sitio web</label>
+              <input id="red-sitio" name="sitio" type="url" maxlength="500"
+                     [ngModel]="formulario().sitioWebRed" (ngModelChange)="cambiar('sitioWebRed', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['sitioWebRed']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['sitioWebRed'] }}</p> }
+            </div>
+            <div>
+              <label for="red-instagram" class="block text-sm font-bold text-slate-900">Instagram</label>
+              <input id="red-instagram" name="instagram" type="text" maxlength="500"
+                     [ngModel]="formulario().instagramRed" (ngModelChange)="cambiar('instagramRed', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['instagramRed']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['instagramRed'] }}</p> }
+            </div>
+            <div>
+              <label for="red-facebook" class="block text-sm font-bold text-slate-900">Facebook</label>
+              <input id="red-facebook" name="facebook" type="text" maxlength="500"
+                     [ngModel]="formulario().facebookRed" (ngModelChange)="cambiar('facebookRed', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['facebookRed']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['facebookRed'] }}</p> }
+            </div>
+            <div>
+              <label for="red-enlace" class="block text-sm font-bold text-slate-900">Otro enlace</label>
+              <input id="red-enlace" name="enlace" type="url" maxlength="500"
+                     [ngModel]="formulario().otroEnlaceRed" (ngModelChange)="cambiar('otroEnlaceRed', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['otroEnlaceRed']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['otroEnlaceRed'] }}</p> }
+            </div>
+          </div>
+        </section>
+      </fieldset>
+
+      <!-- ───────────── Propuesta de cambio de fondo sobre lo publicado (PROP, decisión 122) ───────────── -->
+      <app-propuesta-del-proceso
+        [propuesta]="propuesta()" [cambiosSinGuardar]="cambiosSinGuardar()" [puedeAdministrar]="puedeAdministrar()"
+        [ocupado]="guardando() || guardandoLaPropuesta()" [(motivo)]="motivoDeLaPropuesta"
+        (enviar)="enviarLaPropuesta()" (abandonar)="abandonarLaPropuesta()" />
+
+      <!-- ───────────── Acciones, según el estado ───────────── -->
+      <section aria-label="Acciones de la red" class="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-6">
+        @if (editable()) {
+          <button type="submit" data-testid="guardar-red" [disabled]="guardando()"
+                  appBoton="confirmar">
+            {{ esNuevo() ? 'Guardar como borrador' : 'Guardar cambios' }}
+          </button>
+        }
+        @if (!esNuevo() && puedeAdministrar()) {
+          @if (estado() === 'borrador' || estado() === 'ajustes_solicitados') {
+            <button type="button" data-testid="enviar-red" (click)="enviar()" [disabled]="guardando()"
+                    appBoton="secundaria">
+              {{ estado() === 'ajustes_solicitados' ? 'Reenviar a revisión' : 'Enviar a revisión' }}
+            </button>
+            <button type="button" data-testid="abandonar-red" (click)="retirarDeRevisionOAbandonar()" [disabled]="guardando()"
+                    class="text-sm font-bold text-red-700 underline-offset-2 hover:underline disabled:opacity-60">
+              Abandonar el borrador
+            </button>
+          }
+          @if (estado() === 'en_revision') {
+            <button type="button" data-testid="retirar-de-revision" (click)="retirarDeRevisionOAbandonar()" [disabled]="guardando()"
+                    appBoton="secundaria">
+              Retirar de la revisión
+            </button>
+          }
+          @if (estado() === 'publicado') {
+            <button type="button" data-testid="retirar-red" (click)="retirarPublicado()" [disabled]="guardando()"
+                    class="text-sm font-bold text-red-700 underline-offset-2 hover:underline disabled:opacity-60">
+              Retirar del ecosistema
+            </button>
+          }
+        }
+        @if (!esNuevo() && !puedeAdministrar()) {
+          <p class="text-sm text-slate-500">Enviar a revisión y retirar lo hace quien administra la organización.</p>
+        }
+        <a [routerLink]="rutaDeLaLista()" class="ml-auto text-sm font-bold text-verde-texto no-underline hover:underline">Volver a mis redes</a>
+      </section>
+    </form>
+  }
+</div>

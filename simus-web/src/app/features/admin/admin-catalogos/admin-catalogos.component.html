@@ -1,0 +1,307 @@
+<section aria-labelledby="catalogos-consola-titulo">
+  <!-- SIN ENCABEZADO PROPIO: la cabecera de página ya dice qué sección es y qué se hace aquí. -->
+  <h2 id="catalogos-consola-titulo" class="sr-only">Catálogos</h2>
+
+  <!--
+    DOS PESTAÑAS, MISMA PANTALLA. Territorios sonoros y prácticas musicales son la misma clase de cosa —vocabularios
+    con ficha que alimentan formularios, filtros y el portal— y se gestionan igual; arriba va la pestaña, debajo la
+    barra con la búsqueda y los filtros, como en el resto de la consola.
+  -->
+  <app-selector-segmentado
+    [opciones]="pestanas()"
+    [elegida]="tipo()"
+    etiquetaDelGrupo="Catálogos conceptuales"
+    (elegir)="elegirPestana($event)"></app-selector-segmentado>
+
+  @if (aviso()) { <p class="mt-5 text-cuerpo font-semibold text-verde-texto" role="status">{{ aviso() }}</p> }
+  @if (error() && !formulario()) { <p class="mt-5 text-cuerpo font-semibold text-amber-800" role="alert">{{ error() }}</p> }
+
+  @if (cargando() && !cargado()) {
+    <app-estado-de-lista tipo="cargando" titulo="Cargando los catálogos" />
+  } @else if (errorDeCarga()) {
+    <app-estado-de-lista tipo="error" titulo="No fue posible leer los catálogos" [detalle]="errorDeCarga()">
+      <app-boton importancia="secundaria" tamano="menudo" (accion)="cargar()">Reintentar</app-boton>
+    </app-estado-de-lista>
+  } @else {
+    <app-barra-de-lista>
+      <app-buscador-de-lista identificador="buscar-catalogo" [etiqueta]="'Buscar ' + rotulo().plural"
+        marcador="Buscar por nombre o sinónimo…" [valor]="busqueda()" (cambiar)="busqueda.set($event)" />
+      <app-filtro-desplegable identificador="catalogo-estado" rotulo="Estado" etiqueta="Mostrar por estado"
+        [opciones]="FILTRO_ACTIVO" [elegida]="filtroActivo()" (cambiar)="filtroActivo.set($event)" />
+      <app-filtro-desplegable identificador="catalogo-ficha" rotulo="Ficha" etiqueta="Mostrar por estado de la ficha"
+        [opciones]="FILTRO_FICHA" [elegida]="filtroFicha()" (cambiar)="filtroFicha.set($event)" />
+      <ng-container extremo>
+        <app-boton importancia="secundaria" (accion)="exportar()">Exportar hoja</app-boton>
+        <app-boton importancia="secundaria" [ocupado]="importando()" (accion)="archivoDeHoja.click()">Importar hoja</app-boton>
+        <input #archivoDeHoja type="file" class="sr-only" accept=".csv,text/csv" tabindex="-1" aria-label="Elegir la hoja CSV que se va a importar" (change)="alElegirArchivo($event)" />
+        <app-boton importancia="principal" (accion)="nuevo()">Añadir {{ rotulo().singular }}</app-boton>
+      </ng-container>
+    </app-barra-de-lista>
+
+    <p class="mb-4 text-cuerpo text-slate-600">
+      @if (esPractica()) {
+        Las prácticas musicales son un catálogo transversal de la plataforma: se eligen en festivales, mercados, noticias, agenda y perfiles.
+        El equipo del PNMC las edita y amplía aquí tras su revisión misional; una práctica puede ser subcategoría de otra principal.
+      } @else {
+        Los territorios sonoros son un catálogo transversal de la plataforma: agrupan las músicas por su raíz territorial y se eligen en festivales, mercados, noticias y agenda.
+        El equipo del PNMC los edita y amplía aquí tras su revisión misional.
+      }
+      {{ resumen().total }} en total
+      @if (resumen().pendientes > 0) { · {{ resumen().pendientes }} con ficha pendiente }
+      @if (resumen().preliminares > 0) { · {{ resumen().preliminares }} con definición preliminar }.
+      Un elemento desactivado deja de ofrecerse, pero los registros que ya lo tienen lo conservan.
+      @if (hayFiltros()) { <span class="font-semibold"> Con búsqueda o filtros no se puede reordenar.</span> }
+    </p>
+
+    @if (filas().length === 0) {
+      <app-estado-de-lista
+        [titulo]="hayFiltros() ? 'Ningún elemento coincide' : 'Todavía no hay ' + rotulo().plural"
+        [detalle]="hayFiltros() ? 'Cambia la búsqueda o los filtros.' : 'Añade el primero o importa una hoja de cálculo.'" />
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="tabla-administrativa">
+          <thead class="tabla-administrativa__cabecera">
+            <tr>
+              <th scope="col">{{ esPractica() ? 'Práctica musical' : 'Territorio sonoro' }}</th>
+              <th scope="col">Ficha</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Uso</th>
+              <th scope="col">Orden</th>
+              <th scope="col" class="text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (fila of filas(); track fila.e.id) {
+              @let e = fila.e;
+              <tr class="tabla-administrativa__fila" [attr.data-nivel]="fila.nivel" [attr.data-catalogo-id]="e.id"
+                [attr.draggable]="hayFiltros() ? null : 'true'"
+                (dragstart)="empezarArrastre(e, $event)" (dragover)="sobreFila($event)" (drop)="soltarSobre(e, $event)" (dragend)="arrastrando.set(null)">
+                <td [class.pl-8]="fila.nivel === 1">
+                  <span class="tabla-administrativa__principal">{{ fila.nivel === 1 ? '↳ ' : '' }}{{ e.nombre }}</span>
+                  @if (e.padreNombre && fila.nivel === 0) { <span class="tabla-administrativa__secundaria">Subcategoría de {{ e.padreNombre }}</span> }
+                  @if (e.subelementos > 0) { <span class="tabla-administrativa__secundaria">{{ e.subelementos }} {{ e.subelementos === 1 ? 'subcategoría' : 'subcategorías' }}</span> }
+                  <span class="tabla-administrativa__secundaria font-mono">{{ e.slug }}</span>
+                  @if (e.sinonimos) { <span class="tabla-administrativa__secundaria">También: {{ e.sinonimos }}</span> }
+                </td>
+                <td>
+                  <app-indicador-de-estado [etiqueta]="etiquetaDeFicha(e)" [tono]="tonoDeFicha(e)" [conTexto]="true"></app-indicador-de-estado>
+                </td>
+                <td>
+                  <app-indicador-de-estado [etiqueta]="e.activo ? 'Se ofrece' : 'Desactivado'" [tono]="e.activo ? 'logrado' : 'cerrado'" [conTexto]="true"></app-indicador-de-estado>
+                </td>
+                <td>
+                  @if (e.totalDeUsos === 0) {
+                    <span class="text-rotulo">Sin uso</span>
+                  } @else {
+                    <span class="tabla-administrativa__cifra">{{ e.totalDeUsos }}</span>
+                    <span class="tabla-administrativa__secundaria">{{ e.totalDeUsos === 1 ? 'vínculo' : 'vínculos' }}</span>
+                  }
+                </td>
+                <td>
+                  <span class="flex items-center gap-1">
+                    <span class="text-slate-400" aria-hidden="true" [class.cursor-grab]="!hayFiltros()" [class.opacity-40]="hayFiltros()"><svg lucideGripVertical [size]="14"></svg></span>
+                    <app-boton importancia="terciaria" tamano="menudo" [deshabilitado]="fila.primero || guardando() || hayFiltros()" etiqueta="Mover arriba" (accion)="mover(e, -1)"><svg lucideArrowUp [size]="14" aria-hidden="true"></svg></app-boton>
+                    <app-boton importancia="terciaria" tamano="menudo" [deshabilitado]="fila.ultimo || guardando() || hayFiltros()" etiqueta="Mover abajo" (accion)="mover(e, 1)"><svg lucideArrowDown [size]="14" aria-hidden="true"></svg></app-boton>
+                  </span>
+                </td>
+                <td class="tabla-administrativa__acciones">
+                  @if (confirmandoBorrado() === e.id) {
+                    <span class="flex flex-wrap items-center justify-end gap-2">
+                      <span class="text-dato font-bold text-red-700">¿Eliminar?</span>
+                      <app-boton importancia="destructiva" tamano="menudo" [ocupado]="guardando()" (accion)="eliminar(e)">{{ guardando() ? 'Eliminando…' : 'Sí' }}</app-boton>
+                      <app-boton importancia="terciaria" tamano="menudo" (accion)="confirmandoBorrado.set(null)">No</app-boton>
+                    </span>
+                  } @else {
+                    <app-menu-de-acciones [acciones]="accionesDe(e)" [descripcion]="e.nombre" (elegida)="ejecutarAccion(e, $event)"></app-menu-de-acciones>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+
+  <!-- ───────── Alta y edición ───────── -->
+  @if (formulario(); as f) {
+    <app-dialogo-de-formulario
+      [titulo]="f.id === null ? 'Nuevo ' + rotulo().singular : 'Ficha de ' + f.nombre"
+      proposito="La ficha es lo que el portal muestra de este elemento. Se escribe en texto plano; separa los párrafos con una línea en blanco."
+      [guardando]="guardando()" [puedeGuardar]="problemas().length === 0" [error]="error()"
+      identificador="guardar-catalogo" (guardar)="guardar()" (cerrar)="cerrarFormulario()">
+
+      <label class="block campo__rotulo" for="catalogo-nombre">Nombre</label>
+      <input id="catalogo-nombre" name="nombreCatalogo" class="campo__control" maxlength="140" [ngModel]="f.nombre" (ngModelChange)="campo('nombre', $event)" />
+
+      @if (esPractica()) {
+        <app-campo-de-seleccion class="mt-4 block" tamano="normal" etiqueta="Práctica principal" identificador="catalogo-padre" name="padreCatalogo"
+          ayuda="Opcional. Déjalo vacío si es una práctica principal; solo se admiten dos niveles."
+          [ngModel]="f.padreId === null ? '' : '' + f.padreId" (ngModelChange)="elegirPadre($event)">
+          <option value="">Ninguna: es una principal</option>
+          @for (p of principalesPosibles(); track p.id) { <option [value]="'' + p.id">{{ p.nombre }}</option> }
+        </app-campo-de-seleccion>
+      }
+
+      <label class="mt-4 block campo__rotulo" for="catalogo-breve">Definición breve</label>
+      <textarea id="catalogo-breve" name="breveCatalogo" class="campo__control" rows="3" maxlength="800" [ngModel]="f.definicionBreve" (ngModelChange)="campo('definicionBreve', $event)"></textarea>
+      <small class="mt-1 block text-dato text-slate-400">Se ve en la tarjeta y al comienzo de la ficha. {{ cuenta(f.definicionBreve, 800) }}.</small>
+
+      <label class="mt-4 block campo__rotulo" for="catalogo-ampliada">Ficha ampliada</label>
+      <textarea id="catalogo-ampliada" name="ampliadaCatalogo" class="campo__control" rows="7" maxlength="8000" [ngModel]="f.definicionAmpliada" (ngModelChange)="campo('definicionAmpliada', $event)"></textarea>
+      <small class="mt-1 block text-dato text-slate-400">{{ cuenta(f.definicionAmpliada, 8000) }}.</small>
+
+      <label class="mt-4 block campo__rotulo" for="catalogo-caracteristicas">Características</label>
+      <textarea id="catalogo-caracteristicas" name="caracteristicasCatalogo" class="campo__control" rows="3" maxlength="2000" [ngModel]="f.caracteristicas" (ngModelChange)="campo('caracteristicas', $event)"></textarea>
+
+      @if (!esPractica()) {
+        <label class="mt-4 block campo__rotulo" for="catalogo-relacion">Relación territorial</label>
+        <textarea id="catalogo-relacion" name="relacionCatalogo" class="campo__control" rows="2" maxlength="2000" [ngModel]="f.relacionTerritorial" (ngModelChange)="campo('relacionTerritorial', $event)"></textarea>
+        <small class="mt-1 block text-dato text-slate-400">Departamentos o regiones donde se documenta.</small>
+      }
+
+      <label class="mt-4 block campo__rotulo" for="catalogo-contextos">Contextos</label>
+      <textarea id="catalogo-contextos" name="contextosCatalogo" class="campo__control" rows="2" maxlength="2000" [ngModel]="f.contextos" (ngModelChange)="campo('contextos', $event)"></textarea>
+
+      <label class="mt-4 block campo__rotulo" for="catalogo-ejemplos">Ejemplos</label>
+      <textarea id="catalogo-ejemplos" name="ejemplosCatalogo" class="campo__control" rows="2" maxlength="2000" [ngModel]="f.ejemplos" (ngModelChange)="campo('ejemplos', $event)"></textarea>
+
+      <label class="mt-4 block campo__rotulo" for="catalogo-fuentes">Fuente</label>
+      <textarea id="catalogo-fuentes" name="fuentesCatalogo" class="campo__control" rows="2" maxlength="2000" [ngModel]="f.fuentes" (ngModelChange)="campo('fuentes', $event)"></textarea>
+
+      <label class="mt-4 flex items-start gap-2 rounded-xl border border-slate-200 p-3">
+        <input type="checkbox" name="preliminarCatalogo" class="mt-0.5 accent-morado" [ngModel]="f.esPreliminar" (ngModelChange)="campo('esPreliminar', $event)" />
+        <span class="text-dato leading-relaxed text-slate-600">
+          Es una definición preliminar. El portal la rotula «Definición preliminar» hasta que se desmarque.
+        </span>
+      </label>
+
+      <fieldset class="mt-4">
+        <legend class="campo__rotulo">Imagen</legend>
+        @if (urlDeLaImagen(f.imagenArchivoId); as url) {
+          <img [src]="url" alt="Imagen actual de la ficha" width="160" height="120" class="mb-3 h-28 w-auto rounded-xl border border-slate-200 bg-white object-contain" />
+        }
+        <span class="flex flex-wrap items-center gap-2">
+          <app-boton importancia="secundaria" tamano="menudo" (accion)="abrirBanco()">Elegir del Banco de archivos</app-boton>
+          @if (f.imagenArchivoId !== null) { <app-boton importancia="terciaria" tamano="menudo" (accion)="quitarImagen()">Quitar la imagen</app-boton> }
+        </span>
+        <details class="mt-3"><summary class="foco-simus tipo-enlace cursor-pointer text-morado">Subir una imagen nueva</summary>
+          <div class="mt-3"><app-cargador-de-imagen etiqueta="Imagen de la ficha" (rutaCambia)="alSubirImagen($event)" /></div>
+        </details>
+        @if (f.imagenArchivoId !== null) {
+          <label class="mt-3 block campo__rotulo" for="catalogo-alt">Texto alternativo de la imagen</label>
+          <input id="catalogo-alt" name="altCatalogo" class="campo__control" maxlength="500" [ngModel]="f.textoAlternativoRecurso" (ngModelChange)="campo('textoAlternativoRecurso', $event)" />
+        }
+      </fieldset>
+
+      <label class="mt-4 block campo__rotulo" for="catalogo-sinonimos">Sinónimos para la búsqueda</label>
+      <input id="catalogo-sinonimos" name="sinonimosCatalogo" class="campo__control" maxlength="500" [ngModel]="f.sinonimos" (ngModelChange)="campo('sinonimos', $event)" />
+      <small class="mt-1 block text-dato text-slate-400">Sepáralos con punto y coma. Quien busque cualquiera de ellos encuentra este elemento.</small>
+
+      <label class="mt-4 block campo__rotulo" for="catalogo-observaciones">Observaciones internas</label>
+      <textarea id="catalogo-observaciones" name="observacionesCatalogo" class="campo__control" rows="2" maxlength="1000" [ngModel]="f.observaciones" (ngModelChange)="campo('observaciones', $event)"></textarea>
+      <small class="mt-1 block text-dato text-slate-400">Notas del equipo. No se publican.</small>
+
+      <label class="mt-4 flex items-start gap-2 rounded-xl border border-slate-200 p-3">
+        <input type="checkbox" name="activoCatalogo" class="mt-0.5 accent-morado" [ngModel]="f.activo" (ngModelChange)="campo('activo', $event)" />
+        <span class="text-dato leading-relaxed text-slate-600">
+          Se ofrece. Si se desmarca, deja de ofrecerse en formularios y en el portal, pero los registros que ya lo tienen lo conservan.
+        </span>
+      </label>
+
+      @if (f.id !== null) {
+        <div class="mt-4">
+          <app-boton importancia="terciaria" tamano="menudo" [ocupado]="cargandoHistorial()" (accion)="verHistorial()">{{ historial() === null ? 'Ver el historial de cambios' : 'Ocultar el historial' }}</app-boton>
+          @if (historial(); as h) {
+            @if (h.length === 0) { <p class="mt-2 text-dato text-slate-500">Todavía no hay cambios registrados.</p> }
+            @else {
+              <ul class="mt-2 space-y-1 text-dato text-slate-600">
+                @for (c of h; track c.id) {
+                  <li><span class="font-semibold">{{ c.fecha | fecha: 'fecha-hora' }}</span> · {{ c.autor || 'Sistema' }} · {{ c.resumen }}</li>
+                }
+              </ul>
+            }
+          }
+        </div>
+      }
+    </app-dialogo-de-formulario>
+  }
+
+  <!-- ───────── Elegir una imagen del Banco ───────── -->
+  @if (selectorDeBanco()) {
+    <app-dialogo-de-formulario titulo="Elegir una imagen del Banco de archivos" verbo="Cerrar" tono="principal" [guardando]="false" [encima]="true" identificador="catalogo-banco-cerrar"
+      proposito="Pulsa una imagen para usarla. Si no está, súbela con «Subir una imagen nueva»."
+      (guardar)="selectorDeBanco.set(false)" (cerrar)="selectorDeBanco.set(false)">
+      @if (cargandoBanco()) { <app-estado-de-lista tipo="cargando" titulo="Consultando el Banco…" [denso]="true" /> }
+      @else if (errorDelBanco()) { <p class="text-cuerpo font-semibold text-rose-700" role="alert">{{ errorDelBanco() }}</p> }
+      @else if (archivosDelBanco().length === 0) { <app-estado-de-lista titulo="El Banco no tiene imágenes" [denso]="true" /> }
+      @else {
+        <ul class="grid max-h-[50vh] grid-cols-2 gap-3 overflow-y-auto sm:grid-cols-3">
+          @for (a of archivosDelBanco(); track a.id) {
+            <li>
+              <button type="button" class="foco-simus block w-full cursor-pointer rounded-lg border border-slate-200 p-1 text-left hover:border-morado" (click)="elegirDelBanco(a)">
+                <img [src]="a.url" [alt]="a.alt || a.nombre" width="160" height="100" loading="lazy" class="h-24 w-full rounded object-cover" />
+                <span class="mt-1 block truncate text-dato text-slate-600">{{ a.nombre }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </app-dialogo-de-formulario>
+  }
+
+  <!-- ───────── Dónde se usa ───────── -->
+  @if (viendoUsos(); as u) {
+    <app-dialogo-de-formulario [titulo]="'Dónde se usa «' + u.nombre + '»'" verbo="Cerrar" tono="principal" [guardando]="false" identificador="catalogo-usos-cerrar"
+      (guardar)="viendoUsos.set(null)" (cerrar)="viendoUsos.set(null)">
+      @if (u.usos.length === 0) {
+        <p class="text-cuerpo text-slate-600">Ningún registro, contenido ni perfil lo usa hoy. Se puede eliminar.</p>
+      } @else {
+        <ul class="divide-y divide-slate-100">
+          @for (uso of u.usos; track uso.fuente) {
+            <li class="flex items-center justify-between py-2 text-cuerpo"><span>{{ uso.fuente }}</span><span class="font-bold">{{ uso.total }}</span></li>
+          }
+        </ul>
+        <p class="mt-3 text-dato text-slate-500">Un elemento en uso no se elimina: se desactiva y deja de ofrecerse sin perder estos vínculos.</p>
+      }
+    </app-dialogo-de-formulario>
+  }
+
+  <!-- ───────── Vista previa de la importación ───────── -->
+  @if (importacion(); as i) {
+    <app-dialogo-de-formulario [titulo]="'Vista previa de la hoja «' + i.nombreDelArchivo + '»'" verbo="Aplicar la hoja" tono="confirmar"
+      [guardando]="importando()" [puedeGuardar]="i.resultado.conErrores === 0 && (i.resultado.crea + i.resultado.actualiza) > 0"
+      proposito="Revisa qué cambiaría antes de aplicarla. Si una fila tiene un error no se aplica ninguna. Nada se elimina: lo que la hoja no menciona queda igual."
+      identificador="catalogo-aplicar-hoja" (guardar)="aplicarImportacion()" (cerrar)="cerrarImportacion()">
+      <p class="text-cuerpo font-semibold">
+        {{ i.resultado.crea }} nuevos · {{ i.resultado.actualiza }} con cambios · {{ i.resultado.sinCambios }} sin cambios
+        @if (i.resultado.conErrores > 0) { · <span class="text-red-700">{{ i.resultado.conErrores }} con errores</span> }
+      </p>
+      <div class="mt-3 max-h-[50vh] overflow-auto">
+        <table class="tabla-administrativa">
+          <thead class="tabla-administrativa__cabecera">
+            <tr><th scope="col">Fila</th><th scope="col">Nombre</th><th scope="col">Qué pasaría</th></tr>
+          </thead>
+          <tbody>
+            @for (fila of i.resultado.filas; track fila.numero) {
+              <tr class="tabla-administrativa__fila">
+                <td>{{ fila.numero }}</td>
+                <td><span class="tabla-administrativa__principal">{{ fila.nombre || '—' }}</span></td>
+                <td>
+                  @switch (fila.accion) {
+                    @case ('crear') { <span class="font-semibold">Se crea</span> }
+                    @case ('actualizar') { <span class="font-semibold">Se actualiza</span> }
+                    @case ('sin-cambios') { <span class="text-rotulo">Sin cambios</span> }
+                    @default { <span class="font-semibold text-red-700">Error</span> }
+                  }
+                  @if (fila.errores.length > 0) { <span class="tabla-administrativa__secundaria text-red-700">{{ fila.errores.join(' ') }}</span> }
+                  @else if (fila.cambios.length > 0) { <span class="tabla-administrativa__secundaria">{{ fila.cambios.join(', ') }}</span> }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </app-dialogo-de-formulario>
+  }
+</section>

@@ -1,0 +1,584 @@
+{
+ "version": 1,
+ "fotos": [
+  {
+   "n": 1,
+   "archivo": "agentes/agente-01-guitarra-clasica.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Guitarra clásica de seis cuerdas con tapa de abeto claro y aros oscuros, fotografiada de frente sobre un fondo gris liso.",
+   "pie": "Guitarra clásica de caja de resonancia clara.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Guitar MET DP335036.jpg",
+   "autor": "Manuel Ramírez",
+   "url": "https://commons.wikimedia.org/wiki/File:Guitar_MET_DP335036.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "cuerdas"
+   ]
+  },
+  {
+   "n": 2,
+   "archivo": "agentes/agente-02-flauta-tairona-figura.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Flauta de cerámica de la cultura tairona, de la Sierra Nevada de Santa Marta, con una pequeña figura humana modelada en la parte superior y orificios para los dedos.",
+   "pie": "Flauta de cerámica tairona con figura.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Flute MET DP159016.jpg",
+   "autor": "",
+   "url": "https://commons.wikimedia.org/wiki/File:Flute_MET_DP159016.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "viento",
+    "pueblos-originarios"
+   ]
+  },
+  {
+   "n": 3,
+   "archivo": "agentes/agente-03-tambor-nasca-ceramica.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Tambor de cerámica nasca con forma de figura sentada, pintado en rojo, negro y crema, sobre un pedestal de color arena.",
+   "pie": "Tambor de cerámica nasca pintado.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Drum MET DT1271.jpg",
+   "autor": "",
+   "url": "https://commons.wikimedia.org/wiki/File:Drum_MET_DT1271.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "percusion",
+    "pueblos-originarios"
+   ]
+  },
+  {
+   "n": 4,
+   "archivo": "agentes/agente-04-violin-cremona.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Violín de madera barnizada en tono miel con el clavijero tallado, visto de frente sobre un fondo gris.",
+   "pie": "Violín de Cremona.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Violin MET DP230434.jpg",
+   "autor": "Nicolò Amati (Cremona 1596–1684 Cremona)",
+   "url": "https://commons.wikimedia.org/wiki/File:Violin_MET_DP230434.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "cuerdas",
+    "arcos"
+   ]
+  },
+  {
+   "n": 5,
+   "archivo": "agentes/agente-05-acordeon-decorado.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Acordeón visto de lado, con el fuelle plegado y la caja decorada con motivos florales de colores sobre fondo claro.",
+   "pie": "Acordeón decorado con motivos florales.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Accordion MET DP105215.jpg",
+   "autor": "Alexandre Pere &amp; Fils",
+   "url": "https://commons.wikimedia.org/wiki/File:Accordion_MET_DP105215.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "fuelle",
+    "popular"
+   ]
+  },
+  {
+   "n": 6,
+   "archivo": "agentes/agente-06-ocarina-narino.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Ocarina de cerámica oscura con forma de ave alargada, procedente de la región andina de Nariño, sobre un fondo claro.",
+   "pie": "Ocarina de cerámica de Nariño.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Ocarina MET DP148800.jpg",
+   "autor": "",
+   "url": "https://commons.wikimedia.org/wiki/File:Ocarina_MET_DP148800.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "viento",
+    "pueblos-originarios"
+   ]
+  },
+  {
+   "n": 7,
+   "archivo": "agentes/agente-07-arpa-de-pedales.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Arpa de pedales en blanco y negro, con la columna decorada, las cuerdas tensadas y la base con los pedales.",
+   "pie": "Arpa de pedales.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Pedal Harp MET 134276.jpg",
+   "autor": "Jean Henri Naderman",
+   "url": "https://commons.wikimedia.org/wiki/File:Pedal_Harp_MET_134276.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "cuerdas",
+    "arpa"
+   ]
+  },
+  {
+   "n": 8,
+   "archivo": "agentes/agente-08-flauta-tairona-geometrica.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Flauta de cerámica de forma rectangular con relieves geométricos y un rostro modelado en el extremo, de estilo tairona.",
+   "pie": "Flauta de cerámica tairona con relieves.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Flute MET DP159036.jpg",
+   "autor": "",
+   "url": "https://commons.wikimedia.org/wiki/File:Flute_MET_DP159036.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "viento",
+    "pueblos-originarios"
+   ]
+  },
+  {
+   "n": 9,
+   "archivo": "agentes/agente-09-guitarra-barroca.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Guitarra antigua de caja pequeña con la tapa y el mástil decorados con incrustaciones de nácar y marfil.",
+   "pie": "Guitarra con incrustaciones.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Guitar MET DP217183.jpg",
+   "autor": "",
+   "url": "https://commons.wikimedia.org/wiki/File:Guitar_MET_DP217183.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "cuerdas"
+   ]
+  },
+  {
+   "n": 10,
+   "archivo": "agentes/agente-10-tambor-militar-pintado.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Tambor de caja con el parche blanco y el fuste pintado con un escudo rojo y azul, con una cuerda trenzada colgando a un lado.",
+   "pie": "Tambor de caja pintado.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Side drum MET DP302655.jpg",
+   "autor": "Henry H. Prentiss",
+   "url": "https://commons.wikimedia.org/wiki/File:Side_drum_MET_DP302655.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "percusion",
+    "bandas"
+   ]
+  },
+  {
+   "n": 11,
+   "archivo": "agentes/agente-11-mandolina-de-duelas.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Mandolina de caja abombada hecha con tiras de madera clara y oscura, con el clavijero doblado hacia atrás.",
+   "pie": "Mandolina de caja abombada.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Mandolin MET DP168851.jpg",
+   "autor": "Giuseppe Presbler",
+   "url": "https://commons.wikimedia.org/wiki/File:Mandolin_MET_DP168851.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "cuerdas"
+   ]
+  },
+  {
+   "n": 12,
+   "archivo": "agentes/agente-12-ocarina-tairona-alada.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Ocarina de cerámica gris oscura con una figura humana con tocado y dos brazos extendidos como alas, de estilo tairona.",
+   "pie": "Ocarina de cerámica tairona.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Ocarina MET DP159011.jpg",
+   "autor": "",
+   "url": "https://commons.wikimedia.org/wiki/File:Ocarina_MET_DP159011.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "viento",
+    "pueblos-originarios"
+   ]
+  },
+  {
+   "n": 13,
+   "archivo": "agentes/agente-13-acordeon-de-teclas.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Acordeón de caja oscura con botones metálicos en un lado y el fuelle negro plegado, sobre un fondo gris.",
+   "pie": "Acordeón de botones.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Accordion MET DP224727.jpg",
+   "autor": "",
+   "url": "https://commons.wikimedia.org/wiki/File:Accordion_MET_DP224727.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "fuelle",
+    "popular"
+   ]
+  },
+  {
+   "n": 14,
+   "archivo": "agentes/agente-14-laud-de-caja-profunda.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Laúd de caja profunda en forma de pera, con una roseta calada en la tapa y las cuerdas hacia el clavijero.",
+   "pie": "Laúd de caja profunda.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Lute MET DP168833.jpg",
+   "autor": "Sixtus Rauchwolff",
+   "url": "https://commons.wikimedia.org/wiki/File:Lute_MET_DP168833.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "cuerdas"
+   ]
+  },
+  {
+   "n": 15,
+   "archivo": "agentes/agente-15-tambor-figura-tallada.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Tambor de madera tallado con la forma de una figura humana sentada que sostiene a un niño, sobre un fondo negro.",
+   "pie": "Tambor con figura tallada.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Drum MET DP321282.jpg",
+   "autor": "",
+   "url": "https://commons.wikimedia.org/wiki/File:Drum_MET_DP321282.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "percusion"
+   ]
+  },
+  {
+   "n": 16,
+   "archivo": "agentes/agente-16-violin-barroco.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Violín de madera barnizada en tono ámbar, con las efes bien marcadas y el cordal oscuro, visto de frente.",
+   "pie": "Violín barroco.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Violin MET DP163308.jpg",
+   "autor": "Joachim Tielke",
+   "url": "https://commons.wikimedia.org/wiki/File:Violin_MET_DP163308.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "cuerdas",
+    "arcos"
+   ]
+  },
+  {
+   "n": 17,
+   "archivo": "agentes/agente-17-flauta-travesera-estuche.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Flauta travesera de madera oscura con llaves doradas, junto a su estuche, sobre una superficie gris clara.",
+   "pie": "Flauta travesera con su estuche.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Flute MET DP216560.jpg",
+   "autor": "Jean-Louis Tulou",
+   "url": "https://commons.wikimedia.org/wiki/File:Flute_MET_DP216560.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "viento"
+   ]
+  },
+  {
+   "n": 18,
+   "archivo": "agentes/agente-18-guitarra-de-listones.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Guitarra antigua de caja estrecha, con el cuerpo hecho de listones de madera clara y oscura, vista de frente.",
+   "pie": "Guitarra de caja estrecha con listones.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Guitar MET DP232757.jpg",
+   "autor": "Matteo Sellas",
+   "url": "https://commons.wikimedia.org/wiki/File:Guitar_MET_DP232757.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "cuerdas"
+   ]
+  },
+  {
+   "n": 19,
+   "archivo": "agentes/agente-19-arpa-con-figura.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Arpa antigua con la columna terminada en una figura tallada y policromada que toca una flauta.",
+   "pie": "Arpa con una figura tallada.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Hooked Harp MET MI129.jpg",
+   "autor": "",
+   "url": "https://commons.wikimedia.org/wiki/File:Hooked_Harp_MET_MI129.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "cuerdas",
+    "arpa"
+   ]
+  },
+  {
+   "n": 20,
+   "archivo": "agentes/agente-20-flauta-tairona-figura-sentada.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Flauta de cerámica rojiza con una figura sentada modelada en el cuerpo, sobre un fondo gris claro.",
+   "pie": "Flauta de cerámica tairona con figura sentada.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Flute MET DP159020.jpg",
+   "autor": "",
+   "url": "https://commons.wikimedia.org/wiki/File:Flute_MET_DP159020.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "viento",
+    "pueblos-originarios"
+   ]
+  },
+  {
+   "n": 21,
+   "archivo": "agentes/agente-21-banjo-de-cinco-cuerdas.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Banjo de cinco cuerdas con el mástil largo y el parche claro, de pie sobre un fondo gris degradado.",
+   "pie": "Banjo de cinco cuerdas.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Banjo MET DP-13783-001.jpg",
+   "autor": "Hercules McCord",
+   "url": "https://commons.wikimedia.org/wiki/File:Banjo_MET_DP-13783-001.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "cuerdas"
+   ]
+  },
+  {
+   "n": 22,
+   "archivo": "agentes/agente-22-bombo-con-tensores.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Fotografía en blanco y negro de un bombo con el parche tenso y los tensores de cuero cruzados a lo largo del fuste.",
+   "pie": "Bombo con tensores.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Bass Drum MET 247113.jpg",
+   "autor": "John G. Pike",
+   "url": "https://commons.wikimedia.org/wiki/File:Bass_Drum_MET_247113.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "percusion",
+    "bandas"
+   ]
+  },
+  {
+   "n": 23,
+   "archivo": "agentes/agente-23-ocarina-tairona-doble.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Ocarina de cerámica gris con una figura humana sentada sobre dos cámaras con orificios, vista de frente.",
+   "pie": "Ocarina de cerámica con figura.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Ocarina MET DP159022.jpg",
+   "autor": "",
+   "url": "https://commons.wikimedia.org/wiki/File:Ocarina_MET_DP159022.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "viento",
+    "pueblos-originarios"
+   ]
+  },
+  {
+   "n": 24,
+   "archivo": "agentes/agente-24-rosetas-del-laud.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Primer plano de la tapa de un laúd, con la roseta calada en el centro y las cuerdas paralelas en tonos de madera cálida.",
+   "pie": "Roseta calada de un laúd.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Lute MET DP168860.jpg",
+   "autor": "Pietro Railich",
+   "url": "https://commons.wikimedia.org/wiki/File:Lute_MET_DP168860.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "cuerdas"
+   ]
+  },
+  {
+   "n": 25,
+   "archivo": "agentes/agente-25-marimba-de-calle-1923.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Fotografía histórica en blanco y negro de un grupo de músicos tocando una marimba de teclas de madera al aire libre, frente a una casa encalada.",
+   "pie": "Músicos tocando una marimba de madera.",
+   "credito": "Jerome O. Kilmartin, U.S. Geological Survey (dominio público), vía Wikimedia Commons",
+   "titulo_original": "Musicians playing a marimba, Flores, Guatemala 1923.jpg",
+   "autor": "Jerome O. Kilmartin",
+   "url": "https://commons.wikimedia.org/wiki/File:Musicians_playing_a_marimba,_Flores,_Guatemala_1923.jpg",
+   "licencia": "Public domain",
+   "url_licencia": "",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "marimba",
+    "percusion"
+   ]
+  },
+  {
+   "n": 26,
+   "archivo": "agentes/agente-26-ocarina-colombiana.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Ocarina de cerámica gris con relieves geométricos y un orificio central, probablemente de origen colombiano.",
+   "pie": "Ocarina de cerámica gris con relieves.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Ocarina MET 271642.jpg",
+   "autor": "",
+   "url": "https://commons.wikimedia.org/wiki/File:Ocarina_MET_271642.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "viento",
+    "pueblos-originarios"
+   ]
+  },
+  {
+   "n": 27,
+   "archivo": "agentes/agente-27-acordeon-de-madera.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Acordeón con la caja de madera de tono dorado y tallas caladas junto a los botones, con el fuelle verde plegado.",
+   "pie": "Acordeón de madera tallada.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Accordion MET DP224731.jpg",
+   "autor": "",
+   "url": "https://commons.wikimedia.org/wiki/File:Accordion_MET_DP224731.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "fuelle",
+    "popular"
+   ]
+  },
+  {
+   "n": 28,
+   "archivo": "agentes/agente-28-tambor-de-latón.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Tambor de caja con el fuste metálico dorado, cintas claras en el borde y dos baquetas apoyadas delante.",
+   "pie": "Tambor de caja con baquetas.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Side Drum MET DP109493.jpg",
+   "autor": "",
+   "url": "https://commons.wikimedia.org/wiki/File:Side_Drum_MET_DP109493.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "percusion",
+    "bandas"
+   ]
+  },
+  {
+   "n": 29,
+   "archivo": "agentes/agente-29-flauta-colima.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Flauta larga de cerámica oscura, con la embocadura tallada en forma de cabeza de animal y cuatro orificios.",
+   "pie": "Flauta de cerámica colima.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Flute MET DP703899.jpg",
+   "autor": "",
+   "url": "https://commons.wikimedia.org/wiki/File:Flute_MET_DP703899.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "viento",
+    "pueblos-originarios"
+   ]
+  },
+  {
+   "n": 30,
+   "archivo": "agentes/agente-30-concertina-con-caja.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Pequeña concertina de caja naranja y fuelle verde, junto a su caja de madera de caoba cerrada.",
+   "pie": "Concertina con su caja.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Concertina MET DP224723.jpg",
+   "autor": "Wheatstone",
+   "url": "https://commons.wikimedia.org/wiki/File:Concertina_MET_DP224723.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "fuelle",
+    "popular"
+   ]
+  },
+  {
+   "n": 31,
+   "archivo": "agentes/agente-31-banjo-en-blanco-y-negro.jpg",
+   "ancho": 960,
+   "alto": 960,
+   "alt": "Fotografía en blanco y negro de un banjo apoyado en diagonal, con el mástil largo y el aro metálico del parche.",
+   "pie": "Banjo en blanco y negro.",
+   "credito": "The Metropolitan Museum of Art (Open Access, CC0), vía Wikimedia Commons",
+   "titulo_original": "Banjo MET 206246.jpg",
+   "autor": "Hercules McCord",
+   "url": "https://commons.wikimedia.org/wiki/File:Banjo_MET_206246.jpg",
+   "licencia": "CC0",
+   "url_licencia": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "consulta": "2026-11-23",
+   "etiquetas": [
+    "cuerdas"
+   ]
+  }
+ ]
+}

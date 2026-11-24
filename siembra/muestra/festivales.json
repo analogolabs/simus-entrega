@@ -1,0 +1,337 @@
+[
+ {
+  "id": "F001",
+  "nombre": "Rock al Parque",
+  "municipio": "Bogotá",
+  "departamento": "Bogotá D. C.",
+  "anio_primera_edicion": 1995,
+  "periodicidad_epoca": "Anual; la época ha variado (mayo, octubre-noviembre, junio-agosto, noviembre)",
+  "entidad_organizadora": "Instituto Distrital de las Artes (Idartes)",
+  "practicas": "rock;punk;metal;reggae;ska;blues",
+  "descripcion": "Festival gratuito al aire libre de rock y géneros afines, parte de la serie Festivales al Parque de Idartes; nació para promover bandas locales y la convivencia juvenil.",
+  "sitio_web": "",
+  "ediciones_historicas": [
+   {
+    "anio": 2022,
+    "fecha": "26-27 nov y 3-4 dic",
+    "sede": "",
+    "hecho": "Cuatro días",
+    "fuente": "https://es.wikipedia.org/wiki/Rock_al_Parque"
+   },
+   {
+    "anio": 2023,
+    "fecha": "11-13 nov",
+    "sede": "Parque Simón Bolívar",
+    "hecho": "",
+    "fuente": "https://es.wikipedia.org/wiki/Rock_al_Parque"
+   },
+   {
+    "anio": 2024,
+    "fecha": "9-11 nov",
+    "sede": "Parque Metropolitano Simón Bolívar",
+    "hecho": "",
+    "fuente": "https://es.wikipedia.org/wiki/Rock_al_Parque"
+   },
+   {
+    "anio": 2025,
+    "fecha": "21-23 jun",
+    "sede": "",
+    "hecho": "",
+    "fuente": "https://es.wikipedia.org/wiki/Rock_al_Parque"
+   },
+   {
+    "anio": 2026,
+    "fecha": "10-12 oct",
+    "sede": "",
+    "hecho": "Fecha anunciada según Wikipedia (no verificada en sitio oficial)",
+    "fuente": "https://es.wikipedia.org/wiki/Rock_al_Parque"
+   }
+  ],
+  "participaciones_verificadas": [],
+  "fuentes": [
+   "https://es.wikipedia.org/wiki/Rock_al_Parque",
+   "https://bogota.gov.co/mi-ciudad/cultura-recreacion-y-deporte/mario-duarte-y-julio-correal-recuerdan-como-nacio-rock-al-parque"
+  ],
+  "certeza": "alto",
+  "notas": "Las 'sedes' vacías no estaban indicadas en la fuente. Fechas 2026 por verificar."
+ },
+ {
+  "id": "F006",
+  "nombre": "Colombia al Parque",
+  "municipio": "Bogotá",
+  "departamento": "Bogotá D. C.",
+  "anio_primera_edicion": null,
+  "periodicidad_epoca": "Anual",
+  "entidad_organizadora": "Instituto Distrital de las Artes (Idartes)",
+  "practicas": "músicas tradicionales colombianas;música folclórica",
+  "descripcion": "Festival de Idartes de músicas colombianas; una nota oficial lo cita como edición XIII y como de aniversario 20 en 2021 (año inicial no confirmado).",
+  "sitio_web": "",
+  "ediciones_historicas": [],
+  "participaciones_verificadas": [],
+  "fuentes": [
+   "https://bogota.gov.co/que-hacer/agrupaciones-en-el-xiii-festival-colombia-al-parque"
+  ],
+  "certeza": "bajo",
+  "notas": "Primer año no verificable con las fuentes consultadas."
+ },
+ {
+  "id": "F008",
+  "nombre": "Salsa al Parque",
+  "municipio": "Bogotá",
+  "departamento": "Bogotá D. C.",
+  "anio_primera_edicion": null,
+  "periodicidad_epoca": "Anual",
+  "entidad_organizadora": "Instituto Distrital de las Artes (Idartes)",
+  "practicas": "salsa",
+  "descripcion": "Festival de Idartes de salsa; se cita una edición XXV.",
+  "sitio_web": "",
+  "ediciones_historicas": [],
+  "participaciones_verificadas": [],
+  "fuentes": [
+   "https://bogota.gov.co/mi-ciudad/cultura-recreacion-y-deporte/festivales-al-parque-de-bogota-2024"
+  ],
+  "certeza": "bajo",
+  "notas": "Primer año no confirmado."
+ },
+ {
+  "id": "F009",
+  "nombre": "Festival Internacional de Música Clásica de Bogotá",
+  "municipio": "Bogotá",
+  "departamento": "Bogotá D. C.",
+  "anio_primera_edicion": null,
+  "periodicidad_epoca": "Bienal; una semana",
+  "entidad_organizadora": "Teatro Mayor Julio Mario Santo Domingo (según reseñas; por verificar)",
+  "practicas": "música clásica;música sinfónica;música de cámara",
+  "descripcion": "Festival bienal de música clásica en Bogotá; la séptima edición reunió cerca de 300 músicos de América y Europa; la de 2025 se enfocó en música de los siglos XX y XXI de las Américas.",
+  "sitio_web": "",
+  "ediciones_historicas": [
+   {
+    "anio": 2025,
+    "fecha": "",
+    "sede": "Teatro Mayor",
+    "hecho": "Edición 2025 con enfoque en música de las Américas",
+    "fuente": "https://www.mdw.ac.at/magazin/?p=12315"
+   }
+  ],
+  "participaciones_verificadas": [],
+  "fuentes": [
+   "https://www.mdw.ac.at/magazin/?p=12315"
+  ],
+  "certeza": "bajo",
+  "notas": "Organizador y primer año no verificados."
+ },
+ {
+  "id": "F014",
+  "nombre": "Don't Let Daddy Know Colombia",
+  "municipio": "Bogotá",
+  "departamento": "Bogotá D. C.",
+  "anio_primera_edicion": 2026,
+  "periodicidad_epoca": "Primera edición en Colombia en 2026",
+  "entidad_organizadora": "",
+  "practicas": "música electrónica",
+  "descripcion": "Festival internacional de electrónica que llega por primera vez a Colombia con edición en Bogotá.",
+  "sitio_web": "",
+  "ediciones_historicas": [],
+  "participaciones_verificadas": [],
+  "fuentes": [
+   "https://canaltrece.com.co/noticias/dont-let-daddy-know-llega-por-primera-vez-a-colombia-con-una-edicion-en-bogota/"
+  ],
+  "certeza": "bajo",
+  "notas": "Fechas, organizador local y realización efectiva no verificadas."
+ },
+ {
+  "id": "F015",
+  "nombre": "Festival de Música del Pacífico Petronio Álvarez",
+  "municipio": "Cali",
+  "departamento": "Valle del Cauca",
+  "anio_primera_edicion": 1997,
+  "periodicidad_epoca": "Anual; agosto (por verificar para cada edición)",
+  "entidad_organizadora": "Secretaría de Cultura de Cali (Alcaldía de Cali)",
+  "practicas": "currulao;marimba;chirimía;músicas del Pacífico sur y norte",
+  "descripcion": "Festival de las músicas del Pacífico colombiano en homenaje al compositor Petronio Álvarez; concurso con categorías de marimba, chirimía, violín caucano y libre; premio principal Bombo Golpeador.",
+  "sitio_web": "https://www.cali.gov.co/cultura/",
+  "ediciones_historicas": [
+   {
+    "anio": 1997,
+    "fecha": "9 ago",
+    "sede": "Teatro al Aire Libre Los Cristales",
+    "hecho": "Primera edición según la Alcaldía de Cali",
+    "fuente": "https://www.cali.gov.co/cultura/publicaciones/53693/recorrido-por-la-historia-del-festival-petronio-lvarez/"
+   },
+   {
+    "anio": 2009,
+    "fecha": "",
+    "sede": "",
+    "hecho": "Acuerdo 267 de 2009 del Concejo lo incluye en el calendario cultural y turístico de Cali",
+    "fuente": "https://www.cali.gov.co/cultura/publicaciones/53693/recorrido-por-la-historia-del-festival-petronio-lvarez/"
+   },
+   {
+    "anio": 2024,
+    "fecha": "",
+    "sede": "",
+    "hecho": "Edición XXVIII; Bombo Golpeador entregado",
+    "fuente": "https://www.cali.gov.co/publicaciones/182494/el-bombo-golpeador-del-xxviii-festival-de-musica-del-pacifico-petronio-alvarez-tiene-nuevos-duenos/"
+   },
+   {
+    "anio": 2025,
+    "fecha": "",
+    "sede": "",
+    "hecho": "Nuevos ganadores del Bombo Golpeador",
+    "fuente": "https://www.cali.gov.co/publicaciones/188469/festival-petronio-alvarez-2025-tiene-nuevos-ganadores-del-bombo-golpeador/"
+   }
+  ],
+  "participaciones_verificadas": [],
+  "fuentes": [
+   "https://www.cali.gov.co/cultura/publicaciones/53693/recorrido-por-la-historia-del-festival-petronio-lvarez/",
+   "https://d7.cepal.org/sites/default/files/presentations/festival_petronio-alvarez.pdf"
+  ],
+  "certeza": "alto",
+  "notas": "Un artículo de opinión sitúa el origen en 1996; la fuente oficial indica 1997. 'sitio_web' apunta al portal de cultura de la Alcaldía (no a un sitio propio del festival)."
+ },
+ {
+  "id": "F026",
+  "nombre": "Barranquijazz",
+  "municipio": "Barranquilla",
+  "departamento": "Atlántico",
+  "anio_primera_edicion": 1997,
+  "periodicidad_epoca": "Anual; septiembre",
+  "entidad_organizadora": "Fundación Cultural Nueva Música",
+  "practicas": "jazz",
+  "descripcion": "Festival de jazz de Barranquilla, con apoyo de la Alcaldía Distrital, la Gobernación del Atlántico y el Ministerio de Cultura; la gala inaugural fue el 9 de septiembre de 1997 en el Teatro Amira de la Rosa.",
+  "sitio_web": "",
+  "ediciones_historicas": [
+   {
+    "anio": 1997,
+    "fecha": "9 sep",
+    "sede": "Teatro Amira de la Rosa",
+    "hecho": "Primera gala",
+    "fuente": "https://www.elheraldo.co/sociedad/barranquijazz-25-anos-de-una-fina-nota-musical-853405"
+   },
+   {
+    "anio": 2021,
+    "fecha": "",
+    "sede": "",
+    "hecho": "Celebración de 25 años",
+    "fuente": "https://www.elheraldo.co/sociedad/2021/09/29/talento-nacional-abre-el-telon-de-los-25-anos-de-barranquijazz-853759/"
+   },
+   {
+    "anio": 2024,
+    "fecha": "sep",
+    "sede": "La Cueva (apertura)",
+    "hecho": "",
+    "fuente": "https://www.elheraldo.co/sociedad/2024/09/08/este-miercoles-barranquijazz-abre-el-telon-en-la-cueva-1124445/"
+   }
+  ],
+  "participaciones_verificadas": [],
+  "fuentes": [
+   "https://www.elheraldo.co/sociedad/barranquijazz-25-anos-de-una-fina-nota-musical-853405"
+  ],
+  "certeza": "alto",
+  "notas": "No se confirmó el nombre 'Corporación Festival de Jazz'."
+ },
+ {
+  "id": "F036",
+  "nombre": "Festival de la Leyenda Vallenata",
+  "municipio": "Valledupar",
+  "departamento": "Cesar",
+  "anio_primera_edicion": 1968,
+  "periodicidad_epoca": "Anual; finales de abril o inicios de mayo",
+  "entidad_organizadora": "Fundación Festival de la Leyenda Vallenata",
+  "practicas": "vallenato;acordeón;canción vallenata;piqueria",
+  "descripcion": "El mayor evento del vallenato; concursos de acordeoneros, compositores y piqueria.",
+  "sitio_web": "http://www.festivalvallenato.com/",
+  "ediciones_historicas": [
+   {
+    "anio": 2026,
+    "fecha": "",
+    "sede": "Valledupar",
+    "hecho": "Edición 59 según la tabla de ganadores de Wikipedia (la ficha indica 57)",
+    "fuente": "https://es.wikipedia.org/wiki/Festival_de_la_Leyenda_Vallenata"
+   }
+  ],
+  "participaciones_verificadas": [],
+  "fuentes": [
+   "https://es.wikipedia.org/wiki/Festival_de_la_Leyenda_Vallenata",
+   "http://www.festivalvallenato.com/"
+  ],
+  "certeza": "alto",
+  "notas": "Numeración 2026 inconsistente en Wikipedia."
+ },
+ {
+  "id": "F052",
+  "nombre": "Festival Nacional de la Música Colombiana",
+  "municipio": "Ibagué",
+  "departamento": "Tolima",
+  "anio_primera_edicion": 1987,
+  "periodicidad_epoca": "Anual; marzo (21 de marzo es día nacional)",
+  "entidad_organizadora": "Fundación Musical de Colombia",
+  "practicas": "música andina colombiana;bambuco;pasillo;duetos",
+  "descripcion": "Festival nacido como homenaje al dueto Garzón y Collazos; Ley 851 de 2003 lo declara patrimonio cultural y artístico de la Nación.",
+  "sitio_web": "",
+  "ediciones_historicas": [
+   {
+    "anio": 1987,
+    "fecha": "21 mar",
+    "sede": "Ibagué (cementerio San Bonifacio, serenata inicial)",
+    "hecho": "Primera edición: 'Homenaje Nacional al Dueto Garzón y Collazos'",
+    "fuente": "https://radionacional.co/musica/bandas-colombianas/la-serenata-que-dio-inicio-al-festival-nacional-de-la-musica-colombiana"
+   },
+   {
+    "anio": 2003,
+    "fecha": "",
+    "sede": "",
+    "hecho": "Ley 851 de 2003",
+    "fuente": "https://radionacional.co/cultura/ferias-y-fiestas/festival-nacional-de-la-musica-colombiana-patrimonio-cultural-y-artistico"
+   },
+   {
+    "anio": 2025,
+    "fecha": "",
+    "sede": "Ibagué",
+    "hecho": "Edición 39",
+    "fuente": "https://canaltrece.com.co/noticias/festival-musica-colombiana-ibague-2025/"
+   },
+   {
+    "anio": 2026,
+    "fecha": "",
+    "sede": "Ibagué",
+    "hecho": "Edición 40",
+    "fuente": "https://radionacional.co/cultura/ferias-y-fiestas/festival-nacional-de-la-musica-colombiana-patrimonio-cultural-y-artistico"
+   }
+  ],
+  "participaciones_verificadas": [],
+  "fuentes": [
+   "https://radionacional.co/cultura/ferias-y-fiestas/festival-nacional-de-la-musica-colombiana-patrimonio-cultural-y-artistico",
+   "https://canaltrece.com.co/noticias/festival-musica-colombiana-ibague-2025/"
+  ],
+  "certeza": "alto",
+  "notas": ""
+ },
+ {
+  "id": "F055",
+  "nombre": "Festival de Música Religiosa de Popayán",
+  "municipio": "Popayán",
+  "departamento": "Cauca",
+  "anio_primera_edicion": 1964,
+  "periodicidad_epoca": "Anual; Semana Santa (abril)",
+  "entidad_organizadora": "Corporación Festival de Música Religiosa de Popayán",
+  "practicas": "música sacra;música religiosa;música sinfónica y coral",
+  "descripcion": "Festival ligado a la Semana Santa de Popayán, declarado patrimonio cultural en 2013; edición 62 en 2025.",
+  "sitio_web": "",
+  "ediciones_historicas": [
+   {
+    "anio": 2025,
+    "fecha": "abr",
+    "sede": "Popayán",
+    "hecho": "Edición 62",
+    "fuente": "https://www.elpais.com.co/cultura/el-talento-femenino-sera-protagonista-en-el-62-festival-de-musica-religiosa-de-popayan-1401.html"
+   }
+  ],
+  "participaciones_verificadas": [],
+  "fuentes": [
+   "https://colombia.travel/en/fairs-and-festivals/popayan-religious-music-festival",
+   "https://repositorio.unal.edu.co/handle/unal/81666"
+  ],
+  "certeza": "alto",
+  "notas": "Algunas fuentes citan 1963; la mayoría 1964."
+ }
+]

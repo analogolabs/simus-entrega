@@ -1,0 +1,560 @@
+<!--
+  La ficha de un mercado musical en el panel de su organización.
+
+  LA MISMA ARMAZON QUE LA FICHA DE UN FESTIVAL: migas que nombran el proceso concreto, cabecera con
+  el indicador de estado, cuatro secciones —Vista general, Información, Ediciones, Historial— y la
+  acción de editar donde el estado la permite. Antes era una página plana con un botón que la
+  convertía entera en formulario, y quedó definido:
+  «todo está muy diferente».
+-->
+<div class="space-y-5 vista-de-proceso">
+  @if (cargando()) {
+    <p role="status" class="py-10 text-center text-sm text-slate-500">Abriendo el mercado…</p>
+  } @else if (!mercado()) {
+    <p role="alert" class="border border-red-200 rounded-lg bg-red-50 p-4 text-sm text-red-800">{{ error() || 'No encontramos ese mercado.' }}</p>
+    <a [routerLink]="enPanel('procesos/mercados')" class="text-dato font-bold text-verde-texto no-underline hover:underline">Volver a Mercados musicales</a>
+  } @else if (mercado(); as m) {
+    <!--
+      LA RUTA NOMBRA LA ENTIDAD CONCRETA, no la familia. «Procesos» sirve para hablar de festivales,
+      mercados y escuelas cuando todavía no se sabe cuál; en cuanto se sabe, se nombra.
+    -->
+    <header class="border-b border-slate-200 pb-6">
+      <nav aria-label="Ubicación dentro de Gestión" class="flex flex-wrap items-center gap-1.5 text-dato font-bold">
+        <a [routerLink]="enPanel('resumen')" class="text-slate-500 no-underline transition hover:text-morado">Gestión</a>
+        <span aria-hidden="true" class="text-slate-300">/</span>
+        <a [routerLink]="enPanel('procesos/mercados')" class="text-slate-500 no-underline transition hover:text-morado">Mercados musicales</a>
+        <span aria-hidden="true" class="text-slate-300">/</span>
+        <span class="text-morado" data-migas-nombre>{{ m.nombre }}</span>
+      </nav>
+
+      <div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div class="min-w-0">
+          <h1>{{ m.nombre }}</h1>
+          <p class="mt-2 text-sm text-slate-600">{{ nombreOrganizacion() }}</p>
+        </div>
+        <div class="flex shrink-0 flex-wrap items-center gap-2">
+          <app-indicador-de-estado
+            [etiqueta]="etiquetaDeEstado(m.estadoRegistro)"
+            [tono]="tonoDelEstado(m.estadoRegistro)"
+            [matiz]="matizDelEstado(m.estadoRegistro)"
+            [conTexto]="true"></app-indicador-de-estado>
+          @if (accionesDeMenu().length) {
+            <app-menu-de-acciones [acciones]="accionesDeMenu()" [descripcion]="m.nombre" (elegida)="alElegirDelMenu($event)" />
+          }
+          <!-- Solo cuando de verdad se puede, y diciendo sobre qué edita. -->
+          @if (sePuedeEditar() && !editando()) {
+            <button type="button" (click)="abrirLaInformacion()" data-editar-mercado
+                    appBoton="secundaria" tamano="menudo">Editar el mercado</button>
+          }
+        </div>
+      </div>
+    </header>
+
+    @if (error()) { <p role="alert" class="border border-red-200 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{ error() }}</p> }
+    @if (aviso()) { <p role="status" class="border border-emerald-200 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{{ aviso() }}</p> }
+
+    <div class="grid gap-6 lg:grid-cols-[11.5rem_minmax(0,1fr)] lg:gap-9">
+      <nav aria-label="Secciones del mercado" class="-mx-2 flex overflow-x-auto px-2 lg:sticky lg:top-24 lg:mx-0 lg:flex-col lg:self-start lg:overflow-visible lg:px-0">
+        @for (seccion of secciones; track seccion.id) {
+          <button
+            type="button"
+            [attr.aria-current]="seccionActiva() === seccion.id ? 'page' : null"
+            (click)="irASeccion(seccion.id)"
+            [class]="seccionActiva() === seccion.id
+              ? 'shrink-0 border-b-2 border-morado px-3 py-3 text-left text-dato font-bold text-morado lg:border-b-0 lg:border-l-2 lg:bg-morado/5 lg:px-4'
+              : 'shrink-0 border-b-2 border-transparent px-3 py-3 text-left text-dato font-bold text-slate-500 transition hover:text-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado lg:border-b-0 lg:border-l-2 lg:px-4'">
+            <span class="inline-flex items-center gap-2">{{ seccion.etiqueta }}</span>
+          </button>
+        }
+      </nav>
+
+      <div class="min-w-0">
+        <p class="mb-6 max-w-3xl text-sm leading-relaxed text-slate-600">{{ descripcionDeLaSeccion() }}</p>
+
+        @if (seccionActiva() === 'resumen') {
+          <dl class="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
+            <div>
+              <dt class="t-rotulo">Estado</dt>
+              <dd class="mt-1 t-valor">{{ etiquetaDeEstado(m.estadoRegistro) }}</dd>
+            </div>
+            <div>
+              <dt class="t-rotulo">Organización responsable</dt>
+              <dd class="mt-1 t-valor">{{ nombreOrganizacion() }}</dd>
+            </div>
+            <div>
+              <dt class="t-rotulo">Territorio principal</dt>
+              <dd class="mt-1 t-valor">{{ territorio() | nombrePropio }}</dd>
+            </div>
+            <div>
+              <dt class="t-rotulo">Periodicidad</dt>
+              <dd class="mt-1 t-valor">{{ etiquetaDePeriodicidad(m.periodicidad) || 'Por definir' }}</dd>
+            </div>
+            <div>
+              <dt class="t-rotulo">Edición más reciente</dt>
+              <dd class="mt-1 t-valor" data-edicion-mas-reciente>{{ edicionMasRecienteEnPalabras() }}</dd>
+            </div>
+            <div>
+              <dt class="t-rotulo">En el marco de</dt>
+              <!-- EL NOMBRE SE LEE DE LA RELACION, no de un texto paralelo que pueda decir otra cosa. -->
+              <dd class="mt-1 t-valor" data-festival-de-la-ficha>
+                {{ m.seRealizaEnElMarcoDeUnFestival && m.festivalNombre ? m.festivalNombre : 'Proceso independiente' }}
+              </dd>
+            </div>
+          </dl>
+
+          <!--
+            LO QUE HAY QUE CORREGIR VA PRIMERO Y ANTES QUE LA SIGUIENTE ACCION: si el PNMC
+            devolvió el mercado, esto es a lo que se viene, y la acción de enviarlo otra vez no
+            significa nada hasta que se lea.
+          -->
+          @if (cambiosPedidos().length > 0) {
+            <section class="mt-8 max-w-3xl border border-amber-200 rounded-lg bg-amber-50/60 p-5" aria-label="Cambios pedidos por el PNMC" data-cambios-pedidos>
+              <h2>
+                {{ cambiosPendientes() === 0
+                  ? 'Ya atendiste todos los cambios pedidos'
+                  : (cambiosPendientes() === 1 ? 'Queda 1 cambio por atender' : 'Quedan ' + cambiosPendientes() + ' cambios por atender') }}
+              </h2>
+              <p class="mt-2 text-sm leading-relaxed text-slate-700">
+                @if (cambiosPendientes() === 0) {
+                  Cuando vuelvas a enviar el mercado a revisión, el PNMC lo verá con tus correcciones.
+                } @else {
+                  Corrige cada campo desde <b>Información</b>: al guardar, el cambio de un campo da por atendido su ajuste. Si lo respondes sin cambiar el dato, márcalo como atendido; puedes desmarcarlo si te equivocas.
+                }
+              </p>
+
+              <ul class="mt-4 divide-y divide-amber-200/70">
+                @for (cambio of cambiosPedidos(); track cambio.id) {
+                  <li class="flex flex-wrap items-start justify-between gap-3 py-3">
+                    <div class="min-w-0">
+                      <p class="text-sm font-bold text-slate-900">{{ cambio.campoEtiqueta }}</p>
+                      <p class="mt-1 max-w-2xl text-sm leading-relaxed text-slate-700">{{ cambio.nota }}</p>
+                      <!--
+                        LO QUE DECIA EL CAMPO CUANDO SE PIDIO EL CAMBIO. Después de corregirlo ese
+                        valor ya no existe, y sin él la nota deja de decir sobre qué se pidió.
+                      -->
+                      @if (cambio.valorObservado) {
+                        <p class="mt-1 text-xs text-slate-500">Decía: «{{ cambio.valorObservado }}»</p>
+                      }
+                    </div>
+                    <button type="button" [disabled]="marcando() === cambio.id" (click)="alternarCambio(cambio)"
+                            [attr.data-marcar-cambio]="cambio.campoId"
+                            [class]="cambio.estado === 'atendida'
+                              ? 'shrink-0 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900 transition hover:border-emerald-500 disabled:opacity-50'
+                              : 'shrink-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-morado transition hover:border-morado disabled:opacity-50'">
+                      {{ cambio.estado === 'atendida' ? 'Atendido' : 'Marcar como atendido' }}
+                    </button>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+
+          <!--
+            LA SIGUIENTE ACCION, DEL MODELO DE ACCIONES POR ESTADO. Es la misma
+            tarjeta que usa la ficha de un Festival, con los mismos verbos: lo que el estado admite se
+            ofrece, y lo que hoy no se puede hacer sale apagado con su motivo escrito en vez de
+            esconderse. Lo propio del mercado —el motivo del rechazo, la propuesta de cambios, el enlace
+            al directorio— va dentro de la tarjeta.
+          -->
+          <app-tarjeta-siguiente-accion [siguiente]="siguiente()" [ocupadaLa]="enviando() || guardandoLaPropuesta() ? 'enviar' : null" (elegida)="alElegirUnaAccion($event)">
+            @if (estaRechazado() && motivoDelRechazo()) {
+              <p data-motivo-del-rechazo class="mt-3 max-w-2xl rounded-lg border border-rose-200 bg-white px-4 py-3 text-sm leading-relaxed text-slate-800"><b>Motivo:</b> {{ motivoDelRechazo() }}</p>
+            }
+            @if (estaPublicado()) {
+              <p class="mt-3">
+                <a [routerLink]="['/ecosistema/mercados-musicales', m.id]" data-ver-en-el-directorio
+                   class="inline-block rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-morado no-underline transition hover:border-morado">Ver en el directorio</a>
+              </p>
+              @if (tienePropuestaEnBorrador()) {
+                @if (propuesta(); as p) {
+                  <div data-propuesta-en-borrador class="mt-3 max-w-2xl rounded-lg border border-slate-200 bg-white px-4 py-3">
+                    @if (p.motivoDeLaDecision) {
+                      <p class="text-sm leading-relaxed text-slate-700"><b>Qué pidieron:</b> {{ p.motivoDeLaDecision }}</p>
+                    }
+                    <ul class="mt-2 space-y-1">
+                      @for (campo of p.campos; track campo.id) {
+                        <li class="text-sm text-slate-700"><b>{{ campo.campoEtiqueta }}:</b> {{ campo.valorPropuesto || 'sin valor' }}</li>
+                      }
+                    </ul>
+                    @if (esAdministradora()) {
+                      <p class="mt-3">
+                        <button type="button" [disabled]="guardandoLaPropuesta()" (click)="abandonarLaPropuesta()" data-abandonar-propuesta
+                                class="text-sm font-bold text-slate-500 underline-offset-2 hover:underline">Descartar la propuesta</button>
+                      </p>
+                    }
+                  </div>
+                }
+              } @else if (propuestaEnRevision()) {
+                <p data-propuesta-en-revision class="sr-only">Tu propuesta de cambio está en revisión.</p>
+              }
+              @if (retiroSolicitado()) {
+                <p class="mt-3 max-w-2xl text-sm text-slate-600" data-retiro-en-tramite>
+                  Tu solicitud de retiro está en trámite. El PNMC responderá desde su bandeja.
+                </p>
+              }
+            }
+          </app-tarjeta-siguiente-accion>
+        }
+
+        @if (seccionActiva() === 'informacion') {
+      @if (!editando()) {
+        <!--
+          LA NOTA, AL LADO DEL CAMPO QUE LA MOTIVO. Es la mitad del circuito: leerla en otra pantalla
+          obliga a memorizarla y volver, que es exactamente lo que hacía el párrafo suelto de antes.
+        -->
+        @if (cambiosPedidos().length > 0) {
+          <div class="mb-6 border border-amber-200 rounded-lg bg-amber-50/60 p-4" role="status">
+            <p class="text-sm font-bold text-slate-900">El PNMC pidió cambios en estos campos</p>
+            <ul class="mt-2 space-y-1">
+              @for (cambio of cambiosPedidos(); track cambio.id) {
+                <li class="text-sm text-slate-700">
+                  <b>{{ cambio.campoEtiqueta }}:</b> {{ cambio.nota }}
+                  @if (cambio.estado === 'atendida') { <span class="text-emerald-800">· atendido</span> }
+                </li>
+              }
+            </ul>
+            <p class="mt-2 text-xs text-slate-600">Puedes marcarlos desde <b>Vista general</b> a medida que los resuelvas.</p>
+          </div>
+        }
+
+        <section aria-label="Datos del mercado">
+          <dl class="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+              <dt class="t-rotulo">Descripción</dt>
+              <dd class="mt-1 text-sm leading-relaxed text-slate-800">{{ m.descripcion || 'Sin descripción registrada.' }}</dd>
+            </div>
+            <div><dt class="t-rotulo">Alcance</dt><dd class="mt-1 t-valor">{{ m.alcance || 'Sin especificar' }}</dd></div>
+            <div><dt class="t-rotulo">Modalidad</dt><dd class="mt-1 t-valor">{{ m.modalidad || 'Sin especificar' }}</dd></div>
+            <div><dt class="t-rotulo">Territorio</dt><dd class="mt-1 t-valor">{{ territorio() | nombrePropio }}</dd></div>
+            <div><dt class="t-rotulo">Sede principal</dt><dd class="mt-1 t-valor">{{ m.sede?.nombreMunicipio ? (m.sede?.nombreMunicipio + ', ' + m.sede?.nombreDepartamento) : 'Pendiente de completar' }}</dd></div>
+            <div><dt class="t-rotulo">Lugar específico</dt><dd class="mt-1 t-valor">{{ m.lugarEspecifico || 'Sin registrar' }}</dd></div>
+            <div>
+              <dt class="t-rotulo">En el marco de</dt>
+              <!-- EL NOMBRE SE LEE DE LA RELACION, no de un texto paralelo que pueda decir otra cosa. -->
+              <dd class="mt-1 t-valor" data-festival-de-la-ficha>
+                {{ m.seRealizaEnElMarcoDeUnFestival && m.festivalNombre ? m.festivalNombre : 'Proceso independiente' }}
+              </dd>
+            </div>
+            <div><dt class="t-rotulo">Contacto</dt><dd class="mt-1 t-valor">{{ m.correoMercado || m.telefonoMercado || 'Sin registrar' }}</dd></div>
+            <div><dt class="t-rotulo">Prácticas musicales</dt><dd class="mt-1 t-valor">{{ nombresDeCatalogo(m.practicasMusicales) }}</dd></div>
+            <div><dt class="t-rotulo">Territorios sonoros</dt><dd class="mt-1 t-valor" data-territorios-del-mercado>{{ nombresDeCatalogo(m.territoriosSonoros) }}</dd></div>
+          </dl>
+          @if (m.estadoRegistro === 'publicado') {
+            <app-correccion-de-sede class="mt-4 block" tipo="mercados" [procesoId]="'' + m.id" [ubicaciones]="ubicaciones()"
+              [sede]="m.sede" (corregida)="alCorregirLaSede($event)" />
+          }
+        </section>
+
+        <!--
+          AQUI ESTABAN «Editar» Y «Enviar a revisión», Y LOS DOS ESTABAN REPETIDOS. Editar vive en
+          la cabecera —donde dice sobre qué edita— y enviar a revisión en la vista general, que es
+          la sección que responde «¿y ahora qué hago?». Dos controles para un solo destino dentro
+          de la misma pantalla es lo que este proyecto evita en todas partes.
+        -->
+      } @else if (formulario(); as f) {
+        <section class="space-y-5" aria-label="Editar el mercado">
+          <div class="space-y-1.5">
+            <label for="ficha-nombre" class="block text-sm font-bold text-slate-800">Nombre del mercado</label>
+            <input id="ficha-nombre" type="text" maxlength="240" [ngModel]="f.nombre" (ngModelChange)="campo('nombre', $event)"
+                   class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="ficha-descripcion" class="block text-sm font-bold text-slate-800">Descripción</label>
+            <textarea id="ficha-descripcion" rows="4" [ngModel]="f.descripcion" (ngModelChange)="campo('descripcion', $event)"
+                      class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio"></textarea>
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="space-y-1.5">
+              <app-campo-de-seleccion tamano="comodo" etiqueta="Alcance" identificador="ficha-alcance" [ngModel]="f.alcanceId" (ngModelChange)="campo('alcanceId', $event)" comoNumero vacioComoNulo>
+                <option value="">Sin especificar</option>
+                @for (opcion of catalogos().alcances; track opcion.id) { <option [value]="opcion.id">{{ opcion.nombre }}</option> }
+              </app-campo-de-seleccion>
+            </div>
+            <div class="space-y-1.5">
+              <app-campo-de-seleccion tamano="comodo" etiqueta="Modalidad" identificador="ficha-modalidad" [ngModel]="f.modalidadId" (ngModelChange)="campo('modalidadId', $event)" comoNumero vacioComoNulo>
+                <option value="">Sin especificar</option>
+                @for (opcion of catalogos().modalidades; track opcion.id) { <option [value]="opcion.id">{{ opcion.nombre }}</option> }
+              </app-campo-de-seleccion>
+            </div>
+          </div>
+
+          <!--
+            LA PERIODICIDAD SE PEDIA EN EL ALTA Y NO SE PODIA CORREGIR AQUI: la ficha la enseñaba
+            como dato de solo lectura, así que una organización que se equivocara al registrarla no
+            tenía por dónde arreglarlo. Es el mismo control y el mismo vocabulario que el asistente.
+          -->
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="space-y-1.5">
+              <app-campo-de-seleccion tamano="comodo" etiqueta="Periodicidad" identificador="ficha-periodicidad" [ngModel]="f.periodicidad" (ngModelChange)="campo('periodicidad', $event)">
+                <option value="">Sin especificar</option>
+                @for (opcion of PERIODICIDADES; track opcion.codigo) { <option [value]="opcion.codigo">{{ opcion.etiqueta }}</option> }
+              </app-campo-de-seleccion>
+            </div>
+            @if (pideDetalle(f.periodicidad)) {
+              <div class="space-y-1.5">
+                <label for="ficha-periodicidad-detalle" class="block text-sm font-bold text-slate-800">¿Cada cuánto, entonces?</label>
+                <input id="ficha-periodicidad-detalle" type="text" maxlength="240"
+                       [ngModel]="f.periodicidadDetalle" (ngModelChange)="campo('periodicidadDetalle', $event)"
+                       class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none" />
+              </div>
+            }
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-3">
+            <div class="space-y-1.5">
+              <app-campo-de-seleccion tamano="comodo" etiqueta="Nivel de cobertura" identificador="ficha-cobertura" [ngModel]="f.nivelCobertura" (ngModelChange)="cambiarCobertura($event)">
+                <option value="municipal">Municipal</option>
+                <option value="departamental">Departamental</option>
+                <option value="nacional">Nacional</option>
+              </app-campo-de-seleccion>
+            </div>
+            @if (f.nivelCobertura !== 'nacional') {
+              <div class="space-y-1.5">
+                <label for="ficha-departamento" class="block text-sm font-bold text-slate-800">Departamento</label>
+                <app-filtro-desplegable completo tamano="comodo" etiqueta="Departamento" idDelControl="ficha-departamento" [ngModel]="f.codigoDepartamento" (ngModelChange)="cambiarDepartamento($event)" vacioComoNulo [opciones]="departamentos() | opcionesDesde:'codigo':'nombre':'Elige…':true" />
+              </div>
+            }
+            @if (f.nivelCobertura === 'municipal') {
+              <div class="space-y-1.5">
+                <label for="ficha-municipio" class="block text-sm font-bold text-slate-800">Municipio</label>
+                <app-filtro-desplegable completo tamano="comodo" etiqueta="Municipio" idDelControl="ficha-municipio" [ngModel]="f.codigoMunicipio" (ngModelChange)="campo('codigoMunicipio', $event)" vacioComoNulo [opciones]="municipios() | opcionesDesde:'municipalityCode':'municipalityName':'Elige…':true" />
+              </div>
+            }
+          </div>
+
+          <div class="space-y-1.5">
+            <h4 class="text-sm font-bold text-slate-800">Sede principal</h4>
+            <p class="text-xs text-slate-500">Dónde está el mercado. Sirve para situarlo en el mapa, aunque su cobertura sea un departamento o todo el país.</p>
+            <app-selector-de-sede idBase="ficha" [ubicaciones]="ubicaciones()"
+              [departamento]="f.sedeCodigoDepartamento ?? ''" [municipio]="f.sedeCodigoMunicipio ?? ''"
+              (cambiar)="cambiarSede($event)" />
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="space-y-1.5">
+              <label for="ficha-correo" class="block text-sm font-bold text-slate-800">Correo de contacto</label>
+              <input id="ficha-correo" type="email" maxlength="180" [ngModel]="f.correoMercado" (ngModelChange)="campo('correoMercado', $event)"
+                     class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+            </div>
+            <div class="space-y-1.5">
+              <label for="ficha-telefono" class="block text-sm font-bold text-slate-800">Teléfono</label>
+              <input id="ficha-telefono" type="tel" maxlength="80" [ngModel]="f.telefonoMercado" (ngModelChange)="campo('telefonoMercado', $event)"
+                     class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+            </div>
+          </div>
+
+          <!-- QUE SUENA Y DESDE DONDE: los catálogos del Ecosistema, los mismos que llena un Festival. -->
+          <div class="grid gap-4 sm:grid-cols-2">
+            <app-selector-multiple
+              etiqueta="Prácticas musicales" identificador="ficha-mercado-practicas"
+              [opciones]="catalogos().practicasMusicales" [seleccionados]="f.practicasMusicalesIds"
+              textoVacio="Sin prácticas registradas"
+              (alternar)="alternarDeCatalogo('practicasMusicalesIds', $event)" />
+            <app-selector-multiple
+              etiqueta="Territorios sonoros" identificador="ficha-mercado-territorios"
+              [opciones]="catalogos().territoriosSonoros" [seleccionados]="f.territoriosSonorosIds"
+              textoVacio="Sin territorios registrados"
+              (alternar)="alternarDeCatalogo('territoriosSonorosIds', $event)" />
+          </div>
+
+          <!-- La misma pregunta del alta, y con la misma regla: se elige de entre los festivales de
+               tu organización, en cualquier estado, y nunca se escribe el nombre a mano. -->
+          <fieldset class="space-y-3 rounded-xl border border-slate-200 p-4">
+            <legend class="px-1 text-sm font-bold text-slate-800">¿Se realiza en el marco de un festival?</legend>
+            <label class="flex items-center gap-2 text-sm text-slate-700">
+              <input type="checkbox" data-ficha-en-festival [ngModel]="f.seRealizaEnElMarcoDeUnFestival"
+                     (ngModelChange)="cambiarSiEstaEnUnFestival($event)" class="h-4 w-4 accent-morado">
+              <span>Sí, dentro de un festival de mi organización</span>
+            </label>
+            @if (f.seRealizaEnElMarcoDeUnFestival) {
+              @if (!seConsultaronLosFestivales()) {
+                <p class="text-sm text-rose-900" data-fallo-al-consultar-festivales>
+                  No pudimos consultar tus festivales. No significa que no tengas ninguno; vuelve a abrir la ficha.
+                </p>
+              } @else if (festivales().length === 0) {
+                <p class="text-sm text-amber-900">
+                  Todavía no tienes ningún festival registrado. Regístralo primero desde <b>Procesos</b> y vuelve aquí.
+                </p>
+              } @else {
+                <app-campo-de-seleccion tamano="comodo" etiqueta="¿Cuál?" identificador="ficha-mercado-festival" [ngModel]="f.festivalId" (ngModelChange)="campo('festivalId', $event)" data-ficha-festival comoNumero vacioComoNulo>
+                  <option value="">Elige un festival…</option>
+                  @for (festival of festivales(); track festival.id) {
+                    <option [value]="festival.id">{{ festival.nombre }}</option>
+                  }
+                </app-campo-de-seleccion>
+              }
+            }
+          </fieldset>
+
+          <!--
+            PROPONER NO ES GUARDAR, y por eso los botones son otros. Lo que se escribe sobre un
+            mercado publicado no toca la ficha: queda como propuesta hasta que el PNMC decida,
+            y decirlo aquí —con cuántos campos cambian— evita que alguien crea que ya cambió.
+          -->
+          @if (proponiendo()) {
+            <div class="mt-6 border border-violet-200 rounded-lg bg-violet-50 p-5" data-propuesta-en-curso>
+              <p class="text-sm font-bold text-slate-900">
+                @if (cuantosCamposCambian() === 0) {
+                  Todavía no has cambiado nada.
+                } @else if (cuantosCamposCambian() === 1) {
+                  Vas a proponer un cambio en un campo.
+                } @else {
+                  Vas a proponer cambios en {{ cuantosCamposCambian() }} campos.
+                }
+              </p>
+              <p class="mt-1 text-sm leading-relaxed text-slate-700">
+                La ficha publicada <b>no cambia todavía</b>: lo que escribas viaja como propuesta y el
+                PNMC decide si se aplica.
+              </p>
+              <label for="motivo-de-la-propuesta" class="mt-4 block text-sm font-bold text-slate-800">Por qué lo propones</label>
+              <textarea id="motivo-de-la-propuesta" rows="2" [(ngModel)]="motivoDeLaPropuesta" name="motivoDeLaPropuesta"
+                        aria-describedby="ayuda-motivo-de-la-propuesta"
+                        class="mt-2 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900"></textarea>
+              <small id="ayuda-motivo-de-la-propuesta" class="campo__ayuda">Es lo primero que lee quien revisa, antes de mirar campo por campo.</small>
+              <div class="mt-4 flex flex-wrap items-center gap-3">
+                <button type="button" (click)="cancelarLaPropuesta()"
+                        appBoton="secundaria">Cancelar</button>
+                <button type="button" [disabled]="guardandoLaPropuesta() || cuantosCamposCambian() === 0"
+                        (click)="guardarLaPropuesta(motivoDeLaPropuesta)" data-guardar-propuesta
+                        appBoton="principal">
+                  {{ guardandoLaPropuesta() ? 'Guardando…' : 'Guardar la propuesta' }}
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="flex flex-wrap items-center gap-3">
+              <button type="button" (click)="cancelarEdicion()"
+                      appBoton="secundaria">Cancelar</button>
+              <button type="button" [disabled]="guardando()" (click)="guardar()" data-guardar-ficha-mercado
+                      appBoton="principal">
+                {{ guardando() ? 'Guardando…' : 'Guardar cambios' }}
+              </button>
+            </div>
+          }
+        </section>
+      }
+        }
+
+        @if (seccionActiva() === 'ediciones') {
+          <!--
+            LAS EDICIONES DEL MERCADO, desde su organización. La ruta existía desde el primer corte
+            del módulo y solo la usaba la consola: quien registra un mercado no podía anunciar
+            ninguna de sus realizaciones. Es la pareja de «Ediciones del Festival», y desde el 15 de
+            septiembre de 2026 está en su propia sección, como allí.
+          -->
+          <app-ediciones-de-mercado [mercadoId]="String(m.id)" [mercadoPublicado]="m.estadoRegistro === 'publicado'" [esAdministradora]="esAdministradora()" />
+        }
+
+        @if (seccionActiva() === 'historial') {
+          <section aria-label="Historial del mercado">
+            @if (cargandoHistorial()) {
+              <app-esqueleto variante="fila" [cantidad]="2" etiqueta="Consultando historial…" />
+            } @else if (errorHistorial()) {
+              <p role="alert" class="border border-red-200 rounded-lg bg-red-50 p-4 text-sm text-red-800">{{ errorHistorial() }}</p>
+            } @else if (!historial().length) {
+              <div class="bg-slate-50 px-5 py-6"><h2>Aún no hay movimientos registrados.</h2><p class="mt-2 text-cuerpo leading-relaxed text-prosa">Los envíos, decisiones y cambios de estado del mercado y sus ediciones aparecerán aquí.</p></div>
+            } @else {
+              <ol class="relative ml-2 border-l border-slate-300">
+                @for (entrada of historial(); track entrada.fecha + entrada.accion) {
+                  <li class="relative pb-7 pl-6 last:pb-0">
+                    <span aria-hidden="true" class="absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-morado ring-4 ring-white"></span>
+                    <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4"><h2>{{ etiquetaAccionHistorial(entrada.accion) }}</h2><time class="shrink-0 text-xs text-slate-500">{{ entrada.fecha | fecha: 'fecha-hora' }}</time></div>
+                    <p class="mt-1 text-xs font-semibold text-slate-500">{{ entrada.modulo }}</p>
+                    @if (entrada.estadoAnterior || entrada.estadoNuevo) { <p class="mt-2 text-sm text-slate-600">Estado anterior: <strong>{{ etiquetaDeEstado(entrada.estadoAnterior) }}</strong>. Estado resultante: <strong>{{ etiquetaDeEstado(entrada.estadoNuevo) }}</strong>.</p> }
+                    @if (entrada.comentario) { <p class="mt-2 max-w-3xl text-sm leading-relaxed text-slate-700">{{ entrada.comentario }}</p> }
+                  </li>
+                }
+              </ol>
+            }
+          </section>
+        }
+      </div>
+    </div>
+
+    <!--
+      CONFIRMAR EL RETIRO, DICIENDO QUE VA A PASAR. No es lo mismo deshacer un envío que abandonar
+      un borrador, y quien pulsa tiene que saber cuál de las dos está a punto de hacer.
+    -->
+    @if (retiroEnConfirmacion()) {
+      <app-confirmacion
+        [titulo]="estaEnBorrador() ? 'Eliminar el borrador' : 'Retirar de revisión'"
+        [detalle]="estaEnBorrador()
+          ? 'El borrador se archiva y deja de aparecer en tus procesos. No se borra: conserva su historial, y el PNMC puede recuperarlo si hiciera falta.'
+          : 'El mercado vuelve a borrador con todo lo que escribiste. Podrás corregirlo y volver a enviarlo cuando quieras.'"
+        [accion]="estaEnBorrador() ? 'Eliminar el borrador' : 'Retirar de revisión'"
+        [tono]="estaEnBorrador() ? 'destructiva' : 'confirmar'"
+        [ocupado]="retirando()"
+        identificador="confirmar-retiro"
+        (confirmar)="retirarElMercado()"
+        (cancelar)="cancelarElRetiro()" />
+    }
+
+    @if (solicitudDeRetiro(); as solicitud) {
+      <!-- LA JUSTIFICACION SE ESCRIBE AQUI y la lee quien decide, que no conoce el mercado. -->
+      <app-confirmacion
+        titulo="Solicitar el retiro"
+        detalle="El mercado seguirá publicado hasta que el PNMC decida. Si aprueba el retiro, los eventos de su Agenda se archivan con él."
+        accion="Enviar la solicitud"
+        tono="confirmar"
+        pideMotivo
+        rotuloDelMotivo="Por qué se pide el retiro"
+        ayudaDelMotivo="Quien revise la solicitud no conoce el mercado y con esto decide."
+        [ocupado]="solicitando()"
+        identificador="enviar-solicitud-retiro"
+        [eventosDelProceso]="mercado() ? { tipo: 'mercado', id: mercado()!.id, ambito: 'externo' } : null"
+        (confirmar)="enviarLaSolicitudDeRetiro($event)"
+        (cancelar)="cancelarLaSolicitud()" />
+    }
+
+    @if (contactoEnEdicion(); as contacto) {
+      <app-dialogo-de-formulario
+        titulo="Editar el contacto del mercado"
+        proposito="Es lo único que se corrige directamente sobre un mercado publicado, y el cambio se ve en el portal de inmediato. El resto de la información tiene su propio recorrido."
+        verbo="Guardar el contacto"
+        [guardando]="guardandoContacto()"
+        identificador="guardar-contacto"
+        (guardar)="guardarElContacto()"
+        (cerrar)="cancelarLaCorreccionDelContacto()">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="space-y-1.5">
+          <label for="contacto-correo" class="block text-sm font-bold text-slate-800">Correo de contacto</label>
+          <input id="contacto-correo" type="email" maxlength="180" [ngModel]="contacto.correoMercado" (ngModelChange)="campoDelContacto('correoMercado', $event)"
+                 class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+        </div>
+        <div class="space-y-1.5">
+          <label for="contacto-telefono" class="block text-sm font-bold text-slate-800">Teléfono</label>
+          <input id="contacto-telefono" type="tel" maxlength="80" [ngModel]="contacto.telefonoMercado" (ngModelChange)="campoDelContacto('telefonoMercado', $event)"
+                 class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+        </div>
+        <div class="space-y-1.5">
+          <label for="contacto-sitio" class="block text-sm font-bold text-slate-800">Página web</label>
+          <input id="contacto-sitio" type="url" maxlength="300" [ngModel]="contacto.sitioWebMercado" (ngModelChange)="campoDelContacto('sitioWebMercado', $event)"
+                 class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+        </div>
+        <div class="space-y-1.5">
+          <label for="contacto-instagram" class="block text-sm font-bold text-slate-800">Instagram</label>
+          <input id="contacto-instagram" type="url" maxlength="300" [ngModel]="contacto.instagramMercado" (ngModelChange)="campoDelContacto('instagramMercado', $event)"
+                 class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+        </div>
+        <div class="space-y-1.5">
+          <label for="contacto-facebook" class="block text-sm font-bold text-slate-800">Facebook</label>
+          <input id="contacto-facebook" type="url" maxlength="300" [ngModel]="contacto.facebookMercado" (ngModelChange)="campoDelContacto('facebookMercado', $event)"
+                 class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+        </div>
+        <div class="space-y-1.5">
+          <label for="contacto-otro" class="block text-sm font-bold text-slate-800">Otro enlace</label>
+          <input id="contacto-otro" type="url" maxlength="300" [ngModel]="contacto.otroEnlaceMercado" (ngModelChange)="campoDelContacto('otroEnlaceMercado', $event)"
+                 class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+        </div>
+        <div class="space-y-1.5 sm:col-span-2">
+          <label for="contacto-observaciones" class="block text-sm font-bold text-slate-800">Cómo contactarlos</label>
+          <textarea id="contacto-observaciones" rows="2" maxlength="600" [ngModel]="contacto.observacionesContacto" (ngModelChange)="campoDelContacto('observacionesContacto', $event)"
+                    class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio"></textarea>
+        </div>
+      </div>
+      </app-dialogo-de-formulario>
+    }
+  }
+</div>

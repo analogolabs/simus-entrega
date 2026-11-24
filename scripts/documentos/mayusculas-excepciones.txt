@@ -1,0 +1,8 @@
+# Excepciones de scripts/documentos/comprobar-mayusculas.py (ver docs/usuario/23-guia-de-estilo-de-textos.md).
+#
+# Una por línea:   ruta:texto
+#   - `ruta` puede ser parcial (basta con que esté contenida en la ruta del archivo).
+#   - `texto` es exactamente lo que el detector muestra entre « » (por ejemplo, «el Equipo»).
+# Se admiten excepciones cuando la palabra con mayúscula es un nombre propio: el nombre de una
+# sección o de un módulo, una institución o un título con nombre. Cada excepción lleva un comentario
+# que dice por qué, encima.

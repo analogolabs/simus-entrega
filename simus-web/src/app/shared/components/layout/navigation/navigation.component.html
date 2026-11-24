@@ -1,0 +1,558 @@
+<nav
+  [ngClass]="getNavClass()"
+  [style]="variablesDeColor()"
+  class="fixed w-full z-(--z-barra-superior) px-6 lg:px-12"
+  aria-label="Navegación principal"
+>
+  <div class="max-w-[100rem] mx-auto flex justify-between items-center h-12">
+    <div class="flex items-center gap-10 min-w-0">
+      <a
+        [href]="hrefDePagina('home')"
+        data-testid="enlace-logotipo"
+        class="flex items-center gap-4 cursor-pointer shrink-0 no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--nav-texto) focus-visible:ring-offset-2 focus-visible:ring-offset-(--nav-fondo) rounded-lg"
+        (click)="seguirEnlace($event, 'home')"
+        title="Ir al inicio de SIMUS"
+      >
+        <!--
+          LOGOTIPO DE TEXTO DE SIMUS, PROVISIONAL. «si» en trazo fino y «mus» en negrita, sin barra:
+          el contraste de peso basta para leer las dos partes. El nombre completo acompaña desde `sm`,
+          en tres renglones para no ocupar ancho.
+        -->
+        <span class="sr-only">SIMUS, </span>
+        <span class="font-display text-[1.85rem] leading-none tracking-tight text-(--nav-texto) transition-colors duration-200" aria-hidden="true"><span class="font-light">si</span><span class="font-extrabold">mus</span></span>
+        <span class="hidden sm:block border-l border-(--nav-filete) pl-3 text-left font-display text-[0.75rem] font-semibold leading-[1.2] text-(--nav-texto-suave) transition-colors duration-300">Sistema de<br>información<br>de la música</span>
+      </a>
+
+      <div class="hidden xl:flex items-center gap-8">
+        @for (link of primaryNavigationLinks(); track link.id) {
+          <div
+            class="relative"
+            (mouseenter)="isDropdownLink(link.id) ? setActiveNavDropdown(link.id) : null"
+            (mouseleave)="isDropdownLink(link.id) ? setActiveNavDropdown(null) : null"
+            (focusin)="onDropdownFocusIn(link.id)"
+            (focusout)="onDropdownFocusOut(link.id, $event)"
+          >
+            <a
+              [href]="hrefDePagina(link.id)"
+              data-testid="enlace-principal"
+              (click)="seguirEnlace($event, link.id)"
+              class="relative inline-flex items-center gap-2 py-1.5 font-display text-[0.92rem] font-semibold no-underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--nav-texto) focus-visible:ring-offset-2 focus-visible:ring-offset-(--nav-fondo) rounded-md cursor-pointer"
+              [ngClass]="getPrimaryLinkClass(link.id)"
+              [attr.aria-current]="isActiveLink(link.id) ? 'page' : null"
+              [attr.aria-expanded]="isDropdownLink(link.id) ? (activeNavDropdown() === link.id) : null"
+            >
+              {{ link.name }}
+              @if (isActiveLink(link.id)) {
+                <!-- Dónde está la persona: un punto bajo el rótulo. Una línea se confundiría con la franja de colores de abajo. -->
+                <span aria-hidden="true" [class]="'absolute -bottom-1.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full ' + (link.id === 'pnmc' ? 'bg-verde' : 'bg-(--nav-texto)')"></span>
+              }
+              @if (isDropdownLink(link.id) && link.id !== 'pnmc') {
+                <svg iconoFijo="chevron-down" [size]="13" class="transition-transform" [class.rotate-180]="activeNavDropdown() === link.id"></svg>
+              }
+            </a>
+
+            @if (link.id === 'pnmc' && activeNavDropdown() === link.id) {
+              <!-- Centrado bajo el rótulo y limitado al ancho de la ventana: a la izquierda se salía por el borde derecho. -->
+              <div class="absolute left-1/2 top-full w-[min(48rem,calc(100vw-4rem))] -translate-x-1/2 pt-5 animate-in fade-in duration-200" data-testid="panel-pnmc" (mouseleave)="clearEjeMenuHover()">
+                <div class="max-h-[calc(100vh-6rem)] overflow-y-auto overflow-x-hidden rounded-[2rem] border border-slate-200/80 bg-white/95 p-5 shadow-2xl backdrop-blur-xl">
+                  <div class="mb-3 flex items-end justify-between gap-6">
+                    <div>
+                      <p class="font-alternate text-[0.62rem] font-bold text-morado">{{ 'nav_pnmc_nombre' | textoWeb }}</p>
+                      <p class="mt-1 font-alternate text-xl font-bold text-morado">{{ link.name }}</p>
+                    </div>
+                    <a [href]="hrefDePagina(link.id)" (click)="seguirEnlace($event, link.id)" class="font-alternate text-[0.65rem] font-bold text-slate-600 no-underline hover:text-morado cursor-pointer">{{ 'nav_pnmc_ver' | textoWeb }}</a>
+                  </div>
+
+                  <div class="grid grid-cols-[18rem_minmax(0,1fr)] gap-5">
+                    <!-- Columna fija: nunca cambia de tamaño, así el cursor puede recorrerla sin que el hover se corte -->
+                    <div class="flex flex-col gap-1">
+                      @for (group of ejeNavigationGroups(); track group.id; let i = $index) {
+                        <a
+                          [href]="'/pnmc#' + group.sectionId"
+                          data-testid="enlace-eje"
+                          (mouseenter)="setActiveEjeMenuId(group.id)"
+                          (focus)="setActiveEjeMenuId(group.id)"
+                          (click)="seguirSeccion($event, link.id, group.sectionId)"
+                          class="group relative flex w-full items-center gap-3 border-l-2 py-2.5 pl-3 pr-4 text-left no-underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-morado cursor-pointer"
+                          [ngClass]="getEjeGroupClass(group.id)"
+                        >
+                          <!-- El número va en su propia columna: pintado encima del título lo tapaba. -->
+                          <span aria-hidden="true" class="w-6 shrink-0 font-alternate text-base font-bold leading-none text-morado">0{{ i + 1 }}</span>
+                          <span class="relative flex-1 font-alternate text-[0.72rem] font-bold leading-snug text-morado group-hover:text-morado">{{ group.name }}</span>
+                        </a>
+                      }
+                    </div>
+
+                    <!-- Panel de componentes: cambia de contenido, no de posición -->
+                    <div class="min-h-[11rem] border-l border-slate-100 pl-5">
+                      @if (hoveredEjeGroup(); as eje) {
+                        <!--
+                          El encabezado del panel. `nav_components_title` estaba
+                          declarada en el registro y no la leía nadie: el panel
+                          ofrecía editar un rótulo que la página nunca pintaba.
+                        -->
+                        <p class="mb-2 px-2.5 font-alternate text-xs font-bold text-slate-600">{{ getWebText('nav_components_title') }}</p>
+                        <div class="space-y-0.5">
+                          @for (component of eje.components; track component.id) {
+                            <a
+                              [href]="'/pnmc/ejes/' + component.slug"
+                              data-testid="enlace-componente"
+                              (click)="seguirComponente($event, component.id)"
+                              class="group/comp flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left no-underline transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-2 cursor-pointer"
+                            >
+                              <span class="font-nunito text-[0.72rem] font-semibold leading-snug text-slate-600 group-hover/comp:text-morado">{{ component.name }}</span>
+                              <svg iconoFijo="arrow-up-right" [size]="12" aria-hidden="true" class="shrink-0 text-slate-500 transition-transform group-hover/comp:translate-x-0.5 group-hover/comp:text-morado"></svg>
+                            </a>
+                          }
+                        </div>
+                      } @else {
+                        <div class="flex h-full min-h-[11rem] items-center">
+                          <p class="font-nunito text-xs leading-relaxed text-slate-600">{{ 'nav_pnmc_ejes_ayuda' | textoWeb }}</p>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="flex shrink-0 items-center gap-3 xl:gap-5">
+    <div class="hidden xl:flex items-center gap-5">
+      @for (link of featuredNavigationLinks(); track link.id) {
+        <div
+          data-testid="enlace-destacado"
+          class="relative"
+          (mouseenter)="isDropdownLink(link.id) ? setActiveNavDropdown(link.id) : null"
+          (mouseleave)="isDropdownLink(link.id) ? setActiveNavDropdown(null) : null"
+          (focusin)="onDropdownFocusIn(link.id)"
+          (focusout)="onDropdownFocusOut(link.id, $event)"
+        >
+          <a
+            [href]="hrefDePagina(link.id)"
+            data-testid="enlace-destacado-vinculo"
+            (click)="seguirEnlace($event, link.id)"
+            class="inline-flex items-center gap-1.5 font-display text-[0.9rem] font-semibold no-underline transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-(--nav-fondo)"
+            [ngClass]="getFeaturedLinkClass(link.id)"
+            [attr.aria-current]="isActiveLink(link.id) ? 'page' : null"
+            [attr.aria-expanded]="isDropdownLink(link.id) ? (activeNavDropdown() === link.id) : null"
+          >
+            {{ link.name }}
+          </a>
+
+          <!-- El panel es igual al del repositorio de referencia: el rotulo lleva su propio
+               enlace a la portada del ecosistema, ademas de la puerta que ya es el boton. -->
+          @if (link.id === 'ecosistema' && activeNavDropdown() === link.id) {
+            <div class="absolute right-0 top-full w-[min(34rem,calc(100vw-4rem))] pt-5 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div class="max-h-[calc(100vh-6rem)] overflow-y-auto overflow-x-hidden rounded-[2rem] border border-slate-200/80 bg-white/95 p-5 shadow-2xl backdrop-blur-xl">
+                <div class="mb-4 border-b border-slate-100 pb-4">
+                  <a
+                    [href]="hrefDePagina('ecosistema')"
+                    data-testid="ecosistema-rotulo-enlace"
+                    (click)="seguirEnlace($event, 'ecosistema')"
+                    class="group block rounded-sm text-left no-underline cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-2"
+                    aria-label="Ir a Ecosistema Musical de Colombia"
+                  >
+                    <p class="font-alternate text-xs font-bold text-morado">{{ 'nav_simus_nombre' | textoWeb }}</p>
+                    <p class="mt-1 font-alternate text-xl font-bold text-morado group-hover:text-morado">{{ 'nav_ecosistema_nombre' | textoWeb }}</p>
+                  </a>
+                </div>
+
+                <p class="mb-2 px-2 font-alternate text-xs font-bold text-slate-600">{{ 'nav_directorios_titulo' | textoWeb }}</p>
+                <div data-testid="ecosystem-tool-grid" class="grid gap-0.5 sm:grid-cols-2">
+                  <!--
+                    EL MENÚ DICE LO QUE HAY (decisión clave 7): los directorios que existen,
+                    cada uno con su enlace real. Los procesos que todavía no tienen directorio no
+                    son entradas: se nombran juntos, en un renglón, bajo «En preparación».
+                  -->
+                  @for (item of ecosystemMenuItems; track item.label) {
+                    <a
+                      [href]="'/' + item.page"
+                      data-testid="ecosystem-tool-item"
+                      (click)="seguirRuta($event, item.page)"
+                      class="group/item flex w-full items-start justify-between gap-2 rounded-xl px-3 py-2.5 text-left no-underline transition-colors cursor-pointer hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-2"
+                    >
+                      <span class="min-w-0">
+                        <span class="block font-nunito text-sm font-semibold leading-snug text-slate-700 group-hover/item:text-morado">{{ item.label }}
+                        </span>
+                        <span class="mt-0.5 block font-nunito text-xs leading-relaxed text-slate-600">{{ item.detail }}</span>
+                      </span>
+                      <svg iconoFijo="arrow-up-right" [size]="12" aria-hidden="true" class="mt-1 shrink-0 text-slate-500 transition-transform group-hover/item:translate-x-0.5 group-hover/item:text-morado"></svg>
+                    </a>
+                  }
+                  <!-- DIRECTORIO DE AGENTES Y ACTORES (mapa 23): misma forma que las demás entradas, con fondo propio para destacarlo; queda abajo a la derecha, junto a Espacios. -->
+                  <a
+                    [href]="'/ecosistema/personas'"
+                    data-testid="ecosystem-agentes-item"
+                    (click)="seguirRuta($event, 'ecosistema/personas')"
+                    class="group/item flex w-full items-start justify-between gap-2 rounded-xl bg-morado/10 px-3 py-2.5 text-left no-underline transition-colors cursor-pointer hover:bg-morado/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-2"
+                  >
+                    <span class="min-w-0">
+                      <span class="block font-nunito text-sm font-bold leading-snug text-morado">{{ 'nav_personas_titulo' | textoWeb }}</span>
+                      <span class="mt-0.5 block font-nunito text-xs leading-relaxed text-slate-700">{{ 'nav_personas_desc' | textoWeb }}</span>
+                    </span>
+                    <svg iconoFijo="arrow-up-right" [size]="12" aria-hidden="true" class="mt-1 shrink-0 text-morado transition-transform group-hover/item:translate-x-0.5"></svg>
+                  </a>
+                </div>
+                @if (ecosystemEnPreparacion.length > 0) {
+                  <p data-testid="ecosistema-en-preparacion" class="mt-3 border-t border-slate-100 px-3 pt-3 font-nunito text-xs leading-relaxed text-slate-600">
+                    <span class="font-bold">En preparación:</span> {{ ecosystemEnPreparacion.join(' · ') }}
+                  </p>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+      <!--
+        LA PUERTA PUBLICA ES LA DEL ECOSISTEMA, NO LA DE LA CONSOLA. Este boton llevaba a
+        `admin`, que es la entrada institucional: quien lo pulsaba desde el sitio publico
+        —una organizacion que viene a registrar su festival— aterrizaba en el formulario del
+        equipo interno, que su cuenta no puede cruzar. La consola rechaza por lista blanca a
+        todo el que no traiga rol interno, asi que el error no se veia como un enlace mal
+        puesto sino como «mi contraseña no sirve».
+        El equipo interno entra por /admin escribiendolo, que es como se entra a una consola.
+      -->
+      @if (sesionExterna.dentro()) {
+        <!--
+          EL CHIP ES EL DISPARADOR DE UN MENU, no un enlace. Antes eran dos botones sueltos en la
+          barra —«Mi panel» y «Salir»—: cada destino nuevo de la cuenta habria anadido otro boton
+          a una barra que ya compite por sitio. `aria-haspopup` y `aria-expanded` van en el
+          disparador porque sin ellos un lector de pantalla anuncia «boton» y no dice que al
+          pulsarlo aparece algo; y el menu se cierra al SALIR EL FOCO, no al salir el raton.
+          Escape lo cierra gratis: comparte señal con los demas desplegables de esta barra.
+        -->
+        <div class="relative" data-panel-sesion-externa (focusout)="alSalirElFocoDelMenuDeCuenta($event)">
+          <button
+            type="button"
+            (click)="alternarMenuDeCuenta()"
+            data-menu-de-cuenta
+            aria-haspopup="menu"
+            [attr.aria-expanded]="menuDeCuentaAbierto()"
+            class="flex cursor-pointer items-center gap-2 rounded-full px-2 py-1.5 text-left transition-colors hover:bg-(--nav-hover) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--nav-texto) focus-visible:ring-offset-2 focus-visible:ring-offset-(--nav-fondo)"
+          >
+            <span aria-hidden="true" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-100 font-alternate text-[0.68rem] font-bold text-morado">{{ inicialesDeLaPersona() }}</span>
+            <span class="flex min-w-0 flex-col leading-tight">
+              <!-- QUIÉN ERES Y EN NOMBRE DE QUIÉN TRABAJAS. La persona primero; la organización
+                   activa, la de la URL, debajo y solo dentro de su panel. En pantallas estrechas se
+                   oculta antes de competir con los enlaces de navegación. -->
+              <span data-testid="chip-nombre-cuenta" class="hidden max-w-[13rem] truncate text-[0.74rem] font-normal leading-tight text-(--nav-texto) sm:block">{{ nombreDeLaPersona() }}</span>
+              @if (contexto.organizacionActiva(); as activa) { <span data-testid="chip-organizacion-activa" class="hidden max-w-[13rem] truncate text-[0.66rem] leading-tight text-(--nav-texto-suave) sm:block">{{ activa.name }}</span> }
+            </span>
+            <svg iconoFijo="chevron-down" [size]="13" aria-hidden="true" class="shrink-0 text-(--nav-texto-suave) transition-transform" [class.rotate-180]="menuDeCuentaAbierto()"></svg>
+          </button>
+
+          @if (menuDeCuentaAbierto()) {
+            <div
+              role="menu"
+              data-menu-de-cuenta-panel
+              class="absolute right-0 top-full z-(--z-desplegable) mt-2 max-h-[80vh] w-80 overflow-y-auto rounded-2xl border border-slate-200/80 bg-white shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150"
+            >
+              <!--
+                EL MENÚ EN DOS BLOQUES (maqueta 32-propuesta de la auditoría). Antes mezclaba
+                persona y organización, repetía tres pestañas del panel y a una cuenta individual le
+                ofrecía «Datos de la organización», que llevaba a una pantalla vacía.
+              -->
+              <div class="border-b border-slate-100 px-4 py-3">
+                <p class="truncate text-sm font-normal text-morado">{{ nombreDeLaPersona() }}</p>
+                <p class="mt-0.5 truncate text-[0.7rem] text-slate-500">{{ sesionExterna.actual()?.email }}</p>
+              </div>
+
+              <div role="group" aria-labelledby="menu-cuenta-persona" class="py-1">
+                <p id="menu-cuenta-persona" class="px-4 pb-1 pt-2 text-[0.65rem] font-bold text-slate-500">Persona</p>
+                <a role="menuitem" data-menu-mi-espacio href="/gestion/cuenta" (click)="seguirRuta($event, 'gestion/cuenta')" class="flex w-full cursor-pointer items-center gap-2.5 border-0 bg-transparent px-4 py-2.5 text-left text-sm font-normal text-morado transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-50 no-underline">{{ 'nav_mi_espacio' | textoWeb }}</a>
+                <a role="menuitem" data-menu-perfil-publico href="/gestion/cuenta/perfil-publico" (click)="seguirRuta($event, 'gestion/cuenta/perfil-publico')" class="flex w-full cursor-pointer items-center gap-2.5 border-0 bg-transparent px-4 py-2.5 text-left text-sm font-normal text-morado transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-50 no-underline">{{ 'nav_perfil_publico' | textoWeb }}</a>
+                <a role="menuitem" data-menu-cuenta-seguridad href="/gestion/cuenta/seguridad" (click)="seguirRuta($event, 'gestion/cuenta/seguridad')" class="flex w-full cursor-pointer items-center gap-2.5 border-0 bg-transparent px-4 py-2.5 text-left text-sm font-normal text-morado transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-50 no-underline">{{ 'nav_seguridad' | textoWeb }}</a>
+                <a role="menuitem" data-menu-cuenta-autorizaciones href="/gestion/cuenta/autorizaciones" (click)="seguirRuta($event, 'gestion/cuenta/autorizaciones')" class="flex w-full cursor-pointer items-center gap-2.5 border-0 bg-transparent px-4 py-2.5 text-left text-sm font-normal text-morado transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-50 no-underline">{{ 'nav_autorizaciones' | textoWeb }}</a>
+              </div>
+
+              @if (sesionExterna.organizaciones().length > 0) {
+              <div role="group" aria-labelledby="menu-cuenta-organizaciones" class="border-t border-slate-100 py-1">
+                <p id="menu-cuenta-organizaciones" class="px-4 pb-1 pt-2 text-[0.65rem] font-bold text-slate-500">{{ 'nav_organizaciones' | textoWeb }}</p>
+                @for (organizacion of sesionExterna.organizaciones(); track organizacion.id) {
+                  <a role="menuitem" [attr.data-menu-organizacion]="organizacion.id" [attr.aria-current]="contexto.organizacionId() === organizacion.id ? 'true' : null" [href]="'/gestion/o/' + organizacion.id + '/resumen'" (click)="seguirOrganizacion($event, organizacion.id)" class="flex w-full cursor-pointer items-center gap-2.5 border-0 bg-transparent px-4 py-2.5 text-left text-sm font-normal text-morado transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-50 justify-between no-underline">
+                    <span class="min-w-0"><span class="block truncate" [class.font-bold]="contexto.organizacionId() === organizacion.id">{{ organizacion.name }}</span><span class="block text-[0.68rem] text-slate-500">{{ etiquetaDelRol(organizacion.role) }}</span></span>
+                    @if (contexto.organizacionId() === organizacion.id) { <span class="shrink-0 text-[0.65rem] font-bold text-verde-texto">Activa</span> }
+                  </a>
+                }
+                <!-- «REGISTRAR UNA ORGANIZACIÓN» YA NO ESTÁ EN ESTE MENÚ (ACC2, decisión del usuario): esa acción vive en
+                     Mi espacio → Mis organizaciones. El menú solo sirve para cambiar de modo. -->
+              </div>
+              }
+              <!--
+                EN ROJO, A PROPÓSITO. Es la única acción de salida del menú -las demás son
+                navegación normal (Mi panel, Organización, Cuenta y seguridad)-, y se define
+                que se distinguiera de esas con el tratamiento habitual
+                para cerrar sesión: texto en rojo discreto, no un botón de alarma. `border-t` ya la
+                separaba visualmente del resto; el color termina de decir que es una acción distinta.
+              -->
+              <button
+                type="button"
+                role="menuitem"
+                data-menu-cerrar-sesion
+                (click)="cerrarSesionExterna()"
+                class="flex w-full cursor-pointer items-center gap-2.5 border-t border-slate-100 bg-transparent px-4 py-3 text-left text-sm font-normal text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 focus-visible:outline-none focus-visible:bg-red-50"
+              >
+                {{ 'nav_cerrar_sesion' | textoWeb }}
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <!--
+          ES UN ICONO LIMPIO, SIN CIRCULO NI BORDE, igual que en el repositorio de
+          referencia: «Ecosistema» ya es el boton verde solido de la barra, asi que este
+          icono se queda como una accion secundaria y discreta, no como un segundo boton.
+          El nombre accesible va en `aria-label` porque no hay texto visible que leer: sin el,
+          un lector de pantalla anuncia «boton» y nada mas. El `title` es para el raton.
+        -->
+        <!--
+          DOS PUERTAS, NO UNA. Este boton llevaba directo a la pantalla de acceso, que abre por la
+          pestaña de entrar: quien venia a registrar su organizacion aterrizaba en un formulario de
+          correo y contraseña que todavia no tiene. Ahora abre un menu con las dos entradas, como
+          pidio el usuario.
+
+          COMPARTE `activeNavDropdown` con el menu de cuenta y con los desplegables de la barra:
+          abrir uno cierra los demas y `Escape` los cierra todos, sin una linea mas.
+        -->
+        <div class="relative" data-panel-acceso (focusout)="alSalirElFocoDelMenuDeCuenta($event)">
+          <button
+            type="button"
+            data-testid="iniciar-sesion"
+            (click)="alternarMenuDeAcceso()"
+            aria-haspopup="menu"
+            [attr.aria-expanded]="menuDeAccesoAbierto()"
+            [class]="'inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-md border-0 bg-transparent px-2 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--nav-texto) focus-visible:ring-offset-2 focus-visible:ring-offset-(--nav-fondo) ' + (menuDeAccesoAbierto() ? 'text-(--nav-texto)' : 'text-(--nav-texto-suave) hover:text-(--nav-texto)')"
+          >
+            <svg iconoFijo="log-in" [size]="20" aria-hidden="true"></svg>
+            <!-- EL TEXTO JUNTO AL ICONO: la única puerta a la cuenta era un icono sin rótulo.
+                 Es el nombre accesible del botón; el menú que abre ofrece «Ingresar» y «Crear cuenta». -->
+            <span class="text-[0.82rem] font-normal">{{ 'nav_ingresar' | textoWeb }}</span>
+          </button>
+
+          @if (menuDeAccesoAbierto()) {
+            <div
+              role="menu"
+              data-testid="menu-de-acceso"
+              class="absolute right-0 top-full z-(--z-desplegable) mt-3 w-[19rem] overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-2 shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150"
+            >
+              <p class="px-3 pb-1 pt-2 font-alternate text-[0.55rem] font-bold text-slate-500">{{ 'nav_cuenta_titulo' | textoWeb }}</p>
+
+              <a
+                role="menuitem"
+                data-testid="acceso-ingresar"
+                href="/ingresar" (click)="seguirIngresar($event)"
+                class="no-underline flex w-full cursor-pointer items-start gap-3 rounded-xl border-0 bg-transparent px-3 py-2.5 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-50"
+              >
+                <svg iconoFijo="log-in" [size]="17" aria-hidden="true" class="mt-0.5 shrink-0 text-morado"></svg>
+                <span class="min-w-0">
+                  <span class="block font-alternate text-[0.86rem] font-bold text-morado">{{ 'nav_ingresar' | textoWeb }}</span>
+                  <span class="mt-0.5 block font-nunito text-[0.72rem] leading-snug text-slate-500">{{ 'nav_cuenta_acceso' | textoWeb }}</span>
+                </span>
+              </a>
+
+              <a
+                role="menuitem"
+                data-testid="acceso-registrarse"
+                href="/registro" (click)="seguirRegistro($event)"
+                class="no-underline flex w-full cursor-pointer items-start gap-3 rounded-xl border-0 bg-transparent px-3 py-2.5 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-50"
+              >
+                <svg iconoFijo="user-plus" [size]="17" aria-hidden="true" class="mt-0.5 shrink-0 text-morado"></svg>
+                <span class="min-w-0">
+                  <span class="block font-alternate text-[0.86rem] font-bold leading-snug text-morado">{{ 'nav_crear_cuenta_organizacion' | textoWeb }}</span>
+                  <span class="mt-0.5 block font-nunito text-[0.72rem] leading-snug text-slate-500">{{ 'nav_participa' | textoWeb }}</span>
+                </span>
+              </a>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <button
+      type="button"
+      class="xl:hidden inline-flex h-11 w-11 items-center justify-center -mr-2 text-(--nav-texto) cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--nav-texto) focus-visible:ring-offset-2 focus-visible:ring-offset-(--nav-fondo) rounded-md border-0 bg-transparent"
+      (click)="toggleMobileMenu()"
+      [attr.aria-expanded]="mobileMenuOpen()"
+      [attr.aria-label]="mobileMenuOpen() ? 'Cerrar menú' : 'Abrir menú'"
+    >
+      @if (mobileMenuOpen()) {
+        <svg iconoFijo="x" [size]="28"></svg>
+      } @else {
+        <svg iconoFijo="menu" [size]="28"></svg>
+      }
+    </button>
+    </div>
+  </div>
+
+  <!--
+    FRANJA DE SIMUS. Los cinco colores de la paleta separan la barra del contenido; son los mismos
+    que cierran el pie. Ecosistema, territorio, conocimiento, actualidad y PNMC. El tercero es un
+    lila claro y no el violeta de la barra: con el mismo violeta ese tramo desaparecía.
+  -->
+  <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 bottom-0 flex h-1">
+    <span class="flex-1 bg-[#BD5F9A]"></span><span class="flex-1 bg-[#56A4A0]"></span><span class="flex-1 bg-[#9A8FD6]"></span><span class="flex-1 bg-[#E78668]"></span><span class="flex-1 bg-[#F2B057]"></span>
+  </div>
+
+  @if (mobileMenuOpen()) {
+    <div class="xl:hidden absolute top-full left-0 w-full max-h-[calc(100dvh-var(--alto-barra-superior))] overflow-y-auto overscroll-contain bg-white border-t border-[#ECE7EE] p-5 sm:p-8 flex flex-col gap-2 shadow-2xl animate-in slide-in-from-top duration-300">
+      @for (link of resolvedNavigationLinks(); track link.id) {
+        @if (isDropdownLink(link.id)) {
+          <div class="border-b border-slate-100 pb-2">
+            @if (link.id === 'ecosistema') {
+              <div class="flex items-center gap-2">
+                <a
+                  [href]="hrefDePagina(link.id)" (click)="seguirEnlace($event, link.id)"
+                  data-testid="ecosystem-mobile-portada"
+                  class="no-underline flex min-h-11 min-w-0 flex-1 items-center py-2 text-left text-[0.9rem] font-bold font-alternate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-md border-0 bg-transparent cursor-pointer"
+                  [ngClass]="getMobileLinkClass(link.id)"
+                >{{ link.name }}</a>
+                <button
+                  type="button"
+                  (click)="toggleMobileSection(link.id)"
+                  class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md border-0 bg-transparent text-slate-500 transition hover:bg-slate-100 hover:text-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-2 focus-visible:ring-offset-white cursor-pointer"
+                  [attr.aria-label]="mobileExpandedSection() === link.id ? 'Cerrar directorios del Ecosistema' : 'Abrir directorios del Ecosistema'"
+                  [attr.aria-expanded]="mobileExpandedSection() === link.id"
+                ><svg iconoFijo="chevron-down" [size]="18" class="transition-transform" [class.rotate-180]="mobileExpandedSection() === link.id"></svg></button>
+              </div>
+            } @else {
+              <button
+                type="button"
+                (click)="toggleMobileSection(link.id)"
+                class="flex min-h-11 w-full items-center justify-between gap-4 py-2 text-[0.9rem] font-bold font-alternate text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-md border-0 bg-transparent cursor-pointer"
+                [ngClass]="getMobileLinkClass(link.id)"
+                [attr.aria-expanded]="mobileExpandedSection() === link.id"
+              >
+                <span>{{ link.name }}</span>
+                <svg iconoFijo="chevron-down" [size]="18" class="shrink-0 transition-transform" [class.rotate-180]="mobileExpandedSection() === link.id"></svg>
+              </button>
+            }
+            @if (mobileExpandedSection() === link.id) {
+              <div class="mt-1 flex flex-col gap-1 pl-3 pb-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                @if (link.id === 'pnmc') {
+                  <a
+                    [href]="hrefDePagina(link.id)" (click)="seguirEnlace($event, link.id)"
+                    class="no-underline flex min-h-11 items-center py-2 text-left text-xs font-bold font-alternate text-slate-500 hover:text-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-md border-0 bg-transparent cursor-pointer"
+                  >
+                    {{ 'nav_pnmc_ver' | textoWeb }}
+                  </a>
+                  @for (sub of mobileSubItems(link.id); track sub.label) {
+                    <a
+                      [href]="sub.href" (click)="seguirSeccion($event, sub.pageId, sub.sectionId)"
+                      class="no-underline flex min-h-11 items-center py-2 text-left text-[0.82rem] font-semibold font-nunito text-slate-600 hover:text-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-md border-0 bg-transparent cursor-pointer"
+                    >
+                      {{ sub.label }}
+                    </a>
+                  }
+                } @else {
+                  <!--
+                    Aqui estuvo la misma tarjeta «Herramienta principal» que en el desplegable de
+                    escritorio, y se fue por el mismo motivo: el mapa tiene boton propio en la
+                    barra. En movil ese boton es la entrada «Ver Mapa» de esta misma lista.
+                  -->
+                  <!-- Lista plana: los grupos existian para partir el panel de escritorio en columnas. -->
+                  <div class="mt-2">
+                    @for (item of ecosystemMenuItems; track item.label) {
+                      <a
+                        data-testid="ecosystem-mobile-item"
+                        
+                        [href]="'/' + item.page" (click)="seguirRuta($event, item.page)"
+                        class="no-underline flex w-full items-center justify-between gap-3 rounded-lg border-0 bg-transparent px-1 py-2 min-h-11 text-left text-[0.82rem] font-semibold font-nunito text-slate-600 enabled:cursor-pointer enabled:hover:text-morado disabled:cursor-default disabled:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado"
+                      >
+                        <span>
+                          {{ item.label }}
+                        </span>
+                        <svg iconoFijo="arrow-up-right" [size]="12" aria-hidden="true" class="shrink-0 text-slate-500"></svg>
+                      </a>
+                    }
+                    @if (ecosystemEnPreparacion.length > 0) {
+                      <p data-testid="ecosistema-en-preparacion-movil" class="mt-2 border-t border-slate-100 px-1 pt-3 font-nunito text-xs leading-relaxed text-slate-600">
+                        <span class="font-bold">En preparación:</span> {{ ecosystemEnPreparacion.join(' · ') }}
+                      </p>
+                    }
+                  </div>
+                  <!--
+                    AQUI ESTUVO «Ver el ecosistema completo», la version movil de la misma tarjeta
+                    que se retiro del desplegable de escritorio. Se fue por el mismo motivo: desde
+                    el propio rotulo «Ecosistema» lleva a la portada, y
+                    esto era un segundo camino al mismo sitio dentro del mismo menu.
+                  -->
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <a
+            [href]="hrefDePagina(link.id)" (click)="seguirEnlace($event, link.id)"
+            class="no-underline border-b border-slate-100 py-3 text-[0.9rem] font-bold font-alternate text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-md border-0 bg-transparent cursor-pointer"
+            [ngClass]="getMobileLinkClass(link.id)"
+          >
+            {{ link.name }}
+          </a>
+        }
+      }
+      <!--
+        LA PUERTA PUBLICA ES LA DEL ECOSISTEMA, NO LA DE LA CONSOLA. Este boton llevaba a
+        `admin`, que es la entrada institucional: quien lo pulsaba desde el sitio publico
+        —una organizacion que viene a registrar su festival— aterrizaba en el formulario del
+        equipo interno, que su cuenta no puede cruzar. La consola rechaza por lista blanca a
+        todo el que no traiga rol interno, asi que el error no se veia como un enlace mal
+        puesto sino como «mi contraseña no sirve».
+        El equipo interno entra por /admin escribiendolo, que es como se entra a una consola.
+      -->
+      @if (sesionExterna.dentro()) {
+        <div class="mt-4 flex flex-col gap-2" data-panel-sesion-externa>
+          <a
+            href="/gestion" (click)="seguirMiPanel($event)"
+            class="no-underline flex cursor-pointer items-center gap-3 rounded-xl border border-[#ECE7EE] bg-[#FBF8F5] px-4 py-3 text-left transition-colors hover:border-morado/50 hover:bg-[#EEECF6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado"
+          >
+            <span aria-hidden="true" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-morado font-alternate text-[0.8rem] font-bold text-white">{{ inicialesDeLaPersona() }}</span>
+            <span class="flex min-w-0 flex-col leading-tight">
+              <span class="truncate font-alternate text-[0.85rem] font-bold text-[#231F45]">{{ nombreDeLaPersona() }}</span>
+              <span class="font-alternate text-xs font-bold text-morado">{{ 'nav_gestion' | textoWeb }}</span>
+            </span>
+          </a>
+          <!-- EL ESPACIO DE LA PERSONA TAMBIÉN EN MÓVIL: su perfil, sus datos y sus organizaciones. -->
+          <a
+            data-movil-mi-espacio
+            href="/gestion/cuenta" (click)="seguirRuta($event, 'gestion/cuenta')"
+            class="no-underline cursor-pointer rounded-xl border border-slate-200 bg-transparent px-5 py-3 text-left font-alternate text-[0.72rem] font-bold text-morado transition-colors hover:border-morado/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado"
+          >
+            {{ 'nav_mi_espacio' | textoWeb }}
+          </a>
+          <button
+            type="button"
+            (click)="cerrarSesionExterna()"
+            appBoton="secundaria" tamano="comodo" class="text-left"
+          >
+            {{ 'nav_cerrar_sesion' | textoWeb }}
+          </button>
+        </div>
+      } @else {
+        <!--
+          LAS DOS PUERTAS TAMBIEN EN MOVIL. En escritorio el icono abre un menu con «Ingresar» y
+          «Crear cuenta»; aqui no hace falta menu porque el espacio es vertical y caben las dos.
+          Dejar solo «Iniciar sesion» en movil habria dejado la mitad de la promesa sin cumplir.
+        -->
+        <a
+          data-testid="movil-ingresar"
+          href="/ingresar" (click)="seguirIngresar($event)"
+          class="no-underline mt-4 rounded-xl border-0 bg-morado px-5 py-3 text-left font-alternate text-[0.9rem] font-bold text-white transition-colors hover:bg-morado-vivo cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+        >
+          {{ 'nav_ingresar' | textoWeb }}
+        </a>
+        <a
+          data-testid="movil-registrarse"
+          href="/registro" (click)="seguirRegistro($event)"
+          class="no-underline mt-2 rounded-xl border border-[#ECE7EE] bg-transparent px-5 py-3 text-left font-alternate text-[0.9rem] font-bold text-[#231F45] transition-colors hover:border-morado hover:text-morado cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+        >
+          {{ 'nav_crear_cuenta' | textoWeb }}
+        </a>
+      }
+    </div>
+  }
+</nav>

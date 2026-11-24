@@ -1,0 +1,184 @@
+<!-- `section`, no `main`: el landmark principal unico lo declara el shell en
+     app.component.html. Un `main` aqui quedaria ANIDADO dentro de aquel, que es
+     una violacion de ARIA y desorienta a quien navega por regiones. -->
+<!--
+  Era `h-screen w-screen … overflow-hidden`. En una pantalla baja —un telefono
+  en horizontal, o cualquier movil con el teclado abierto— el formulario se
+  cortaba y NO habia desplazamiento: el boton de entrar quedaba inalcanzable.
+  Nadie podia iniciar sesion.
+
+  `min-h-screen` deja crecer la caja, `py-10` da respiracion, y el
+  desplazamiento vertical vuelve a existir. Se conserva `overflow-x-hidden`
+  porque las esferas decorativas de fondo (500-600 px, desplazadas fuera del
+  marco a proposito) si deben recortarse en horizontal.
+  `w-full` en vez de `w-screen`: `100vw` incluye el ancho de la barra de
+  desplazamiento y provoca desborde lateral por si solo.
+-->
+<section class="relative min-h-screen w-full bg-morado flex flex-col items-center justify-center px-4 pb-28 pt-10 sm:pb-10 overflow-x-hidden select-none">
+  <!-- Ambient Glowing Spheres -->
+  <div class="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-morado-vivo/15 blur-[130px] pointer-events-none z-0"></div>
+  <div class="absolute -bottom-60 -left-60 w-[600px] h-[600px] rounded-full bg-morado-vivo/12 blur-[150px] pointer-events-none z-0"></div>
+  <div class="absolute top-1/2 left-1/4 -translate-y-1/2 w-[300px] h-[300px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none z-0"></div>
+
+  <!-- Internal Admin / Recovery / Captcha Screens -->
+  <div class="w-full max-w-md flex flex-col items-center relative z-10 text-center py-2">
+    <!-- Prominent Hero Website Logo -->
+    <img 
+      src="/assets/branding/logo-simus-blanco.svg" width="380" height="135" 
+      class="h-20 sm:h-24 md:h-28 w-auto object-contain mb-5" 
+      alt="SIMUS" 
+    />
+
+    <!-- Check if External Portal Mode -->
+    <!-- Internal Admin Console Card -->
+      <div class="w-full rounded-[1.75rem] bg-[#24112b]/60 border border-white/10 backdrop-blur-xl p-6 sm:p-8 shadow-[0_32px_64px_rgba(0,0,0,0.6)] relative terminal-card-glow text-left">
+        
+        @if (formMode() === 'login') {
+          <div class="mb-6">
+            <div class="mb-3 relative z-20">
+              <h2 class="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-tight font-display leading-none text-white select-none pointer-events-none drop-shadow-[0_8px_30px_rgba(0,0,0,0.9)]">
+                Espacio de gestión administrativa
+              </h2>
+            </div>
+            <p class="text-dato text-slate-400 mt-2 leading-relaxed font-medium">
+              Acceso para el equipo que gestiona el <strong class="text-slate-200">Sistema de Información de la Música</strong>.</p>
+          </div>
+
+          <form (submit)="handleSubmit($event)" class="space-y-4">
+            <div class="space-y-1.5 group">
+              <label for="admin-email" class="block text-dato font-black text-slate-400 pl-1 group-focus-within:text-white transition-colors duration-300">Correo electrónico</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 pointer-events-none group-focus-within:text-white transition-colors duration-300">
+                  <svg lucideMail size="15"></svg>
+                </span>
+                <input
+                  id="admin-email"
+                  type="email"
+                  [(ngModel)]="email"
+                  name="email"
+                  autocomplete="username"
+                  required
+                  [class]="'w-full rounded-xl bg-slate-950/50 border pl-11 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-slate-500 outline-none transition-all duration-300 ' + 'border-white/10 hover:border-white/20 focus:border-white/60 focus:ring-2 focus:ring-white/15 focus:bg-slate-950/70 '"
+                />
+              </div>
+            </div>
+            
+            <div class="space-y-1.5 group">
+              <div class="flex items-center justify-between pl-1">
+                <label for="admin-password" class="block text-dato font-black text-slate-400 group-focus-within:text-white transition-colors duration-300">Contraseña</label>
+                <button 
+                  type="button" 
+                  (click)="formMode.set('recover')" 
+                  class="text-dato font-bold text-verde hover:underline cursor-pointer transition"
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 pointer-events-none group-focus-within:text-white transition-colors duration-300">
+                  <svg lucideLock size="15"></svg>
+                </span>
+                <input
+                  id="admin-password"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  [(ngModel)]="password"
+                  name="password"
+                  autocomplete="current-password"
+                  required
+                  [class]="'w-full rounded-xl bg-slate-950/50 border pl-11 pr-12 py-2.5 text-xs sm:text-sm text-white placeholder:text-slate-500 outline-none transition-all duration-300 ' + 'border-white/10 hover:border-white/20 focus:border-white/60 focus:ring-2 focus:ring-white/15 focus:bg-slate-950/70 '"
+                />
+                <button
+                  type="button"
+                  (click)="showPassword.set(!showPassword())"
+                  class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-white transition-colors cursor-pointer"
+                >
+                  @if (showPassword()) { <svg lucideEyeOff size="15"></svg> } @else { <svg lucideEye size="15"></svg> }
+                </button>
+              </div>
+            </div>
+
+            @if (loginState().message && loginState().status !== 'idle') {
+              <div [class]="'flex items-center gap-3 rounded-xl px-4 py-2 text-xs font-semibold ' + (loginState().status === 'error' ? 'bg-rose-950/40 border border-rose-800/50 text-rose-300' : 'bg-slate-900/60 border border-verde/20 text-verde')">
+                @if (loginState().status === 'error') {
+                  <svg lucideAlertCircle size="14" class="shrink-0 text-rose-400"></svg>
+                } @else {
+                  <svg lucideRefreshCw size="14" class="animate-spin shrink-0 text-verde"></svg>
+                }
+                <span class="leading-snug text-dato sm:text-xs">{{ loginState().message }}</span>
+              </div>
+            }
+
+            <button
+              type="submit"
+              [disabled]="loginState().status === 'saving'"
+              class="w-full flex items-center justify-center gap-2 rounded-xl bg-verde disabled:opacity-50 px-5 py-2.5 text-xs font-black text-slate-950 transition-all duration-300 hover:shadow-[0_0_25px_rgba(255,189,0,0.4)] cursor-pointer select-none active:scale-[0.97] btn-shine-effect"
+            >
+              <svg lucideShieldCheck size="15"></svg>
+              Entrar al panel
+            </button>
+          </form>
+        } @else {
+          <!--
+            RECUPERAR LA CONTRASEÑA DE LA CONSOLA. Las cuentas internas NO se recuperan por
+            correo: su contraseña la restablece el webmaster desde Usuarios. Antes esta pantalla fingía
+            enviar un enlace («Solicitud procesada») sin enviar nada; ahora dice cómo es de verdad.
+          -->
+          <div class="mb-5" data-testid="consola-recuperar-contrasena">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-dato font-black bg-verde/10 text-verde border border-verde/20">
+              Recuperación
+            </span>
+            <h2 class="mt-3.5 text-xl sm:text-2xl font-black text-white uppercase tracking-tight font-display leading-tight">
+              Recuperar contraseña
+            </h2>
+            <p class="text-dato text-slate-300 mt-2 leading-relaxed font-medium">
+              Las cuentas de la consola de administración no se recuperan por correo. Pídele a la persona
+              que administra SIMUS (webmaster) que restablezca tu contraseña desde «Usuarios»; cuando te entregue
+              la nueva, cámbiala por una tuya desde tu perfil.
+            </p>
+            <button
+              type="button"
+              (click)="formMode.set('login')"
+              class="w-full text-center text-dato sm:text-xs font-bold text-slate-300 hover:text-verde mt-5 hover:underline cursor-pointer transition-colors"
+            >
+              Volver al inicio de sesión
+            </button>
+          </div>
+        }
+
+        <!--
+          AQUI NO HAY PUERTA AL PORTAL EXTERNO, y es a proposito. `/administracion` es la
+          entrada del equipo del Ministerio: webmaster y gestor interno. Quien
+          viene de fuera entra por `/ecosistema/ingresar`, que es una pantalla
+          distinta con su propio registro. Ofrecer las dos aqui invitaba a un
+          externo a probar en la consola interna y a leer un error de acceso
+          como un fallo del sitio.
+        -->
+      </div>
+
+    <!-- Institutional Endorsement (Ministry Logos) -->
+    <div class="mt-5 flex flex-col items-center gap-2 shrink-0 select-none">
+      <div class="flex items-center justify-center gap-4 sm:gap-5 flex-wrap">
+        <div class="w-[5.5rem] sm:w-[6.5rem] shrink-0">
+          <img src="/assets/branding/logo-gov-co.png" width="400" height="80" class="w-full h-auto object-contain" alt="GOV.CO" />
+        </div>
+        <div class="h-4 w-px bg-white/20"></div>
+        <div class="w-[2.2rem] sm:w-[2.6rem] shrink-0">
+          <img src="/assets/branding/gov-co-footer.png" width="142" height="140" class="w-full h-auto object-contain" alt="Colombia" />
+        </div>
+        <div class="h-4 w-px bg-white/20"></div>
+        <div class="w-[2.9rem] sm:w-[3.5rem] shrink-0">
+          <img src="/assets/branding/Culturas-Blanco.png" width="479" height="370" class="w-full h-auto object-contain" alt="Ministerio de las Culturas" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Puerta de vuelta al portal público, en una esquina: el mismo logotipo de texto de la navegación. -->
+  <a routerLink="/" class="group absolute bottom-6 left-6 z-10 flex flex-col items-start gap-2 no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 rounded-xl" aria-label="Acceder al portal SIMUS, Sistema de Información de la Música">
+    <span class="flex items-center gap-3 rounded-xl border border-white/10 bg-black/15 px-4 py-3 text-white backdrop-blur-md transition group-hover:border-white/30 group-hover:bg-black/25">
+      <span class="font-display text-2xl leading-none tracking-tight" aria-hidden="true"><span class="font-light">si</span><span class="font-extrabold">mus</span></span>
+      <span class="border-l border-white/25 pl-3 text-left font-display text-dato font-semibold leading-[1.25] text-white/70" aria-hidden="true">Sistema de<br>información<br>de la música</span>
+    </span>
+    <span class="pl-1 text-xs font-semibold text-white/80 transition-colors group-hover:text-white">Accede al portal SIMUS</span>
+  </a>
+</section>

@@ -1,0 +1,482 @@
+<!--
+  El asistente de alta de Festival, en /gestion/procesos/festivales/nuevo. Ver el comentario de
+  `asistente-de-festival.component.ts` para por qué existe y qué NO hace -no toca ediciones-.
+
+  LOS RÓTULOS SON LOS DEL VOLCADO, igual que en `FichaFestivalComponent`: «Fuente de financiación»,
+  «Página web», no traducciones libres. Aquí solo aparecen los catorce campos de la cabecera, así
+  que la mayoría de esa regla no aplica, pero los que sí aparecen mantienen el mismo texto.
+-->
+<div class="mx-auto max-w-6xl space-y-8">
+  <div>
+    <h1>Registrar un Festival</h1>
+    @if (nombreOrganizacion()) {
+      <p class="mt-1 text-sm text-slate-500">
+        Se registra a nombre de <span class="font-bold text-slate-700">{{ nombreOrganizacion() }}</span>.
+      </p>
+    }
+  </div>
+
+  <!--
+    LA PUERTA VA ANTES DEL FORMULARIO, no después. Con el correo sin confirmar el servidor rechaza
+    el registro de todas formas; enseñar igualmente los cuatro pasos sería dejar que alguien
+    escriba un Festival entero para encontrarse el muro al guardar.
+  -->
+  @if (faltaConfirmarCorreo()) {
+    <app-aviso-de-correo-sin-confirmar
+      [bloquea]="true"
+      queSeHabilita="registrar Festivales a nombre de tu organización" />
+  } @else {
+
+  <!--
+    INDICADOR DE PASOS: stepper numerado con línea de progreso, compartido con el alta de una
+    organización desde -ver `IndicadorDePasosComponent`-.
+  -->
+  <app-indicador-de-pasos [pasos]="pasos" [pasoActivo]="pasoActivo()" [estados]="estadoDeLosPasos()" etiqueta="Pasos del registro"
+                           (irAlPaso)="irAlPaso($event)" />
+
+  <p role="alert" data-testid="asistente-error" tabindex="-1" [class.hidden]="!error()"
+     class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{{ error() }}</p>
+  <p aria-live="polite" class="text-xs text-slate-500">
+    @switch (estadoGuardado()) { @case ('guardando') { Guardando borrador… } @case ('guardado') { Borrador guardado{{ ultimoGuardado() ? ' a las ' + (ultimoGuardado() | fecha:'hora') : '' }}. } @case ('error') { Error de guardado; tus cambios permanecen en esta pantalla. } @default { } }
+    @if (buscandoCoincidencias()) { Buscando posibles coincidencias históricas… }
+  </p>
+  @if (borradorRecuperado()) {
+    <p role="status" data-testid="festival-borrador-recuperado" class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+      Recuperamos lo que habías escrito en este registro. Puedes seguir donde lo dejaste.
+    </p>
+  }
+
+  @if (cargando()) {
+    <p role="status" class="py-10 text-center text-sm text-slate-500">Preparando el formulario…</p>
+  } @else {
+    <form novalidate (submit)="$event.preventDefault()" class="space-y-6">
+
+      <!-- ═══════════════════════ Paso 1: Datos generales ═══════════════════════ -->
+      @if (pasoActivo() === 1) {
+        <section class="space-y-6" aria-labelledby="paso1-titulo">
+          <div class="border-b border-slate-100 pb-4">
+            <h2 id="paso1-titulo" class="scroll-mt-28">1. Datos generales</h2>
+            <p class="mt-2 text-cuerpo leading-relaxed text-prosa">Lo básico para identificar el Festival.</p>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="asistente-nombre" class="block text-sm font-bold text-slate-800">
+              Nombre del festival <span class="text-verde-texto">*</span>
+            </label>
+            <input id="asistente-nombre" name="nombre" type="text" required maxlength="240"
+                       [(ngModel)]="formulario.nombre" (ngModelChange)="alCambiarCampo('nombre')" (blur)="alSalirDelCampo('nombre')"
+                   [attr.aria-invalid]="errores()['nombre'] ? 'true' : null"
+                   [attr.aria-describedby]="errores()['nombre'] ? 'asistente-nombre-error' : null"
+                   class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+            @if (errores()['nombre']) { <p id="asistente-nombre-error" class="text-xs font-medium text-red-700">{{ errores()['nombre'] }}</p> }
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="asistente-descripcion" class="block text-sm font-bold text-slate-800">Descripción del festival</label>
+            <textarea id="asistente-descripcion" name="descripcion" rows="3"
+                      [(ngModel)]="formulario.descripcion" (ngModelChange)="programarGuardado()"
+                      class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio"></textarea>
+          </div>
+
+          <div class="max-w-md space-y-1.5">
+            <app-campo-de-seleccion tamano="comodo" etiqueta="Periodicidad" identificador="asistente-periodicidad" name="periodicidad" [(ngModel)]="formulario.periodicidad" (ngModelChange)="alCambiarPeriodicidad()">
+              <option value="">Selecciona una opción</option>
+              @for (periodicidad of periodicidades; track periodicidad.codigo) { <option [value]="periodicidad.codigo">{{ periodicidad.etiqueta }}</option> }
+            </app-campo-de-seleccion>
+            @if (errores()['periodicidad']) { <p class="text-xs font-medium text-red-700">{{ errores()['periodicidad'] }}</p> }
+          </div>
+          @if (pideDetalle(formulario.periodicidad)) {
+            <div class="max-w-2xl space-y-1.5">
+              <label for="asistente-periodicidad-detalle" class="block text-sm font-bold text-slate-800">Explica la periodicidad <span class="text-verde-texto">*</span></label>
+              <textarea id="asistente-periodicidad-detalle" name="periodicidadDetalle" rows="2" maxlength="600"
+                        [(ngModel)]="formulario.periodicidadDetalle" (ngModelChange)="alCambiarCampo('periodicidadDetalle')" (blur)="alSalirDelCampo('periodicidadDetalle')"
+                        placeholder="Por ejemplo: se realiza aproximadamente cada dieciocho meses, según disponibilidad de recursos."
+                        class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio"></textarea>
+              @if (errores()['periodicidadDetalle']) { <p class="text-xs font-medium text-red-700">{{ errores()['periodicidadDetalle'] }}</p> }
+            </div>
+          }
+        </section>
+      }
+
+      <!-- ═══════════════════════ Paso 2: Territorio y contacto ═══════════════════════ -->
+      @if (pasoActivo() === 2) {
+        <section class="space-y-6" aria-labelledby="paso2-titulo">
+          <div class="border-b border-slate-100 pb-4">
+            <h2 id="paso2-titulo" class="scroll-mt-28">2. Territorio y contacto</h2>
+            <p class="mt-2 text-cuerpo leading-relaxed text-prosa">Dónde ocurre el Festival y cómo se contacta a la organización.</p>
+          </div>
+
+          <fieldset class="space-y-4 rounded-xl border border-slate-200 p-4">
+            <legend class="px-2 text-dato font-bold text-slate-600">Territorio</legend>
+
+            <div class="max-w-sm space-y-1.5">
+              <app-campo-de-seleccion tamano="comodo" etiqueta="Alcance territorial" identificador="asistente-nivel" [obligatorio]="true" name="nivelCobertura" [(ngModel)]="formulario.nivelCobertura" (ngModelChange)="alCambiarNivel()">
+                @for (nivel of niveles; track nivel.codigo) {
+                  <option [value]="nivel.codigo">{{ nivel.etiqueta }}</option>
+                }
+              </app-campo-de-seleccion>
+            </div>
+
+            @if (exigeDepartamento() || exigeMunicipio()) {
+              <div class="grid gap-4 sm:grid-cols-2">
+                @if (exigeDepartamento()) {
+                  <div class="space-y-1.5">
+                    <label for="asistente-departamento" class="block text-sm font-bold text-slate-800">
+                      Departamento <span class="text-verde-texto">*</span>
+                    </label>
+                    <app-filtro-desplegable completo tamano="comodo" etiqueta="Departamento" idDelControl="asistente-departamento" obligatorio name="codigoDepartamento" [(ngModel)]="formulario.codigoDepartamento" (ngModelChange)="alCambiarDepartamento()" (salir)="alSalirDelCampo('codigoDepartamento')" [invalido]="!!(errores()['codigoDepartamento'])" [opciones]="departamentos() | opcionesDesde:'codigo':'nombre':'Elige un departamento':true" />
+                    @if (errores()['codigoDepartamento']) { <p class="text-xs font-medium text-red-700">{{ errores()['codigoDepartamento'] }}</p> }
+                  </div>
+                }
+
+                @if (exigeMunicipio()) {
+                  <div class="space-y-1.5">
+                    <label for="asistente-municipio" class="block text-sm font-bold text-slate-800">
+                      Municipio <span class="text-verde-texto">*</span>
+                    </label>
+                    <app-filtro-desplegable completo tamano="comodo" etiqueta="Municipio" idDelControl="asistente-municipio" obligatorio name="codigoMunicipio" [(ngModel)]="formulario.codigoMunicipio" (ngModelChange)="alCambiarCampo('codigoMunicipio')" (salir)="alSalirDelCampo('codigoMunicipio')" [invalido]="!!(errores()['codigoMunicipio'])" [opciones]="municipios() | opcionesDesde:'municipalityCode':'municipalityName':'Elige un municipio':true" />
+                    @if (errores()['codigoMunicipio']) { <p class="text-xs font-medium text-red-700">{{ errores()['codigoMunicipio'] }}</p> }
+                  </div>
+                }
+              </div>
+            }
+            <div class="space-y-1.5">
+              <h4 class="text-sm font-bold text-slate-800">Sede principal <span class="text-verde-texto">*</span></h4>
+              <p class="text-xs text-slate-500">Dónde está el festival. Sirve para situarlo en el mapa, aunque su cobertura sea un departamento o todo el país.</p>
+              <app-selector-de-sede idBase="asistente" [ubicaciones]="ubicaciones()"
+                [departamento]="formulario.sedeCodigoDepartamento" [municipio]="formulario.sedeCodigoMunicipio"
+                [errorDepartamento]="errores()['sedeCodigoDepartamento']" [errorMunicipio]="errores()['sedeCodigoMunicipio']"
+                (cambiar)="elegirSede($event)" />
+            </div>
+          </fieldset>
+
+          <fieldset class="space-y-4 rounded-xl border border-slate-200 p-4">
+            <legend class="px-2 text-dato font-bold text-slate-600">Contacto</legend>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="space-y-1.5">
+                <label for="asistente-correo" class="block text-sm font-bold text-slate-800">Correo de contacto</label>
+                <input id="asistente-correo" name="correoContacto" type="email"
+                       [(ngModel)]="formulario.correoContacto" (ngModelChange)="alCambiarCampo('correoContacto')" (blur)="alSalirDelCampo('correoContacto')" placeholder="nombre@organizacion.org"
+                       [attr.aria-invalid]="errores()['correoContacto'] ? 'true' : null" [attr.aria-describedby]="errores()['correoContacto'] ? 'asistente-correo-error' : null"
+                       [class.border-red-500]="errores()['correoContacto']" class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+                @if (errores()['correoContacto']) { <p id="asistente-correo-error" class="text-xs font-medium text-red-700">{{ errores()['correoContacto'] }}</p> }
+              </div>
+              <div class="space-y-1.5">
+                <label for="asistente-celular" class="block text-sm font-bold text-slate-800">Celular</label>
+                <input id="asistente-celular" name="telefonoCelular" type="tel"
+                       [(ngModel)]="formulario.telefonoCelular" (ngModelChange)="alCambiarCampo('telefonoCelular')" (blur)="alSalirDelCampo('telefonoCelular')" placeholder="3001234567"
+                       [attr.aria-invalid]="errores()['telefonoCelular'] ? 'true' : null" aria-describedby="asistente-celular-error"
+                       class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+                <app-error-de-campo identificador="asistente-celular-error" [mensaje]="errores()['telefonoCelular']" />
+              </div>
+              <div class="space-y-1.5">
+                <label for="asistente-instagram" class="block text-sm font-bold text-slate-800">Instagram</label>
+                <input id="asistente-instagram" name="instagram" type="text" inputmode="url"
+                       [(ngModel)]="formulario.instagram" (ngModelChange)="alCambiarCampo('instagram')" (blur)="alSalirDelCampo('instagram')" placeholder="instagram.com/tuusuario"
+                       [attr.aria-invalid]="errores()['instagram'] ? 'true' : null" aria-describedby="asistente-instagram-error"
+                       class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+                <app-error-de-campo identificador="asistente-instagram-error" [mensaje]="errores()['instagram']" />
+              </div>
+              <div class="space-y-1.5">
+                <label for="asistente-facebook" class="block text-sm font-bold text-slate-800">Facebook</label>
+                <input id="asistente-facebook" name="facebook" type="text" inputmode="url"
+                       [(ngModel)]="formulario.facebook" (ngModelChange)="alCambiarCampo('facebook')" (blur)="alSalirDelCampo('facebook')" placeholder="facebook.com/tupagina"
+                       [attr.aria-invalid]="errores()['facebook'] ? 'true' : null" aria-describedby="asistente-facebook-error"
+                       class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+                <app-error-de-campo identificador="asistente-facebook-error" [mensaje]="errores()['facebook']" />
+              </div>
+              <div class="space-y-1.5">
+                <label for="asistente-pagina-web" class="block text-sm font-bold text-slate-800">Página web</label>
+                <input id="asistente-pagina-web" name="paginaWeb" type="text" inputmode="url"
+                       [(ngModel)]="formulario.paginaWeb" (ngModelChange)="alCambiarCampo('paginaWeb')" (blur)="alSalirDelCampo('paginaWeb')" placeholder="www.tuorganizacion.org"
+                       [attr.aria-invalid]="errores()['paginaWeb'] ? 'true' : null" [class.border-red-500]="errores()['paginaWeb']" class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+                @if (errores()['paginaWeb']) { <p class="text-xs font-medium text-red-700">{{ errores()['paginaWeb'] }}</p> }
+              </div>
+              <div class="space-y-1.5">
+                <label for="asistente-otro-enlace" class="block text-sm font-bold text-slate-800">Otro enlace</label>
+                <input id="asistente-otro-enlace" name="otroEnlace" type="text" inputmode="url"
+                       [(ngModel)]="formulario.otroEnlace" (ngModelChange)="alCambiarCampo('otroEnlace')" (blur)="alSalirDelCampo('otroEnlace')" placeholder="www.ejemplo.org"
+                       [attr.aria-invalid]="errores()['otroEnlace'] ? 'true' : null" [class.border-red-500]="errores()['otroEnlace']" class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+                @if (errores()['otroEnlace']) { <p class="text-xs font-medium text-red-700">{{ errores()['otroEnlace'] }}</p> }
+              </div>
+              <div class="space-y-1.5 sm:col-span-2">
+                <label for="asistente-observaciones" class="block text-sm font-bold text-slate-800">Observaciones de contacto</label>
+                <textarea id="asistente-observaciones" name="observacionesContacto" rows="2"
+                          [(ngModel)]="formulario.observacionesContacto" (ngModelChange)="programarGuardado()"
+                          class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio"></textarea>
+              </div>
+            </div>
+          </fieldset>
+        </section>
+      }
+
+      <!-- ═══════════════════════ Paso 3: Prácticas y territorios sonoros ═══════════════════════ -->
+      @if (pasoActivo() === 3) {
+        <section class="space-y-6" aria-labelledby="paso3-titulo">
+          <div class="border-b border-slate-100 pb-4">
+            <h2 id="paso3-titulo" class="scroll-mt-28">3. Prácticas y territorios sonoros</h2>
+            <p class="mt-2 text-cuerpo leading-relaxed text-prosa">Ninguno es obligatorio: se pueden marcar después, desde la ficha del Festival.</p>
+          </div>
+
+          <fieldset data-testid="casillas-practicasMusicalesIds" class="rounded-xl border border-slate-200 p-4">
+            <legend class="px-2 text-dato font-bold text-slate-600">Prácticas musicales</legend>
+            <div class="grid gap-x-4 gap-y-2 sm:grid-cols-2">
+              @for (opcion of catalogos().practicasMusicales; track opcion.id) {
+                <label class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-slate-800 hover:bg-slate-50">
+                  <input type="checkbox" [checked]="practicaElegida(opcion.id)" (change)="alternarPractica(opcion.id)"
+                         class="h-4 w-4 rounded border-slate-300 text-verde-texto focus:ring-verde-medio">
+                  {{ opcion.nombre }}
+                </label>
+              }
+            </div>
+          </fieldset>
+
+          <fieldset data-testid="casillas-territoriosSonorosIds" class="rounded-xl border border-slate-200 p-4">
+            <legend class="px-2 text-dato font-bold text-slate-600">Territorios sonoros</legend>
+            <div class="grid gap-x-4 gap-y-2 sm:grid-cols-2">
+              @for (opcion of catalogos().territoriosSonoros; track opcion.id) {
+                <label class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-slate-800 hover:bg-slate-50">
+                  <input type="checkbox" [checked]="territorioElegido(opcion.id)" (change)="alternarTerritorio(opcion.id)"
+                         class="h-4 w-4 rounded border-slate-300 text-verde-texto focus:ring-verde-medio">
+                  {{ opcion.nombre }}
+                </label>
+              }
+            </div>
+          </fieldset>
+        </section>
+      }
+
+      <!-- ═══════════════════════ Paso 4: Revisar y guardar borrador ═══════════════════════ -->
+      @if (pasoActivo() === 4) {
+        <section class="space-y-6" aria-labelledby="paso4-titulo">
+          <div class="border-b border-slate-100 pb-4">
+            <h2 id="paso4-titulo" class="scroll-mt-28">4. Revisar y guardar borrador</h2>
+            <p class="mt-2 text-cuerpo leading-relaxed text-prosa">Última mirada antes de guardar.</p>
+          </div>
+
+          @if (faltantes().length) {
+            <!-- LO QUE FALTA, EN LA REVISIÓN Y CON ENLACE A CADA CAMPO: no se descubre al guardar. -->
+            <div role="status" data-testid="festival-falta" class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              <p class="font-bold">Falta antes de guardar:</p>
+              <ul class="mt-2 list-disc space-y-1 pl-5">
+                @for (falta of faltantes(); track falta.campo) {
+                  <li><button type="button" (click)="irAlCampo(falta.campo)" class="cursor-pointer border-0 bg-transparent p-0 text-left font-bold text-amber-950 underline underline-offset-2">{{ falta.rotulo }}</button>: {{ falta.mensaje }}</li>
+                }
+              </ul>
+            </div>
+          }
+
+          <dl class="grid gap-5 text-sm sm:grid-cols-2">
+            <div class="sm:col-span-2">
+              <dt class="t-rotulo">Nombre del festival</dt>
+              <dd class="mt-1 t-valor">{{ formulario.nombre || 'Sin registrar' }}</dd>
+            </div>
+            <div class="sm:col-span-2">
+              <dt class="t-rotulo">Descripción</dt>
+              <dd class="mt-1 whitespace-pre-line text-slate-800">{{ formulario.descripcion || 'Sin registrar' }}</dd>
+            </div>
+            <div>
+              <dt class="t-rotulo">Periodicidad</dt>
+              <dd class="mt-1 t-valor">{{ etiquetaDePeriodicidad(formulario.periodicidad) || 'Sin registrar' }}</dd>
+            </div>
+            <div>
+              <dt class="t-rotulo">Alcance territorial</dt>
+              <dd class="mt-1 t-valor">
+                {{ etiquetaCobertura(formulario.nivelCobertura) }}
+                @if (exigeDepartamento() && formulario.codigoDepartamento) {
+                  · {{ departamentos().find(d => d.codigo === formulario.codigoDepartamento)?.nombre }}
+                }
+                @if (exigeMunicipio() && formulario.codigoMunicipio) {
+                  · {{ municipios().find(m => m.municipalityCode === formulario.codigoMunicipio)?.municipalityName }}
+                }
+              </dd>
+            </div>
+            <div>
+              <dt class="t-rotulo">Correo de contacto</dt>
+              <dd class="mt-1 t-valor">{{ formulario.correoContacto || 'Sin registrar' }}</dd>
+            </div>
+            <div>
+              <dt class="t-rotulo">Prácticas musicales</dt>
+              <dd class="mt-1 t-valor">{{ formulario.practicasMusicalesIds.length }} elegidas</dd>
+            </div>
+            <div>
+              <dt class="t-rotulo">Territorios sonoros</dt>
+              <dd class="mt-1 t-valor">{{ formulario.territoriosSonorosIds.length }} elegidos</dd>
+            </div>
+          </dl>
+
+          <p class="rounded-lg bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
+            El Festival queda como borrador, sin ninguna edición. Las ediciones -año, fechas, lugar-
+            se registran después, desde su ficha.
+          </p>
+          @if (coincidencias().length > 0) {
+            <section class="rounded-lg border border-amber-200 bg-amber-50 p-4" aria-live="polite">
+              <h3>Coincidencias revisadas</h3>
+              <p class="mt-2 text-cuerpo leading-relaxed text-prosa">Se detectaron {{ coincidencias().length }} posibles coincidencias. Puedes abrir nuevamente las fichas públicas antes de continuar.</p>
+              <button type="button" (click)="abrirModalDeCoincidencias()" appBoton="secundaria" class="mt-3">Ver fichas nuevamente</button>
+            </section>
+          } @else if (formulario.nombre && formulario.codigoDepartamento && !buscandoCoincidencias()) {
+            <p class="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">No encontramos ningún Festival con un nombre parecido en ese territorio. Puedes continuar con el registro.</p>
+          }
+        </section>
+      }
+
+      @if (modalCoincidenciasAbierto()) {
+        <div class="fixed inset-0 z-(--z-dialogo-de-gestion) flex items-center justify-center overscroll-contain bg-slate-950/55 p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="coincidencias-titulo"
+          appDialogo (cerrar)="continuarSinReclamar()">
+          <section class="max-h-[92vh] w-full max-w-6xl overflow-y-auto overscroll-contain rounded-2xl bg-white p-5 shadow-2xl sm:p-8">
+            <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <p class="text-dato font-bold text-amber-700">Antes de crear un registro nuevo</p>
+                <h2 id="coincidencias-titulo" class="mt-1">Revisa las posibles coincidencias</h2>
+                <!--
+                  DOS COSAS DISTINTAS EN LA MISMA LISTA, y el encabezado lo dice para que no se lean
+                  como una sola: un registro histórico SIN organización administradora se puede
+                  reclamar; uno que ya administra alguien solo se avisa, para no registrarlo dos
+                  veces. Antes todas se pintaban igual, con su formulario de reclamación debajo.
+                -->
+                @if (cuantasReclamables() > 0) {
+                  <p class="mt-2 text-sm text-slate-600">Compara la ficha pública antes de decidir. Solicitar administración conserva lo que diligenciaste como borrador privado.</p>
+                } @else {
+                  <p class="mt-2 text-sm text-slate-600">Ya hay registros con un nombre parecido en ese territorio. Compáralos con lo que ibas a registrar.</p>
+                }
+              </div>
+              <app-boton importancia="terciaria" tamano="menudo" (accion)="continuarSinReclamar()">Cerrar</app-boton>
+            </div>
+
+            @for (coincidencia of coincidencias(); track coincidencia.festivalId) {
+              <article class="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-slate-700">
+                <h3>{{ coincidencia.nombreFestival }}</h3>
+                <p class="mt-2 text-cuerpo leading-relaxed text-prosa">{{ coincidencia.evidencias.join(' ') }}</p>
+                @if (coincidencia.ficha; as ficha) {
+                  <dl class="mt-4 grid gap-4 sm:grid-cols-2">
+                    <div class="sm:col-span-2"><dt class="t-rotulo">Descripción</dt><dd class="mt-1">{{ ficha.descripcion || 'Sin descripción pública.' }}</dd></div>
+                    <div><dt class="t-rotulo">Organización responsable</dt><dd class="mt-1">{{ sePuedeReclamar(coincidencia) ? 'Ninguna todavía: es un registro histórico' : (ficha.organizacionResponsable || 'Sin dato público.') }}</dd></div>
+                    <div><dt class="t-rotulo">Territorio</dt><dd class="mt-1">{{ etiquetaCobertura(ficha.territorioPrincipal.nivelCobertura) }} · {{ ficha.territorioPrincipal.departamento || 'Sin departamento' }}{{ ficha.territorioPrincipal.municipio ? ' · ' + ficha.territorioPrincipal.municipio : '' }}</dd></div>
+                    <div><dt class="t-rotulo">Periodicidad</dt><dd class="mt-1">{{ etiquetaDePeriodicidad(ficha.periodicidad) || 'Sin dato público.' }}</dd></div>
+                    <div><dt class="t-rotulo">Prácticas musicales</dt><dd class="mt-1">{{ nombresCatalogo(ficha.practicasMusicales) || 'Sin dato público.' }}</dd></div>
+                    <div class="sm:col-span-2"><dt class="t-rotulo">Redes y enlaces públicos</dt><dd class="mt-1 break-words">{{ enlacesPublicos(ficha) || 'Sin enlaces públicos.' }}</dd></div>
+                  </dl>
+                } @else if (coincidencia.sinFichaPublica) {
+                  <!--
+                    NO ES UN FALLO Y NO SE CUENTA COMO TAL. Un Festival en borrador no tiene ficha
+                    pública todavía; decir «no fue posible cargar» —que es lo que decía— convierte lo
+                    normal en un error aparente, justo donde alguien decide si su registro está
+                    duplicado.
+                  -->
+                  <p class="mt-3">Todavía no tiene ficha pública: está sin publicar.</p>
+                } @else {
+                  <p class="mt-3">No fue posible cargar el detalle público de esta ficha.</p>
+                }
+
+                <!-- SIN FICHA PUBLICA NO HAY EDICIONES PUBLICAS QUE CONTAR, y un «(0)» invita a
+                     leer que no tiene ninguna, cuando lo que pasa es que no se publicó. -->
+                @if (!coincidencia.sinFichaPublica) {
+                  <div class="mt-4 border-t border-amber-200 pt-4"><p class="font-bold text-slate-800">Ediciones públicas registradas ({{ coincidencia.ediciones.length }})</p>
+                    @if (coincidencia.ediciones.length) { <ul class="mt-2 list-disc space-y-1 pl-5">@for (edicion of coincidencia.ediciones; track edicion.id) { <li>{{ edicion.nombre }}{{ edicion.fechaInicio ? ' · ' + edicion.fechaInicio : '' }}{{ edicion.fechaFin ? ' a ' + edicion.fechaFin : '' }}</li> }</ul> }
+                    @else { <p class="mt-1">No hay ediciones públicas registradas.</p> }
+                  </div>
+                }
+
+                @if (!sePuedeReclamar(coincidencia)) {
+                  <!--
+                    SIN FORMULARIO DE RECLAMACION. Este Festival ya tiene quien lo administre, así
+                    que pedir su administración desde el alta no es lo que corresponde. Lo que hace
+                    falta aquí es decidir si es el mismo, y eso lo decide quien registra.
+                  -->
+                  <div class="mt-4 rounded bg-white/70 p-3 text-sm text-slate-700" data-testid="coincidencia-no-reclamable">
+                    <p class="font-bold text-slate-800">¿Es el mismo Festival?@if (coincidencia.tipoCoincidencia === 'YaRegistradoPorTuOrganizacion') { <span class="font-normal"> Ya está en tu panel.</span> } @else { <span class="font-normal"> Lo administra {{ coincidencia.organizadorHistorico || 'otra organización' }}.</span> }</p>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                      @if (coincidencia.tipoCoincidencia === 'YaRegistradoPorTuOrganizacion') {
+                        <a [routerLink]="enPanel('procesos/festivales', coincidencia.festivalId)" data-testid="coincidencia-abrir-en-mi-panel"
+                           class="rounded border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-morado no-underline hover:border-morado">Abrirlo en mi panel</a>
+                      } @else {
+                        @if (!coincidencia.sinFichaPublica) {
+                          <a [routerLink]="['/ecosistema/festivales', coincidencia.festivalId]" target="_blank" rel="noopener" data-testid="coincidencia-ver-ficha"
+                             class="rounded border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-morado no-underline hover:border-morado">Ver su ficha pública</a>
+                        }
+                        @if (invitacionEnviada() !== coincidencia.festivalId && invitacionAbierta() !== coincidencia.festivalId) {
+                          <button type="button" (click)="abrirInvitacion(coincidencia.festivalId)" data-testid="coincidencia-pedir-invitacion"
+                                  appBoton="principal">Es el mismo: pedir que me inviten</button>
+                        }
+                      }
+                    </div>
+                    @if (invitacionAbierta() === coincidencia.festivalId) {
+                      <label class="mt-3 block font-bold text-slate-800" [for]="'invitacion-' + coincidencia.festivalId">¿Cómo se relaciona tu organización con este Festival? <span class="text-red-700">*</span>
+                        <textarea [id]="'invitacion-' + coincidencia.festivalId" name="mensajeDeInvitacion" rows="3" maxlength="900" [value]="mensajeDeInvitacion()" (input)="mensajeDeInvitacion.set($any($event.target).value)"
+                                  placeholder="Por ejemplo: somos parte del equipo que lo organiza y queremos ayudar a mantener su ficha."
+                                  class="mt-1 w-full rounded border border-slate-300 p-2 font-normal"></textarea>
+                      </label>
+                      <p class="mt-1 text-xs text-slate-600">El equipo del PNMC revisa la solicitud y se la comunica a quien administra el Festival. No se crea un registro nuevo.</p>
+                      <app-error-de-campo identificador="invitacion-error" [mensaje]="errorDeInvitacion()" />
+                      <button type="button" [disabled]="enviandoInvitacion()" (click)="enviarInvitacion(coincidencia.festivalId)" data-testid="coincidencia-enviar-invitacion"
+                              appBoton="principal" class="mt-2">{{ enviandoInvitacion() ? 'Enviando…' : 'Enviar solicitud' }}</button>
+                    }
+                    @if (invitacionEnviada() === coincidencia.festivalId) {
+                      <p class="mt-3 rounded bg-emerald-50 p-3 font-medium text-emerald-900" role="status" data-testid="coincidencia-invitacion-enviada">Solicitud enviada. El equipo del PNMC la revisará; mientras tanto, no hace falta registrar este Festival de nuevo.</p>
+                    }
+                  </div>
+                } @else if (coincidencia.reclamacionEnCurso) {
+                  <!-- (REC-09): se avisa ANTES de escribir la justificación, y sin decir quién la pidió. -->
+                  <p class="mt-4 rounded bg-white/70 p-3 text-sm text-slate-700" data-testid="coincidencia-en-curso">
+                    Ya hay una solicitud para administrar este Festival en revisión, así que ahora no admite otra. Si la pidió tu organización, síguela en Solicitudes.
+                  </p>
+                } @else if (!esAdministradora()) {
+                  <app-aviso-solo-administracion class="mt-4 block" texto="Solicitar la administración de un Festival existente lo hace quien administra la organización. Tu rol es editor." />
+                } @else if (reclamacionEnviada() === coincidencia.festivalId) { <p class="mt-4 rounded bg-emerald-50 p-3 font-medium text-emerald-900">Solicitud enviada. El borrador permanece privado mientras la institución responde.</p> }
+                @else { <label class="mt-4 block font-bold text-slate-800" [for]="'justificacion-' + coincidencia.festivalId">Justificación para solicitar administración <span class="text-red-700">*</span>
+                    <textarea [id]="'justificacion-' + coincidencia.festivalId" name="justificacionAdministracion" [value]="justificacionReclamacion()" (input)="justificacionReclamacion.set($any($event.target).value)" rows="3" maxlength="2400" placeholder="Explica la relación de tu organización con este Festival y los soportes disponibles." class="mt-1 w-full rounded border border-slate-300 p-2 font-normal"></textarea></label>
+                  <p class="mt-1 text-xs text-slate-600">Por ejemplo: desde qué año lo organizan y dónde puede comprobarlo el PNMC. Lo que escribiste en este asistente queda guardado con la solicitud; si el PNMC la aprueba, eliges qué datos conservar.</p>
+                  <app-soportes-de-solicitud (cambio)="soportesReclamacion.set($event)" />
+                  <button type="button" [disabled]="guardando() || !justificacionReclamacion().trim()" (click)="solicitarAdministracion(coincidencia.festivalId)" appBoton="principal" class="mt-3">Solicitar administración</button> }
+              </article>
+            }
+            <div class="mt-6 flex justify-end"><app-boton importancia="secundaria" (accion)="continuarSinReclamar()">No corresponde; continuar con un Festival nuevo</app-boton></div>
+          </section>
+        </div>
+      }
+
+      <!-- Acciones persistentes: Atrás, Siguiente y Guardar borrador. -->
+      <div class="flex flex-wrap items-center gap-3">
+        <button type="button" (click)="cancelar()"
+                appBoton="secundaria" class="mr-auto">
+          Cancelar
+        </button>
+
+        @if (pasoActivo() > 1) {
+          <button type="button" (click)="pasoAnterior()"
+                  appBoton="secundaria">
+            Atrás
+          </button>
+        }
+
+        @if (pasoActivo() < pasos.length) {
+          <button type="button" (click)="pasoSiguiente()"
+                  appBoton="principal">
+            Siguiente
+          </button>
+        } @else {
+          <button type="button" [disabled]="guardando()" (click)="guardarBorrador()"
+                  appBoton="confirmar">
+            {{ guardando() ? 'Guardando…' : 'Guardar borrador' }}
+          </button>
+        }
+      </div>
+    </form>
+  }
+}
+
+  @if (confirmandoSalida()) {
+    <app-confirmacion
+      titulo="¿Salir del registro del Festival?"
+      detalle="Lo que escribiste queda guardado como borrador de tu organización y lo retomas desde la lista de Festivales, donde aparece como «registro sin terminar»."
+      accion="Salir y conservar el borrador"
+      tono="principal"
+      cancelacion="Seguir editando"
+      (confirmar)="salirConservando()"
+      (cancelar)="confirmandoSalida.set(false)">
+      <button type="button" (click)="descartarYSalir()" data-testid="festival-descartar"
+              class="mt-3 cursor-pointer border-0 bg-transparent p-0 text-sm font-bold text-rose-700 underline underline-offset-2">Descartar lo escrito y salir</button>
+    </app-confirmacion>
+  }
+</div>

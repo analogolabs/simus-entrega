@@ -1,0 +1,33 @@
+<div class="pb-8 space-y-5">
+  <app-encabezado-de-pantalla idDelTitulo="festivales-gestion-titulo" titulo="Festivales" descripcion="Consulta y gestiona los festivales registrados por tu organización." [contador]="festivales().length ? festivales().length + ' registrados · ' + publicados() + ' publicados · ' + esperanAlPnmc() + ' esperan al PNMC · ' + borradores() + ' en borrador' : null">
+    <a data-testid="abrir-crear-festival" routerLink="nuevo" appBoton="principal">Registrar Festival</a>
+  </app-encabezado-de-pantalla>
+
+  @if (organizacionId(); as id) { <app-registro-sin-terminar [organizacionId]="id" modulo="festivales" class="block space-y-3" /> }
+
+
+
+  <section aria-label="Listado de Festivales">
+    @if (errorAccionFestival()) { <p role="alert" class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ errorAccionFestival() }}</p> }
+    <p role="status" data-testid="aviso-festivales" [class.hidden]="!mensajeFestivales()" class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{{ mensajeFestivales() }}</p>
+    @if (cargandoFestivales()) { <app-esqueleto variante="fila" [cantidad]="2" etiqueta="Consultando los Festivales de la organización…" /> }
+    @else if (errorFestivales()) { <app-estado-de-lista tipo="error" titulo="No fue posible consultar los Festivales." [detalle]="errorFestivales()" /> }
+    @else {
+      @if (festivales().length) {
+        <app-herramientas-de-lista>
+          <app-buscador-de-lista identificador="festivales-buscar" etiqueta="Buscar Festivales"
+            marcador="Nombre, descripción o territorio" [valor]="busqueda()" [espera]="0" (cambiar)="busqueda.set($event)" />
+          <app-filtro-desplegable rotulo="Estado" etiqueta="Filtrar los Festivales por estado" identificador="festivales-estado"
+            [opciones]="opcionesDeEstado()" [elegida]="estadoFiltro()" (cambiar)="estadoFiltro.set($event)" />
+        </app-herramientas-de-lista>
+      }
+      @if (festivales().length && !festivalesVisibles().length) {
+        <app-estado-de-lista titulo="No hay Festivales que coincidan." detalle="Cambia la búsqueda o el estado elegidos." />
+      } @else {
+        <app-seccion-festivales class="block" [festivales]="festivalesVisibles()" [ocupado]="festivalOcupado()" [esAdministradora]="esAdministradora()" (editar)="editarFichaDelFestival($event)" (abrirFicha)="abrirFichaDelFestival($event)" (enviarARevision)="alEnviarARevision($event)" (proponerCambios)="editarFichaDelFestival($event)" (enviarPropuesta)="alEnviarPropuesta($event)" (verEdiciones)="verEdicionesDelFestival($event)" (retirar)="retirarFestival($event)" (solicitarRetiro)="solicitarRetiroFestival($event)"></app-seccion-festivales>
+      }
+    }
+  </section>
+
+  <!-- Los Festivales históricos ya no se ofrecen aquí abajo: son una herramienta aparte (docs/referencia/20-decisiones-y-flujos-por-modulo.md, decisión 74). -->
+</div>

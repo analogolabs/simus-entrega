@@ -1,0 +1,62 @@
+name: Comprobaciones SIMUS
+
+# SOLO A MANO desde noviembre de 2026: cada ejecución gastaba unos 20 minutos del cupo gratuito
+# de GitHub Actions. Los PR se validan en local con scripts/validacion/validar-local.sh (mismos pasos).
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: comprobaciones-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Angular — lint, trinquetes, pruebas y build
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: simus-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: simus-web/package-lock.json
+      - name: Instalar dependencias reproduciblemente
+        run: npm ci
+      - name: Comprobar lint
+        run: npm run lint
+      - name: Comprobar trinquetes
+        run: npm run trinquete
+      - name: Pruebas unitarias en Chrome Headless
+        run: npm test
+      - name: Compilar aplicación
+        run: npm run build
+
+  backend:
+    name: .NET — compilación y pruebas sin SQL institucional
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: simus-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restaurar dependencias
+        run: dotnet restore SIMUS.Api.sln
+      - name: Compilar solución
+        run: dotnet build SIMUS.Api.sln --configuration Release --no-restore
+      - name: Ejecutar pruebas predeterminadas
+        run: dotnet test tests/SIMUS.Api.Tests/SIMUS.Api.Tests.csproj --configuration Release --no-build --no-restore
+
+# Alcance: no arranca SQL Server ni aplica migraciones. Las suites de SQL Server
+# habilitadas mediante SIMUS_PRUEBAS_SQLSERVER=1 requieren otro carril aislado.
+# Esta primera CI debe validarse en el propio PR antes de exigirla como protección.

@@ -1,0 +1,131 @@
+<!--
+  El directorio público de Mercados Musicales.
+
+  ES EL DIRECTORIO ESTÁNDAR (`app-directorio-ecosistema`): el encabezado, la columna de filtros, la
+  franja de cifras con el conmutador de vista, el listado o la cuadrícula y la paginación los pone el
+  componente compartido. Aquí queda lo propio de Mercados: sus filtros y cómo se pinta cada mercado
+  —el festival en cuyo marco ocurre, las prácticas, los enlaces y el número de ediciones—.
+-->
+<app-directorio-ecosistema
+  clave="mercados"
+  claveCms="dir_mercados"
+  titulo="Mercados musicales"
+  subtitulo="Nodos de intercambio, visibilización y profesionalización"
+  etiquetaBusqueda="Buscar mercado, territorio o práctica"
+  placeholderBusqueda="Mercado, organización o lugar"
+  tituloFiltros="Territorio"
+  etiquetaMapa="Ver mercados en el mapa"
+  ayuda="Los filtros muestran únicamente territorios y prácticas con mercados publicados."
+  [filtros]="filtros()"
+  [busqueda]="busqueda()"
+  [ordenes]="ordenes"
+  [orden]="orden()"
+  [metricas]="metricas()"
+  [vista]="vista()"
+  [textos]="textos"
+  [visibles]="visibles()"
+  [total]="filtrados().length"
+  [totalPublicados]="mercados().length"
+  [desde]="desdeMostrado()"
+  [hasta]="hastaMostrado()"
+  [pagina]="pagina()"
+  [totalPaginas]="totalPaginas()"
+  [porPagina]="porPagina()" [cantidades]="cantidadesPorPagina"
+  [filtrosActivos]="filtrosActivos()"
+  [hayFiltros]="hayFiltros()"
+  [cargando]="cargando()"
+  [error]="error()"
+  (busquedaCambiada)="actualizarBusqueda($event)"
+  (filtroCambiado)="cambiarFiltro($event)"
+  (ordenCambiado)="actualizarOrden($any($event))"
+  (vistaCambiada)="cambiarVista($event)"
+  (paginaCambiada)="irAPagina($event)"
+  (porPaginaCambiado)="cambiarPorPagina($event)"
+  (filtrosLimpiados)="limpiarFiltros()"
+  (mapaSolicitado)="abrirMapa()"
+  (regresoSolicitado)="volver()">
+
+  <ng-template #listado let-registro>
+    @let mercado = $any(registro);
+    <article class="grid gap-4 py-7 lg:grid-cols-[minmax(0,1fr)_14rem] lg:gap-10">
+      <div class="min-w-0">
+        <a [routerLink]="['/ecosistema/mercados-musicales', mercado.id]"
+           class="text-xl font-bold leading-tight text-morado no-underline transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-verde">{{ mercado.nombre }}</a>
+        <p class="mt-1 text-sm text-tinta-media">{{ resumen(mercado) }}</p>
+        @if (enlaces(mercado).length) {
+          <span class="mt-2 flex items-center gap-2 text-tinta-media">
+            @for (enlace of enlaces(mercado); track enlace.clave) {
+              <a [href]="enlace.href" [title]="enlace.etiqueta" target="_blank" rel="noopener noreferrer"
+                 class="inline-flex size-6 items-center justify-center rounded-sm text-tinta-media no-underline transition hover:text-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-verde">
+                <app-icono-de-enlace [tipo]="enlace.clave" [tamano]="14" />
+                <span class="sr-only">{{ enlace.etiqueta }} de {{ mercado.nombre }}</span>
+              </a>
+            }
+          </span>
+        }
+        <p class="mt-3 line-clamp-3 text-sm leading-relaxed text-tinta-media">
+          {{ mercado.descripcion || 'Sin descripción registrada.' }}
+        </p>
+
+        @if (mercado.seRealizaEnElMarcoDeUnFestival && mercado.festivalNombre) {
+          <!-- LA RELACIÓN ES UN ENLACE, no un texto: el festival existe en el Ecosistema. -->
+          <p class="mt-3 text-sm text-tinta-media">
+            En el marco de
+            <a [routerLink]="['/ecosistema/festivales', mercado.festivalId]"
+               class="font-semibold text-morado underline-offset-2 hover:underline">{{ mercado.festivalNombre }}</a>
+          </p>
+        }
+
+        @if (mercado.practicasMusicales.length > 0 || mercado.territoriosSonoros.length > 0) {
+          <div class="mt-4 flex flex-wrap items-center gap-2">
+            <app-etiquetas-de-clasificacion modo="filtrar" [practicas]="mercado.practicasMusicales" [territorios]="mercado.territoriosSonoros"
+              [practicaActiva]="practica()" [territorioActivo]="territorioSonoro()"
+              (practicaElegida)="alternarPractica($event)" (territorioElegido)="alternarTerritorioSonoro($event)" />
+          </div>
+        }
+      </div>
+
+      <div class="min-w-0 lg:text-right">
+        <p class="text-xs font-bold text-tinta-media">Territorio</p>
+        <p class="mt-1 text-sm text-titulo">{{ donde(mercado) | nombrePropio }}</p>
+        <p class="mt-3 text-xs font-bold text-tinta-media">Ediciones</p>
+        <p class="mt-1 text-sm text-titulo">{{ cuantasEdiciones(mercado) }}</p>
+        <!-- UNA ACCIÓN SE DIBUJA COMO UN CONTROL, no como un texto con una flecha. -->
+        <a [routerLink]="['/ecosistema/mercados-musicales', mercado.id]" data-abrir-mercado
+           class="mt-4 inline-block rounded-xl border border-filete bg-white px-4 py-2.5 text-sm font-bold text-morado no-underline transition hover:border-verde-medio focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-verde">Ver ficha</a>
+      </div>
+    </article>
+  </ng-template>
+
+  <ng-template #tarjeta let-registro>
+    @let mercado = $any(registro);
+    <article class="flex h-full flex-col border border-filete p-6 transition hover:border-verde-medio">
+      <a [routerLink]="['/ecosistema/mercados-musicales', mercado.id]"
+         class="text-base font-bold leading-tight text-morado no-underline transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-verde">{{ mercado.nombre }}</a>
+      <p class="mt-1 truncate text-[0.78rem] text-tinta-media">{{ resumen(mercado) }}</p>
+      @if (enlaces(mercado).length) {
+        <span class="mt-2 flex items-center gap-2 text-tinta-media">
+          @for (enlace of enlaces(mercado); track enlace.clave) {
+            <a [href]="enlace.href" [title]="enlace.etiqueta" target="_blank" rel="noopener noreferrer"
+               class="inline-flex size-6 items-center justify-center rounded-sm text-tinta-media no-underline transition hover:text-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-verde">
+              <app-icono-de-enlace [tipo]="enlace.clave" [tamano]="14" />
+              <span class="sr-only">{{ enlace.etiqueta }} de {{ mercado.nombre }}</span>
+            </a>
+          }
+        </span>
+      }
+      <p class="mt-3 line-clamp-3 min-h-16 text-sm leading-relaxed text-tinta-media">
+        {{ mercado.descripcion || 'Sin descripción registrada.' }}
+      </p>
+      @if (mercado.practicasMusicales.length > 0 || mercado.territoriosSonoros.length > 0) {
+        <div class="mt-3 flex flex-wrap gap-1.5">
+          <app-etiquetas-de-clasificacion modo="filtrar" [practicas]="mercado.practicasMusicales" [territorios]="mercado.territoriosSonoros"
+            [practicaActiva]="practica()" [territorioActivo]="territorioSonoro()"
+            (practicaElegida)="alternarPractica($event)" (territorioElegido)="alternarTerritorioSonoro($event)" />
+        </div>
+      }
+      <p class="mt-auto pt-4 text-[0.78rem] text-tinta-media">{{ donde(mercado) | nombrePropio }}</p>
+      <p class="text-[0.78rem] text-tinta-media">{{ cuantasEdiciones(mercado) }}</p>
+    </article>
+  </ng-template>
+</app-directorio-ecosistema>

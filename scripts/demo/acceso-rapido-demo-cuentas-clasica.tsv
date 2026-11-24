@@ -1,0 +1,13 @@
+# Cuentas del acceso rápido para la siembra CLÁSICA (sembrar-demo.sh; reiniciar-demo.sh con SIMUS_DEMO_SIN_SIEMBRA_INTEGRAL=1). Columnas separadas por tabulador: ámbito, rótulo, correo.
+# La clave NO va aquí: se toma de SIMUS_DEMO_CLAVE (por omisión «admin», la misma de verificar-demo-sembrada.sh) al escribir el archivo.
+# Ámbitos: administrativo (ingreso de la gestión) y externo (ingreso de organizaciones y personas).
+administrativo	Webmaster SIMUS (administración)	webmaster@simus.test
+administrativo	Gestor institucional SIMUS (gestión)	gestor@simus.test
+externo	Lucía (Cantaclaro)	lucia.ramirez@cantaclaro.test
+externo	Diana (Bandas Oriente)	diana.zapata@bandasoriente.test
+externo	Camilo (Llano Adentro)	camilo.rojas@llanoadentro.test
+externo	Mariana (Sonora Caribe)	mariana.palacios@sonoracaribe.test
+externo	Andrés (Cantaclaro)	andres.munoz@cantaclaro.test
+externo	José (Sonora Caribe)	jose.caicedo@sonoracaribe.test
+externo	Valentina (persona)	valentina.ocampo@correo.test
+externo	Externo de prueba	externo@simus.test

@@ -1,0 +1,191 @@
+<!--
+  EL INICIO, A SANGRE DENTRO DEL ÁREA DE CONTENIDO (P1, prototipo B4): una columna de trabajo sobre fondo blanco y, a la
+  derecha, la agenda y las últimas acciones sobre un fondo sutil. Por debajo de ~960 px de ancho útil todo cae en una
+  sola columna y la agenda pasa después del trabajo.
+-->
+<div class="inicio">
+  <div class="inicio__rejilla">
+    <div class="inicio__trabajo">
+      <section class="inicio__banda" aria-labelledby="inicio-titulo">
+        <div class="inicio__insignia" aria-hidden="true">{{ iniciales() }}</div>
+        <div class="inicio__identidad">
+          <p class="inicio__ojo t-rotulo">Inicio</p>
+          <h1 id="inicio-titulo" data-testid="inicio-nombre">{{ nombreDeLaOrganizacion() }}</h1>
+          <p class="inicio__meta t-ayuda">
+            @if (ubicacion()) { <span>{{ ubicacion() }}</span><span aria-hidden="true">·</span> }
+            <span data-testid="inicio-rol">{{ rotuloDelRol() }}</span>
+            @if (perfil(); as ficha) {
+              <app-indicador-de-estado [etiqueta]="ficha.estadoRegistroEtiqueta" [tono]="tonoDelEstado(ficha.estadoRegistro)" [conTexto]="true"></app-indicador-de-estado>
+            }
+          </p>
+        </div>
+        <div class="inicio__acciones">
+          @if (esAdministradora()) {
+            <a [routerLink]="enPanel('organizacion')" appBoton="secundaria" tamano="comodo" data-testid="inicio-editar"><svg lucidePencil [size]="16" aria-hidden="true"></svg>Editar los datos</a>
+          }
+          <app-menu-de-acciones etiqueta="Crear" [conTexto]="true" importancia="principal" [acciones]="accionesDeCrear()" (elegida)="crear($event)" />
+        </div>
+      </section>
+
+      <div class="inicio__cuerpo">
+        <!--
+          LOS AVISOS DE CUENTA SOLO APARECEN CUANDO HAY ALGO PENDIENTE (correo sin confirmar, datos que faltan, un
+          registro sin terminar): con todo al día, el inicio empieza directamente por «Requiere atención».
+        -->
+        <div class="space-y-3 empty:hidden">
+          <app-aviso-de-correo-sin-confirmar queSeHabilita="registrar procesos y entregárselos al PNMC" />
+          <app-invitacion-a-completar
+            [perfil]="perfil()" [primerIngreso]="primerIngreso()" [correoConfirmado]="correoConfirmado()"
+            [confirmacionCorreoObligatoria]="confirmacionCorreoObligatoria()" [nombre]="nombreDeQuienEntro()"
+            [puedeEditar]="esAdministradora()" [organizacionId]="organizacionId()" />
+          @if (organizacionId(); as id) { <app-registro-sin-terminar [organizacionId]="id" class="block space-y-3 empty:hidden" /> }
+        </div>
+
+        @if (cargando()) {
+          <app-esqueleto variante="fila" [cantidad]="3" etiqueta="Consultando el estado de la organización…" />
+        } @else {
+          @if (falla()) {
+            <!-- UNA CAÍDA DEL API NO SE LEE COMO «NO TIENES PROCESOS»: se dice qué falló y se puede reintentar. -->
+            <app-estado-de-lista tipo="error" titulo="No pudimos leer todo el estado de la organización"
+              [detalle]="detalleDeLaFalla()" data-testid="resumen-error">
+              <app-boton importancia="secundaria" tamano="menudo" (accion)="reintentar()">Reintentar</app-boton>
+            </app-estado-de-lista>
+          }
+
+          <!-- 1 · REQUIERE ATENCIÓN. Las solicitudes, con la misma fuente que la lista de Solicitudes, y las demás señales. -->
+          <app-panel-de-seccion titulo="Requiere atención" idDelTitulo="inicio-atencion" [contador]="totalDeAtencion() || null">
+            @if (!totalDeAtencion()) {
+              <p class="t-texto" data-testid="resumen-sin-atencion">No tienes nada pendiente. Así van tus procesos y lo que viene.</p>
+            }
+            @if (porAtender().length) {
+              <ul class="inicio__urgentes" data-testid="resumen-acciones">
+                @for (fila of accionesVisibles(); track fila.clave) {
+                  <li class="inicio__urgente" data-testid="resumen-accion">
+                    <span class="inicio__icono-urgente" aria-hidden="true"><svg lucideTriangleAlert [size]="20"></svg></span>
+                    <div class="inicio__urgente-texto">
+                      <p class="t-rotulo">{{ fila.tipoEtiqueta }}</p>
+                      <h3>{{ fila.titulo }}</h3>
+                      <p class="t-ayuda inicio__urgente-meta">{{ fila.estadoEtiqueta }}@if (fila.detalle) { · {{ fila.detalle }} } · {{ fila.fecha | fecha }}</p>
+                    </div>
+                    <a [routerLink]="rutaDeLaSolicitud(fila)" [queryParams]="consultaDeLaSolicitud(fila)" appBoton="principal" tamano="menudo" class="inicio__urgente-boton">{{ fila.estadoEtiqueta.toLowerCase().includes('ajustes') ? 'Atender ajustes' : 'Atender' }}<span class="sr-only"> {{ fila.titulo }}</span></a>
+                  </li>
+                }
+              </ul>
+              @if (porAtender().length > accionesVisibles().length) {
+                <p class="t-ayuda"><a [routerLink]="enPanel('solicitudes')" class="font-bold text-verde-texto hover:underline">Ver las {{ porAtender().length }} solicitudes que esperan tu acción</a></p>
+              }
+            }
+            @if (avisosSinLeer().length || eventosEnBorrador().length || invitacionesPendientes().length) {
+              <ul class="inicio__tambien filas-de-panel" aria-label="Otros asuntos por revisar" data-testid="resumen-tambien">
+                @if (avisosSinLeer().length; as n) {
+                  <li>
+                    <svg lucideBell [size]="20" aria-hidden="true" class="inicio__icono-fila"></svg>
+                    <div><p class="font-bold text-slate-800">{{ n === 1 ? '1 aviso sin leer' : n + ' avisos sin leer' }}</p><p class="t-ayuda">{{ avisosSinLeer()[0].titulo }} · {{ avisosSinLeer()[0].fecha | fecha }}</p></div>
+                    <button type="button" appBoton="secundaria" tamano="menudo" (click)="abrirAvisos()">Abrir avisos</button>
+                  </li>
+                }
+                @if (eventosEnBorrador().length; as n) {
+                  <li>
+                    <svg lucideCalendar [size]="20" aria-hidden="true" class="inicio__icono-fila"></svg>
+                    <div><p class="font-bold text-slate-800">{{ n === 1 ? '1 evento en borrador sin enviar' : n + ' eventos en borrador sin enviar' }}</p><p class="t-ayuda">{{ eventosEnBorrador()[0].titulo }} · {{ eventosEnBorrador()[0].fechaInicio | fecha }}</p></div>
+                    <a [routerLink]="enPanel('eventos')" appBoton="secundaria" tamano="menudo">Revisar eventos</a>
+                  </li>
+                }
+                @if (invitacionesPendientes().length; as n) {
+                  <li>
+                    <svg lucideMail [size]="20" aria-hidden="true" class="inicio__icono-fila"></svg>
+                    <div><p class="font-bold text-slate-800">{{ n === 1 ? '1 invitación al equipo por aceptar' : n + ' invitaciones al equipo por aceptar' }}</p><p class="t-ayuda">{{ invitacionesPendientes()[0].correo }} · vence el {{ invitacionesPendientes()[0].vence | fecha }}</p></div>
+                    <a [routerLink]="enPanel('equipo')" appBoton="secundaria" tamano="menudo">Ver el equipo</a>
+                  </li>
+                }
+              </ul>
+            }
+          </app-panel-de-seccion>
+
+          <!-- 2 · INFORME DE PROCESOS: solo lectura. Un único enlace, «Ver todos los procesos». -->
+          <app-panel-de-seccion titulo="Informe de procesos" idDelTitulo="inicio-procesos">
+            <a accion [routerLink]="enPanel('procesos')">Ver todos los procesos</a>
+            @if (!totalDeProcesos()) {
+              <p class="t-texto" data-testid="resumen-sin-procesos">Aún no tienes procesos registrados. Cuando registres uno con «Crear», aquí verás cómo va cada tipo.</p>
+            } @else {
+              <p class="t-texto inicio__lectura">{{ resumenDelInforme() }}</p>
+              <div class="inicio__informe">
+                <div>
+                  <p class="inicio__cifra" aria-hidden="true" data-testid="resumen-total">{{ totalDeProcesos() }}</p>
+                  <p class="t-ayuda">{{ totalDeProcesos() === 1 ? 'proceso registrado' : 'procesos registrados' }}</p>
+                  <div class="inicio__apilada" role="img" [attr.aria-label]="resumenDelInforme()">
+                    @for (c of conteoGeneral(); track c.clave) { @if (c.cantidad) { <i [class]="'est est--' + c.clave" [style.width.%]="trozo(c.cantidad, totalDeProcesos())"></i> } }
+                  </div>
+                  <ul class="inicio__leyenda">
+                    @for (c of conteoGeneral(); track c.clave) {
+                      <li><i [class]="'est est--' + c.clave" aria-hidden="true"></i>{{ c.etiqueta }}<b>{{ c.cantidad }}</b><span>{{ porcentaje(c.cantidad) }}</span></li>
+                    }
+                  </ul>
+                </div>
+                <div>
+                  <p class="inicio__sub t-rotulo">Por tipo</p>
+                  <ul class="inicio__tipos" data-testid="resumen-estado-de-procesos">
+                    @for (tipo of estadoPorTipo(); track tipo.clave) {
+                      <li [attr.data-tipo]="tipo.clave" [class.inicio__tipo--vacio]="!tipo.total">
+                        <span class="inicio__tipo-nombre">{{ tipo.nombre }}</span>
+                        <span class="inicio__tipo-barra" role="img" [attr.aria-label]="resumenDeEstados(tipo) || 'Sin procesos'">
+                          @if (tipo.total) {
+                            @if (tipo.publicados) { <i class="est est--publicado" [style.flex-grow]="tipo.publicados"></i> }
+                            @if (tipo.enRevision) { <i class="est est--revision" [style.flex-grow]="tipo.enRevision"></i> }
+                            @if (tipo.ajustes) { <i class="est est--ajustes" [style.flex-grow]="tipo.ajustes"></i> }
+                            @if (tipo.borrador) { <i class="est est--borrador" [style.flex-grow]="tipo.borrador"></i> }
+                          }
+                        </span>
+                        <b class="inicio__tipo-total">{{ tipo.total }}</b>
+                        <span class="t-ayuda inicio__tipo-detalle">{{ resumenDeEstados(tipo) || 'Sin procesos de este tipo' }}</span>
+                      </li>
+                    }
+                  </ul>
+                </div>
+                @if (enCurso().length) {
+                  <div class="inicio__encurso">
+                    <p class="inicio__sub t-rotulo">En curso · esperan respuesta del PNMC</p>
+                    <ul class="filas-de-panel" data-testid="resumen-en-curso">
+                      @for (fila of enCurso(); track fila.clave) {
+                        <li>
+                          <app-indicador-de-estado class="inicio__encurso-estado" [etiqueta]="fila.estadoEtiqueta" [tono]="tonoDelEstado('en_revision')" [conTexto]="true"></app-indicador-de-estado>
+                          <div><p class="font-bold text-slate-800">{{ fila.titulo }}</p><p class="t-ayuda">{{ fila.tipoEtiqueta }}@if (fila.detalle) { · {{ fila.detalle }} }</p></div>
+                          <span class="t-ayuda inicio__encurso-fecha">{{ fila.fecha | fecha }}</span>
+                        </li>
+                      }
+                    </ul>
+                    <p class="t-ayuda inicio__nota">Lo que necesita tu acción se atiende en «Requiere atención».</p>
+                  </div>
+                }
+              </div>
+            }
+          </app-panel-de-seccion>
+        }
+      </div>
+    </div>
+
+    <aside class="inicio__lateral" aria-label="Agenda y últimas acciones">
+      <app-panel-de-seccion titulo="Agenda" idDelTitulo="inicio-agenda">
+        <a accion [routerLink]="enPanel('eventos')">Ver eventos</a>
+        @if (cargando()) { <app-esqueleto variante="fila" [cantidad]="2" etiqueta="Consultando la agenda…" /> }
+        @else { <app-agenda-del-inicio [eventos]="eventos()" /> }
+      </app-panel-de-seccion>
+
+      <app-panel-de-seccion titulo="Últimas acciones" idDelTitulo="inicio-acciones">
+        @if (cargando()) { <app-esqueleto variante="fila" [cantidad]="2" etiqueta="Consultando las últimas acciones…" /> }
+        @else if (!actividad().length) { <p class="t-texto">Aún no hay acciones recientes.</p> }
+        @else {
+          <ol class="inicio__linea" data-testid="resumen-actividad">
+            @for (fila of actividad(); track fila.clave) {
+              <li>
+                <p class="t-ayuda">{{ fila.fecha | fecha }}</p>
+                <p class="font-bold text-slate-800">{{ fila.titulo }}</p>
+                <p class="t-ayuda">{{ fila.tipoEtiqueta }} · {{ fila.estadoEtiqueta }}</p>
+              </li>
+            }
+          </ol>
+        }
+      </app-panel-de-seccion>
+    </aside>
+  </div>
+</div>

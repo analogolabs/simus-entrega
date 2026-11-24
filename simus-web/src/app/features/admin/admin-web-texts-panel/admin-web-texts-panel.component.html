@@ -1,0 +1,701 @@
+@if (!_enabled()) {
+  <div class="rounded-2xl border border-rose-200 bg-rose-50/50 p-6 text-center">
+    <svg lucideAlertCircle class="mx-auto text-rose-500 mb-3 h-6 w-6"></svg>
+    <h3 class="text-sm font-black text-rose-950 uppercase font-alternate tracking-wide">Acceso Denegado</h3>
+    <p class="text-xs text-rose-700 mt-1 max-w-md mx-auto">Su perfil no cuenta con permisos para administrar los textos editables de la web pública.</p>
+  </div>
+} @else {
+  <!--
+    «Ir a la página»: el enlace a la página pública del grupo abierto.
+
+    Se declara una vez y se proyecta en dos sitios —la cabecera de la
+    previsualización y la del editor del equipo, que no tiene previsualización—
+    para que ningún grupo se quede sin él.
+
+    Dos decisiones que no son de estilo:
+
+    · Abre en OTRA pestaña. En la misma se perdería el borrador sin guardar que
+      está en el formulario, y perder trabajo por pulsar «ver cómo queda» sería
+      un castigo absurdo.
+    · Dice «así se ve publicado», no «así queda». La página pública sirve
+      `Publicado`; el formulario de la izquierda es `Borrador`. Mientras no se
+      publique, los dos son distintos a propósito, y el enlace no debe insinuar
+      lo contrario.
+  -->
+  <ng-template #irALaPagina>
+    @if (paginaPublica(); as ruta) {
+      <a
+        [href]="ruta"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-testid="ir-a-la-pagina"
+        [title]="'Abre ' + ruta + ' en otra pestaña. Muestra lo PUBLICADO, no el borrador que está editando.'"
+        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-dato font-black text-slate-600 transition hover:border-morado hover:text-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado"
+      >
+        <svg lucideExternalLink class="h-3 w-3"></svg>
+        Ver página
+      </a>
+    }
+  </ng-template>
+
+  <div class="space-y-6">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-black text-slate-900 font-alternate uppercase tracking-wide">
+          {{ modo() === 'equipo' ? 'Equipo del PNMC' : modo() === 'imagenes' ? 'Imágenes del sitio' : 'Textos y páginas' }}
+        </h2>
+        <p class="text-xs text-slate-500 mt-0.5">
+          {{ modo() === 'equipo'
+            ? 'Personas que aparecen publicadas en el sitio, con su foto y su cargo.'
+            : modo() === 'imagenes'
+              ? 'Elige una página, abre uno de sus bloques y cambia sus imágenes: ves la que está en uso, la previsualizas en la página antes de guardar y la despliegas cuando esté lista.'
+              : 'Elige una página, abre uno de sus bloques y edita sus textos. Guardar un borrador no cambia el sitio; publicar sí.' }}
+        </p>
+      </div>
+      @if (modo() === 'textos') {
+        <div data-testid="estado-sin-guardar" class="flex flex-wrap items-center gap-3" aria-live="polite">
+          @if (totalSinGuardar() > 0) {
+            <span class="text-dato font-bold text-amber-800">
+              {{ totalSinGuardar() }} {{ totalSinGuardar() === 1 ? 'campo' : 'campos' }} con cambios sin guardar
+              en {{ bloquesSinGuardar().length }} {{ bloquesSinGuardar().length === 1 ? 'bloque' : 'bloques' }}
+            </span>
+            <button type="button" data-testid="ir-al-primero-sin-guardar" (click)="irAlPrimeroSinGuardar()" appBoton="secundaria" tamano="menudo">Ir al primero</button>
+          } @else {
+            <span class="text-dato text-slate-500">Todo lo escrito está guardado.</span>
+          }
+        </div>
+      }
+    </div>
+
+    @if (saveStatus()) {
+      <div class="p-4 rounded-xl border flex items-center gap-3 animate-fade-in"
+           [ngClass]="saveStatus()?.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' :
+                     saveStatus()?.type === 'info' ? 'bg-blue-50 border-blue-200 text-blue-800' :
+                     'bg-rose-50 border-rose-200 text-rose-800'">
+         @if (saveStatus()?.type === 'success') {
+          <svg lucideCheckCircle2 class="h-4 w-4 text-emerald-600"></svg>
+        } @else {
+          <svg lucideAlertCircle class="h-4 w-4" [ngClass]="saveStatus()?.type === 'info' ? 'text-blue-600' : 'text-rose-600'"></svg>
+        }
+        <p class="text-xs font-bold">{{ saveStatus()?.message }}</p>
+      </div>
+    }
+
+    <!--
+      Horizontal pill navigation.
+
+      EN MODO «EQUIPO» NO SE PINTA. `filteredGroups` ya deja un solo grupo —la nómina—, así
+      que las pestañas de sección quedarían visibles pero sin efecto: cambiarían de color y
+      no cambiarían lo que hay debajo. Un control que no hace nada es peor que no tenerlo.
+    -->
+    @if (modo() === 'textos') {
+      <!--
+        BUSCAR UN TEXTO SIN SABER EN QUÉ PÁGINA VIVE. El sitio tiene unos trescientos textos en ocho
+        secciones; quien ve una frase en el portal y quiere corregirla no tiene por qué conocer el
+        árbol. Busca en lo que el visitante lee hoy, en el rótulo de cada campo y en el nombre del
+        bloque, sin distinguir tildes ni mayúsculas.
+      -->
+      <div data-testid="buscador-de-textos" class="space-y-2">
+        <label for="buscar-texto" class="campo__rotulo">Buscar un texto del sitio</label>
+        <app-buscador-de-lista ancho tamano="normal" [etiquetaVisible]="true" identificador="buscar-texto"
+          etiqueta="Buscar un texto del sitio" marcador="Escribe una palabra o frase que veas en el portal"
+          [valor]="consulta()" [espera]="0" (cambiar)="consulta.set($event)" />
+        @if (consulta().trim().length > 0 && consulta().trim().length < minimoParaBuscar) {
+          <p class="text-dato text-slate-500">Escribe al menos {{ minimoParaBuscar }} letras.</p>
+        } @else if (consulta().trim().length >= minimoParaBuscar) {
+          @if (resultadosDeBusqueda().length === 0) {
+            <p data-testid="sin-resultados-de-busqueda" class="text-dato text-slate-500">
+              Ningún texto coincide con «{{ consulta().trim() }}». Prueba con otra palabra: se busca en lo que
+              está publicado hoy, no en borradores sin publicar.
+            </p>
+          } @else {
+            <ul data-testid="resultados-de-busqueda" class="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white">
+              @for (resultado of resultadosDeBusqueda(); track resultado.key) {
+                <li>
+                  <button
+                    type="button"
+                    [attr.data-testid]="'resultado-' + resultado.key"
+                    (click)="irAlResultado(resultado)"
+                    class="block w-full cursor-pointer px-3.5 py-2.5 text-left transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-morado"
+                  >
+                    <span class="block text-dato font-black text-morado">
+                      {{ resultado.sectionPill }} · {{ resultado.groupLabel }} · {{ resultado.fieldLabel }}
+                    </span>
+                    <span class="mt-0.5 block text-sm text-slate-700">{{ resultado.extracto }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        }
+      </div>
+    }
+
+    <!--
+      LOS DOS TROZOS QUE COMPARTEN LOS DOS DISENOS.
+
+      `camposDelGrupo` es el formulario del grupo abierto y `vistaPrevia` es el marco con
+      la pagina real. Estan en plantillas y no duplicados porque el estudio y el diseno de
+      tres columnas pintan exactamente lo mismo en sitios distintos: una copia de 414 lineas
+      envejeceria por separado, que es como se llego a tener una previsualizacion dibujada a
+      mano que ya no se parecia a la pagina.
+    -->
+    <ng-template #camposDelGrupo>
+              <!-- Sub-tabs selector for Axis feature -->
+              <!-- Por grupo y no por seccion: la seccion «Ejes» tiene cinco grupos y solo tres
+                   se reparten en subpestanas. Ver `GRUPOS_CON_SUBPESTANAS`. -->
+              @if (ejeSubTabsList().length > 0) {
+                <div class="mb-4">
+                  <app-selector-segmentado
+                    [opciones]="ejesComoOpciones()"
+                    [elegida]="activeEjeSubTab()"
+                    etiquetaDelGrupo="Eje que se edita"
+                    (elegir)="activeEjeSubTab.set($event)" />
+                </div>
+              }
+
+              <!-- Editor Inputs -->
+              @if (activeGroupObj()?.id === 'about_team') {
+                <!-- Team CRUD editor: each person is edited in a single card. -->
+                <div data-testid="team-editor" class="max-h-[calc(100vh-18rem)] space-y-5 overflow-y-auto pr-1">
+                  <section class="border-t border-slate-200 pt-3">
+                    <button type="button" (click)="teamSettingsOpen.set(!teamSettingsOpen())" class="flex w-full cursor-pointer items-center justify-between gap-4 rounded-xl px-1 py-1 text-left" [attr.aria-expanded]="teamSettingsOpen()">
+                      <span>
+                        <span class="block text-dato font-black text-morado">Textos generales de la sección</span>
+                        <span class="mt-0.5 block text-dato text-slate-400">Título, introducción y nombres de los grupos.</span>
+                      </span>
+                      <svg lucideChevronDown class="h-4 w-4 shrink-0 text-slate-400 transition-transform" [ngClass]="teamSettingsOpen() ? 'rotate-180' : ''"></svg>
+                    </button>
+                    @if (teamSettingsOpen()) {
+                      <div data-testid="team-settings-fields" class="mt-3 grid grid-cols-1 gap-3 border-t border-slate-200 pt-3 md:grid-cols-2">
+                        @for (key of teamSectionKeys; track key) {
+                          <div class="space-y-1" [ngClass]="key === 'about_team_intro' ? 'md:col-span-2' : ''">
+                            <div class="flex items-center justify-between gap-3">
+                              <label [for]="'campo-' + key" class="campo__rotulo">{{ getFieldLabel(key) }}</label>
+                              <span class="text-dato font-bold" [ngClass]="(formData()[key] || '').length > getCharLimit(key) ? 'text-rose-500' : 'text-slate-400'">
+                                {{ (formData()[key] || '').length }}/{{ getCharLimit(key) }}
+                              </span>
+                            </div>
+                            @if (key === 'about_team_intro') {
+                              <textarea [id]="'campo-' + key" rows="3" [value]="formData()[key] || ''" (input)="handleInputChange(key, $any($event.target).value)" class="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-hidden transition focus:border-morado focus:ring-1 focus:ring-morado"></textarea>
+                            } @else {
+                              <input [id]="'campo-' + key" type="text" [value]="formData()[key] || ''" (input)="handleInputChange(key, $any($event.target).value)" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-hidden transition focus:border-morado focus:ring-1 focus:ring-morado" />
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </section>
+
+                  <section class="space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <div class="flex items-center gap-2">
+                          <h4 class="text-sm font-black text-morado">Funcionarios</h4>
+                          <span class="rounded-full bg-morado/8 px-2 py-0.5 text-dato font-black text-morado">{{ teamMembers().length }}</span>
+                        </div>
+                        <p class="mt-0.5 text-dato text-slate-500">Edite todos los datos y la fotografía directamente en cada tarjeta.</p>
+                      </div>
+                      <button type="button" (click)="addTeamMember()" appBoton="principal">
+                        <svg lucidePlus class="h-3.5 w-3.5"></svg>
+                        Agregar persona
+                      </button>
+                    </div>
+
+                    <!--
+                      UNA TARJETA POR FILA. Antes eran dos columnas desde 1280 px, pero este editor
+                      vive en la mitad izquierda del estudio, junto a la previsualización: cada
+                      tarjeta quedaba en unos 200 px y sus campos medían 40, con «Jor» como único
+                      rastro del nombre. Con una por fila la foto ocupa su columna y los campos el
+                      resto, que es lo que cabe.
+                    -->
+                    <div class="grid grid-cols-1 gap-4">
+                      @for (member of teamMembers(); track member.id; let index = $index) {
+                        <article [id]="'team-member-' + member.id" class="relative rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-morado/25 hover:shadow-md">
+                          <div class="mb-3 flex items-center justify-between border-b border-slate-100 pb-3">
+                            <span class="rounded-full bg-slate-100 px-2.5 py-1 text-dato font-black text-slate-500">Persona {{ index + 1 }}</span>
+                            <button type="button" (click)="removeTeamMember(member.id)" class="inline-flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1.5 text-dato font-black text-rose-600 transition hover:bg-rose-50" [attr.aria-label]="'Quitar a ' + (member.name || 'persona ' + (index + 1))">
+                              <svg lucideTrash2 class="h-3.5 w-3.5"></svg>
+                              Quitar persona
+                            </button>
+                          </div>
+
+                          <div class="grid grid-cols-[7rem_1fr] gap-4">
+                            <div>
+                              <div class="relative aspect-4/5 overflow-hidden rounded-xl bg-morado text-white">
+                                @if (member.photo) {
+                                  <img [src]="member.photo" [alt]="'Fotografía de ' + (member.name || 'la persona')" class="h-full w-full object-cover object-center" />
+                                } @else {
+                                  <div class="flex h-full w-full flex-col items-center justify-center gap-2">
+                                    <span class="text-xl font-black">{{ getMemberInitials(member, index) }}</span>
+                                    <svg lucideUserRound class="h-6 w-6 text-verde"></svg>
+                                  </div>
+                                }
+                                @if (photoProcessing() === member.id) {
+                                  <div class="absolute inset-0 flex items-center justify-center bg-slate-950/75 text-dato font-black">Procesando</div>
+                                }
+                              </div>
+                              <label [for]="'team-photo-' + member.id" class="mt-2 flex cursor-pointer items-center justify-center gap-1 rounded-lg bg-morado px-2 py-2 text-dato font-black text-white transition hover:bg-[#3b1b59]">
+                                <svg lucideUpload class="h-3 w-3"></svg>
+                                {{ member.photo ? 'Cambiar foto' : 'Subir foto' }}
+                              </label>
+                              <input [id]="'team-photo-' + member.id" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" (change)="handleTeamPhotoSelected($event, member.id)" />
+                              @if (member.photo) {
+                                <button type="button" (click)="removeTeamPhoto(member.id)" appBoton="destructiva" tamano="menudo" class="mt-1.5 w-full">Quitar foto</button>
+                              }
+                            </div>
+
+                            <div class="min-w-0 space-y-3">
+                              <div class="space-y-1">
+                                <label [for]="'team-group-' + member.id" class="campo__rotulo">Grupo en el portal</label>
+                                <select [id]="'team-group-' + member.id" [value]="member.group" (change)="updateTeamMember(member.id, 'group', $any($event.target).value)" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-hidden transition focus:border-morado focus:ring-1 focus:ring-morado">
+                                  <option value="coordination">Coordinación general</option>
+                                  <option value="leadership">Liderazgos por componente</option>
+                                </select>
+                              </div>
+                              <div class="space-y-1">
+                                <label [for]="'team-name-' + member.id" class="campo__rotulo">Nombre completo *</label>
+                                <input [id]="'team-name-' + member.id" type="text" [attr.maxlength]="topesNomina().maxNameLength" [value]="member.name" (input)="updateTeamMember(member.id, 'name', $any($event.target).value)" placeholder="Nombre del funcionario" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-hidden transition focus:border-morado focus:ring-1 focus:ring-morado" />
+                              </div>
+                              <div class="space-y-1">
+                                <label [for]="'team-role-' + member.id" class="campo__rotulo">Cargo o responsabilidad *</label>
+                                <textarea [id]="'team-role-' + member.id" rows="2" [attr.maxlength]="topesNomina().maxRoleLength" [value]="member.role" (input)="updateTeamMember(member.id, 'role', $any($event.target).value)" placeholder="Ej. Líder Componente: Formación" class="w-full resize-none rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-hidden transition focus:border-morado focus:ring-1 focus:ring-morado"></textarea>
+                              </div>
+                              <div class="space-y-1">
+                                <label [for]="'team-email-' + member.id" class="campo__rotulo">Correo institucional</label>
+                                <input [id]="'team-email-' + member.id" type="email" [attr.maxlength]="topesNomina().maxEmailLength" [value]="member.email" (input)="updateTeamMember(member.id, 'email', $any($event.target).value)" placeholder="nombre@mincultura.gov.co" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-hidden transition focus:border-morado focus:ring-1 focus:ring-morado" />
+                              </div>
+                            </div>
+                          </div>
+                        </article>
+                      } @empty {
+                        <div class="col-span-full">
+                          <app-estado-de-lista titulo="Todavía no hay personas en el equipo"
+                            detalle="Cada persona que se agregue aquí aparece como una tarjeta en la página «Quiénes somos» del portal." />
+                        </div>
+                      }
+                    </div>
+                  </section>
+                </div>
+              } @else {
+                <!-- Campos del bloque -->
+                <div class="space-y-4 max-h-[38rem] overflow-y-auto pr-1">
+                  @for (key of keysToRender(); track key) {
+                    <div class="space-y-1">
+                      <div class="flex items-center justify-between">
+                        <label [for]="'campo-' + key" class="campo__rotulo">{{ getFieldLabel(key) }}</label>
+                        <span class="text-dato font-bold" [ngClass]="(formData()[key] || '').length > getCharLimit(key) ? 'text-rose-500' : 'text-slate-400'">
+                          {{ (formData()[key] || '').length }}/{{ getCharLimit(key) }}
+                        </span>
+                      </div>
+                      <textarea [id]="'campo-' + key"
+                        [rows]="getCharLimit(key) > 700 ? 5 : getCharLimit(key) > 250 ? 3 : 2"
+                        [value]="formData()[key] || ''"
+                        (input)="handleInputChange(key, $any($event.target).value)"
+                        placeholder="Escribe el texto"
+                        class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-morado focus:ring-1 focus:ring-morado transition outline-hidden resize-none"
+                      ></textarea>
+                      
+                      <!-- History for generic key -->
+                      @if (getHistory(key).length > 0) {
+                        <div class="mt-1.5 pt-1.5 border-t border-slate-100">
+                          <button type="button" (click)="toggleHistoryCollapse(key)" class="flex items-center gap-1 text-dato font-bold text-slate-400 hover:text-slate-600 select-none cursor-pointer">
+                            <span>{{ isHistoryOpen(key) ? '▼' : '▶' }}</span>
+                            Ver historial de cambios ({{ getHistory(key).length }})
+                          </button>
+                          @if (isHistoryOpen(key)) {
+                            <div class="mt-2 space-y-1.5 max-h-[10rem] overflow-y-auto pr-1">
+                              @for (item of getHistory(key); track $index) {
+                                <div class="bg-slate-100/60 hover:bg-slate-100 rounded-lg p-2 text-dato border border-slate-200 transition flex items-start justify-between gap-3">
+                                  <div class="space-y-0.5 flex-1">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                      <span class="font-bold text-slate-700">{{ item.user }}</span>
+                                      <span class="text-slate-400">{{ item.at | fecha: 'fecha-hora' }}</span>
+                                    </div>
+                                    <p class="text-slate-600 line-clamp-2 leading-relaxed">"{{ item.value }}"</p>
+                                  </div>
+                                  @if (item.value !== null) {
+                                    <button type="button" (click)="handleRestoreVersion(key, item.value!)" appBoton="principal" tamano="menudo" class="self-center shrink-0">
+                                      Restaurar
+                                    </button>
+                                  }
+                                </div>
+                              }
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- Footer Actions -->
+              <!-- LOS BOTONES DE LA CONSOLA: guardar es secundario; publicar, la acción principal. -->
+              <div class="pt-4 border-t border-filete flex items-center justify-end gap-2">
+                <app-boton importancia="secundaria" identificador="guardar-borrador" (accion)="handleSaveAllGroup(false)">Guardar borrador</app-boton>
+                <!-- SOLO EL WEBMASTER PUBLICA: el servidor responde 403 a «publicar» de un gestor, así que el botón no se ofrece. -->
+                @if (puedePublicar()) {
+                  <app-boton importancia="principal" identificador="guardar-y-publicar" (accion)="handleSaveAllGroup(true)">Guardar y publicar</app-boton>
+                } @else {
+                  <p class="mr-auto text-dato text-rotulo" data-testid="solo-borrador">Tu cuenta guarda borradores; los publica el webmaster.</p>
+                }
+              </div>
+    </ng-template>
+
+    <ng-template #vistaPrevia>
+      <!--
+        AMPLIAR AMPLIA DE VERDAD desde.
+
+        Antes el boton decia «Ampliar» y lo unico que hacia era quitar `inert`: el marco seguia
+        del mismo tamano y se volvia pulsable. El rotulo mentia sobre lo que el boton hace.
+
+        Ahora la tarjeta pasa a una capa que cubre la consola, y como la escala la fija un
+        `ResizeObserver` sobre `#lienzoPrevisualizacion`, el marco se reescala solo: en una
+        ventana de 1600 px la escala sube de 0,49 a 1,00 sin una sola cuenta en el codigo.
+      -->
+      <div
+        tabindex="-1"
+        [ngClass]="vistaAmpliada() ? 'fixed inset-0 z-[60] overflow-auto bg-slate-950/75 p-4' : ''"
+        (document:keydown.escape)="vistaAmpliada.set(false)"
+      >
+        <div
+          class="bg-slate-100 border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3"
+          [ngClass]="vistaAmpliada() ? 'mx-auto w-full max-w-[94rem]' : ''"
+        >
+
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/60 pb-3">
+            <div class="flex items-center gap-3">
+              <span class="text-dato font-black text-slate-400">Vista previa de la página</span>
+              <!--
+                SIN PILDORA. Es la última que quedaba en este panel y la regla es del proyecto
+                entero: el estado se dice con su indicador, que además distingue los tonos con un
+                icono y no solo con color —lo que hace que se lea también sin distinguir colores—.
+              -->
+              <span data-testid="estado-de-la-vista">
+                <app-indicador-de-estado
+                  [etiqueta]="estadoDeLaVista()"
+                  [tono]="camposFueraDeLaVista().length === 0 && imagenesSinPublicar() === 0 ? 'logrado' : 'requiere_accion'"
+                  [conTexto]="true"></app-indicador-de-estado>
+              </span>
+            </div>
+            <!--
+              `flex-wrap` NO ES COSMETICO AQUI. Esta fila lleva siete controles —selector de
+              tamano, Ocultar, Actualizar, Ampliar, Ver pagina y el testigo en vivo— y mide 572 px
+              puestos en linea. Sin envolver se salia del viewport y empujaba la consola entera:
+              medido el 11 sep 2026, 233 px de desborde horizontal a 375 px de ancho y 42 px a
+              1280. El padre ya envolvia; el que no envolvia era este grupo.
+
+              `min-w-0` acompana por el motivo de siempre en flex: un hijo flexible no baja de su
+              contenido salvo que se le permita, y sin el la fila vuelve a empujar aunque envuelva.
+            -->
+            <div class="flex min-w-0 flex-wrap items-center gap-2">
+              <!--
+                EN QUE TAMANO SE MIRA. Sin esto, en una pantalla de 1440 la pagina se veia
+                siempre al 40 % de escala, que no se lee. Comprobado.
+              -->
+              <div class="flex flex-wrap items-center gap-0.5 rounded-lg bg-white p-0.5" data-testid="selector-de-tamano">
+                @for (t of TAMANOS_DE_VISTA; track t.id) {
+                  <button
+                    type="button"
+                    [attr.data-testid]="'tamano-' + t.id"
+                    [attr.aria-pressed]="tamanoDeVista().id === t.id"
+                    [title]="t.etiqueta + ' · ' + t.ancho + '×' + t.alto"
+                    (click)="elegirTamano(t)"
+                    class="cursor-pointer rounded-md px-2 py-1 text-dato font-black transition"
+                    [ngClass]="tamanoDeVista().id === t.id ? 'bg-morado text-white' : 'text-slate-500 hover:text-morado'"
+                  >{{ t.etiqueta }}</button>
+                }
+              </div>
+              <button
+                type="button"
+                data-testid="encender-vista"
+                (click)="alternarVistaEncendida()"
+                appBoton="secundaria" tamano="menudo"
+              >{{ vistaEncendida() ? 'Ocultar' : 'Mostrar' }}</button>
+              <button
+                type="button"
+                data-testid="actualizar-vista"
+                (click)="recargarLaVista()"
+                appBoton="secundaria" tamano="menudo"
+              >Actualizar</button>
+              <button
+                type="button"
+                data-testid="ampliar-vista"
+                (click)="alternarAmpliada()"
+                [title]="vistaAmpliada() ? 'Vuelve la previsualización a su columna. También sirve la tecla Escape.' : 'Muestra la página a tamaño real sobre la consola, y la deja pulsable.'"
+                appBoton="secundaria" tamano="menudo"
+              >{{ vistaAmpliada() ? 'Contraer' : 'Ampliar' }}</button>
+              <ng-container [ngTemplateOutlet]="irALaPagina"></ng-container>
+              <span class="h-2 w-2 rounded-full bg-verde animate-pulse"></span>
+            </div>
+          </div>
+
+          @if (encuadresDelGrupo().length > 1) {
+            <!--
+              Cinco grupos se ven en dos sitios distintos —el encabezado de Sobre
+              PNMC y su presentacion, los dos directorios, el menu y el pie—, y
+              con un solo encuadre la mitad de sus claves quedaba fuera de la vista.
+            -->
+            <div data-testid="selector-de-encuadre">
+              <app-selector-segmentado
+                [opciones]="encuadresComoOpciones()"
+                [elegida]="String(encuadreElegido())"
+                etiquetaDelGrupo="Encuadre de la previsualización"
+                [conFilete]="false"
+                (elegir)="elegirEncuadre(Number($event))" />
+            </div>
+          }
+
+          @if (camposFueraDeLaVista().length > 0 || imagenesSinPublicar() > 0) {
+            <p data-testid="aviso-borrador" class="rounded-lg bg-amber-50 px-3 py-2 text-dato leading-relaxed text-amber-800">
+              Estás viendo lo que acabas de cambiar. Todavía no está publicado: quien visite el sitio
+              seguirá viendo lo anterior hasta que {{ puedePublicar() ? 'pulses «Guardar y publicar» los textos y' : 'el webmaster publique los textos y' }}
+              «Desplegar» cada imagen.
+            </p>
+          }
+
+          <div #lienzoPrevisualizacion class="w-full">
+            @if (urlDelMarco(); as direccion) {
+              <div
+                data-testid="marco-previsualizacion"
+                class="relative overflow-hidden rounded-xl border border-slate-300 bg-white shadow-inner"
+                [style.width.px]="anchoPintado()"
+                [style.height.px]="altoPintado()"
+              >
+                <iframe
+                  #marcoPrevisualizacion
+                  title="Previsualización de la página"
+                  [src]="direccion"
+                  (load)="alCargarElMarco($event)"
+                  [attr.inert]="vistaAmpliada() ? null : ''"
+                  class="absolute left-0 top-0 origin-top-left border-0"
+                  [class.pointer-events-none]="!vistaAmpliada()"
+                  [style.width.px]="ANCHO_LOGICO()"
+                  [style.height.px]="ALTO_LOGICO()"
+                  [style.transform]="'scale(' + escala() + ')'"
+                ></iframe>
+              </div>
+            } @else if (!vistaEncendida()) {
+              <p data-testid="vista-apagada" class="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-dato text-slate-400">
+                Previsualización oculta. Pulsa «Mostrar» para cargar la página.
+              </p>
+            } @else {
+              <p data-testid="sin-encuadre" class="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-dato text-slate-400">
+                Este bloque aún no tiene una página para mostrar en la vista previa.
+              </p>
+            }
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 text-dato text-slate-400">
+            <span>Vista de {{ tamanoDeVista().etiqueta.toLowerCase() }} · {{ ANCHO_LOGICO() }}×{{ ALTO_LOGICO() }}</span>
+            @if (encuadreActivo()?.nota) {
+              <span class="text-slate-500">{{ encuadreActivo()?.nota }}</span>
+            }
+          </div>
+
+          @if (!anclaEncontrada()) {
+            <p data-testid="sin-ancla" class="rounded-lg bg-red-50 px-3 py-2 text-dato text-red-700">
+              No se encontró este bloque en la página. La vista previa muestra la página desde arriba.
+            </p>
+          }
+          @if (seccionMasAltaQueLaVentana()) {
+            <p data-testid="seccion-alta" class="text-dato text-slate-400">
+              Este bloque es más alto que la pantalla: se muestra desde su comienzo.
+            </p>
+          }
+        </div>
+      </div>
+    </ng-template>
+
+    <!--
+      EL ESTUDIO: EL BLOQUE QUE SE EDITA Y LA PAGINA REAL, A LA VEZ Y EN LA MISMA PANTALLA.
+
+      QUE PROBLEMA RESUELVE, con su medida. Hasta el formulario y la
+      previsualizacion estaban uno encima del otro: en una ventana de 1600x1000 el marco
+      empezaba en y=1011, es decir SIEMPRE fuera de pantalla. Para ver el efecto de una frase
+      habia que dejar de verla. Aqui el acordeon ocupa la izquierda, el marco queda pegado a la
+      derecha, y abrir un bloque desplaza la pagina hasta ese bloque.
+
+      EN TODAS LAS SECCIONES desde. Se probo en el Home y luego se movio
+      todo; aqui habia un `@else` con la maquetacion de tres columnas que quedo sin ninguna forma
+      de alcanzarse y se retiro entera.
+
+      EL ACORDEON ES DE UNO SOLO ABIERTO, y no por estetica: el marco de la derecha solo puede
+      estar encuadrado en un sitio a la vez, asi que dos bloques abiertos dejarian a uno de los
+      dos sin previsualizacion y sin decir cual.
+
+      SOLO SE PINTA EL CUERPO DEL BLOQUE ABIERTO, y con varias secciones importa mas que antes: la
+      seccion mas cargada es «Sobre PNMC», con 94 campos en siete bloques, y «Navegacion y
+      Footer» tiene 27 en uno solo. Con todos montados, cada tecla recorreria los siete
+      formularios para dibujar uno.
+    -->
+    <!--
+      SIN `items-start`, y esto es lo unico que hace que la previsualizacion se quede pegada.
+
+      Con `items-start` cada celda de la rejilla mide lo que mide su contenido: la celda de la
+      derecha tiene exactamente el alto de la tarjeta y el `sticky` de dentro no tiene por donde
+      moverse. Sin el, la celda se estira hasta el alto de la fila —que lo marca el acordeon— y
+      entonces si corre.
+
+      Medido con el navegador, desplazando 700 px el contenedor de la consola: con `items-start`
+      la previsualizacion se va a y=-477; sin el, se queda en y=94.
+    -->
+    <div data-testid="estudio" class="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]"
+         [ngClass]="modo() !== 'equipo' ? 'xl:grid-cols-[14rem_minmax(0,1.3fr)_minmax(0,1fr)]' : ''">
+
+      @if (modo() !== 'equipo') {
+        <!-- ÍNDICE: páginas del sitio y, debajo, los bloques de la página elegida. -->
+        <nav data-testid="indice-del-sitio" aria-label="Páginas y bloques del sitio" class="lg:col-span-2 xl:col-span-1 xl:sticky xl:top-[calc(var(--alto-cabecera,0px)+0.25rem)] xl:self-start xl:max-h-[calc(100dvh-var(--alto-cabecera,0px)-1rem)] xl:overflow-y-auto">
+          <button type="button" class="mb-2 flex w-full cursor-pointer items-center justify-between rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-left text-sm font-bold text-slate-700 xl:hidden"
+                  [attr.aria-expanded]="indiceAbierto()" aria-controls="indice-contenido" (click)="indiceAbierto.set(!indiceAbierto())">
+            <span>Páginas y bloques · {{ paginaActual()?.pill }}</span>
+            <svg lucideChevronDown class="h-4 w-4 text-slate-400 transition-transform" [ngClass]="indiceAbierto() ? 'rotate-180' : ''"></svg>
+          </button>
+          <div id="indice-contenido" class="space-y-4 xl:block" [ngClass]="indiceAbierto() ? 'block' : 'hidden xl:block'">
+            <div>
+              <p class="campo__rotulo mb-1.5">Páginas</p>
+              <div data-testid="section-tabs" class="space-y-3">
+                @for (area of indicePorAreas(); track area.area) {
+                  <div>
+                    <p class="mb-0.5 px-2.5 text-dato font-black text-slate-400">{{ area.area }}</p>
+                    <ul class="space-y-0.5">
+                      @for (pagina of area.paginas; track pagina.section) {
+                        <li>
+                          <button type="button"
+                            [attr.data-testid]="'pagina-' + pagina.section"
+                            [attr.aria-current]="selectedSection() === pagina.section ? 'page' : null"
+                            (click)="selectPill(pagina.section)"
+                            class="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado"
+                            [ngClass]="selectedSection() === pagina.section ? 'bg-white font-black text-morado shadow-sm' : 'font-semibold text-slate-600 hover:bg-white/70 hover:text-morado'">
+                            <span>{{ pagina.etiqueta }}</span>
+                            @if (pagina.sinGuardar > 0) {
+                              <span class="h-2 w-2 shrink-0 rounded-full bg-amber-500" aria-hidden="true" [title]="pagina.sinGuardar + ' sin guardar'"></span>
+                              <span class="sr-only">(con cambios sin guardar)</span>
+                            }
+                          </button>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+              </div>
+            </div>
+            <div>
+              <p class="campo__rotulo mb-1.5">Bloques de {{ paginaActual()?.pill }}</p>
+              <ul data-testid="indice-de-bloques" class="space-y-0.5">
+                @for (pagina of indiceDelSitio(); track pagina.section) {
+                  @if (pagina.section === selectedSection()) {
+                    @for (b of pagina.bloques; track b.id) {
+                      <li>
+                        <button type="button"
+                          [attr.data-testid]="'indice-' + b.id"
+                          [attr.aria-current]="selectedGroup() === b.id ? 'true' : null"
+                          (click)="irAlBloque(pagina.section, b.id)"
+                          class="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left text-dato transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado"
+                          [ngClass]="selectedGroup() === b.id ? 'font-black text-morado' : 'text-slate-600 hover:text-morado'">
+                          <span class="min-w-0">{{ b.label }}</span>
+                          @if (b.sinGuardar > 0) {
+                            <span class="h-2 w-2 shrink-0 rounded-full bg-amber-500" aria-hidden="true"></span>
+                            <span class="sr-only">(con cambios sin guardar)</span>
+                          }
+                        </button>
+                      </li>
+                    }
+                  }
+                }
+              </ul>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" data-testid="ir-bloque-anterior" (click)="irAlBloqueContiguo(-1)" appBoton="secundaria" tamano="menudo">Anterior</button>
+              <button type="button" data-testid="ir-bloque-siguiente" (click)="irAlBloqueContiguo(1)" appBoton="secundaria" tamano="menudo">Siguiente</button>
+            </div>
+          </div>
+        </nav>
+      }
+
+      <!--
+        `lista-de-bloques` y no `group-list`: el nombre viejo era el de la columna de tres
+        columnas, que ya no existe. Dejarselo a esto haria que una prueba escrita contra el
+        diseno viejo pasara contra el nuevo sin comprobar nada de lo que dice comprobar.
+      -->
+      <div data-testid="lista-de-bloques" class="space-y-2.5">
+        @for (group of filteredGroups(); track group.id) {
+          <section
+            [id]="'bloque-ancla-' + group.id"
+            class="scroll-mt-4 overflow-hidden rounded-2xl border bg-white shadow-sm transition-colors"
+            [ngClass]="bloqueAbierto() === group.id ? 'border-morado/30' : 'border-slate-200'"
+          >
+            <h3>
+              <button
+                type="button"
+                [attr.data-testid]="'bloque-' + group.id"
+                [attr.aria-expanded]="bloqueAbierto() === group.id"
+                [attr.aria-controls]="'cuerpo-' + group.id"
+                (click)="alternarBloque(group.id)"
+                class="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-morado"
+              >
+                <span class="min-w-0">
+                  <span
+                    class="block truncate text-xs font-black "
+                    [ngClass]="bloqueAbierto() === group.id ? 'text-morado' : 'text-slate-600'"
+                  >{{ group.label }}@if (camposSinGuardarDe(group.id) > 0) { <span class="ml-2 text-dato font-bold text-amber-700">· sin guardar</span> }</span>
+                  <span class="mt-0.5 block text-dato text-slate-500">
+                    @if (enModoImagenes()) {{{ imagenesDelBloque(group.id).length }} {{ imagenesDelBloque(group.id).length === 1 ? 'imagen' : 'imágenes' }}} @else {{{ group.keys.length }} {{ group.keys.length === 1 ? 'texto' : 'textos' }}@if (imagenesDelBloque(group.id).length > 0) {<span> · {{ imagenesDelBloque(group.id).length }} {{ imagenesDelBloque(group.id).length === 1 ? 'imagen' : 'imágenes' }}</span>}}
+                  </span>
+                </span>
+                <svg
+                  lucideChevronDown
+                  class="h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200"
+                  [ngClass]="bloqueAbierto() === group.id ? 'rotate-180 text-morado' : ''"
+                ></svg>
+              </button>
+            </h3>
+
+            @if (bloqueAbierto() === group.id) {
+              <div [id]="'cuerpo-' + group.id" class="space-y-4 border-t border-slate-100 px-4 pb-4 pt-4">
+                @if (!enModoImagenes()) {
+                  <ng-container [ngTemplateOutlet]="camposDelGrupo"></ng-container>
+                }
+
+                @if (imagenesDelBloque(group.id).length > 0) {
+                  <div [class]="enModoImagenes() ? '' : 'border-t border-slate-100 pt-4'">
+                    <app-bloque-de-imagenes
+                      [claves]="imagenesDelBloque(group.id)"
+                      [enabled]="_enabled()"
+                      [puedePublicar]="puedePublicar()"
+                      (enVivo)="recibirImagenEnVivo($event)"
+                    ></app-bloque-de-imagenes>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        } @empty {
+          <p class="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-xs text-slate-400">
+            Esta sección no tiene bloques de contenido.
+          </p>
+        }
+      </div>
+
+      <!--
+        `sticky top-1` y no una altura calculada: quien desplaza es el contenedor de la consola
+        (admin-shell-page.component.html:237), asi que basta con pegarse a su borde. Una altura
+        en `calc(100vh - ...)` tendria que conocer la cabecera, el relleno y las pastillas, y se
+        rompe en silencio cuando cualquiera de las tres cambia.
+      -->
+      <!--
+        `order-first` POR DEBAJO DE 1280 px. Ahi la rejilla se apila y la previsualizacion se
+        pone ARRIBA: debajo se vuelve al problema que este diseno viene a arreglar, el marco
+        fuera de pantalla mientras se escribe. En una sola columna el `sticky` no puede hacer
+        nada —la celda vuelve a medir lo que su contenido—, asi que al bajar hasta los campos
+        el marco se pierde de vista. Es el limite del apilado, no un olvido.
+      -->
+      <div class="order-first lg:order-none">
+        <div data-testid="live-preview" class="sticky top-[calc(var(--alto-cabecera,0px)+0.25rem)] space-y-3">
+          <ng-container [ngTemplateOutlet]="vistaPrevia"></ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+}

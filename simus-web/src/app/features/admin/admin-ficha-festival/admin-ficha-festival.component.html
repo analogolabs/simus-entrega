@@ -1,0 +1,385 @@
+<!--
+  LA FICHA DEL FESTIVAL, EN EL CAJON LATERAL COMUN.
+
+  Hasta este cajón traía su propio velo y su propia columna, tres
+  tarjetas anidadas con rótulos a 9,9 px, el código crudo del estado —«en_revision»— como si fuera
+  su etiqueta, y botones de 10,88 px. Ahora es `app-panel-lateral`, los datos se leen con
+  `app-dato-en-lectura` en grupos con un filete cada uno —el mismo lenguaje que la ficha de la
+  organización en el espacio externo— y las acciones son `app-boton`.
+-->
+<app-panel-lateral contexto="Ecosistema musical · Festival" [titulo]="ficha()?.nombre ?? 'Festival'" idDelTitulo="ficha-festival-titulo" (cerrar)="cerrar.emit()">
+  <ng-container bajo-titulo>
+    @if (ficha(); as f) {
+      <app-indicador-de-estado
+        [etiqueta]="etiquetaDeEstado(f.estado)"
+        [tono]="tonoDelEstado(f.estado)"
+        [matiz]="matizDelEstado(f.estado)"
+        [conTexto]="true"></app-indicador-de-estado>
+      <span class="text-cuerpo text-prosa">Cobertura {{ f.nivelCobertura }}</span>
+    }
+  </ng-container>
+
+  @if (cargando()) {
+    <app-estado-de-lista tipo="cargando" titulo="Abriendo la ficha…" />
+  } @else if (error() && !ficha()) {
+    <app-estado-de-lista tipo="error" titulo="No fue posible abrir la ficha" [detalle]="error()" />
+  } @else if (ficha(); as f) {
+    @if (avisoDePublicacion()) {
+      <p class="mb-4 text-cuerpo font-semibold text-verde-texto" role="status">{{ avisoDePublicacion() }}</p>
+    }
+    @if (error()) {
+      <p class="mb-4 text-cuerpo font-semibold text-amber-800" role="alert">{{ error() }}</p>
+    }
+    @if (f.fusionadoEnId) {
+      <!--: el absorbido queda archivado y apunta al que lo absorbió; su ficha pública redirige. -->
+      <p class="mb-4 rounded-lg border border-filete bg-slate-50 p-3 text-cuerpo text-prosa" role="status" data-testid="festival-fusionado">
+        Este registro se fusionó en
+        <button type="button" class="font-semibold text-morado underline-offset-2 hover:underline" (click)="abrirOtraFicha(f.fusionadoEnId!)">«{{ f.fusionadoEnNombre || 'otro Festival' }}»</button>
+        y quedó archivado. Sus ediciones, sus solicitudes y su historia están allí; su ficha pública lleva a la de ese Festival.
+      </p>
+    }
+
+    @if (f.estado === 'rechazado') {
+      <!--
+        UN FESTIVAL RECHAZADO TIENE SALIDA (T2): reabrir la revisión. Antes «rechazado» era un callejón
+        sin salida en la consola —la bandeja solo decide sobre lo que está en revisión— y lo único
+        posible era publicarlo de todos modos, que revierte el rechazo sin revisarlo. Se dice que fue
+        rechazado, se manda al historial, donde está el motivo, y se ofrece volver a la bandeja. Lo ve
+        quien abre la ficha: el servidor exige el módulo de Festivales y ediciones, igual que decidir.
+      -->
+      <div data-testid="festival-rechazado" class="mb-6 flex flex-wrap items-center gap-3 rounded-lg border border-rose-200 bg-rose-50 p-3">
+        <p class="basis-full text-cuerpo text-slate-800">
+          Este Festival fue <b>rechazado</b>. El motivo está en su historial. Si el rechazo fue un error o la
+          organización ya aclaró lo que faltaba, reabre la revisión: vuelve a la bandeja y se decide de nuevo.
+        </p>
+        <app-boton importancia="confirmar" [ocupado]="publicando()" identificador="reabrir-revision" (accion)="reabrirRevision()">Reabrir revisión</app-boton>
+      </div>
+    }
+
+    @if (puedePublicar) {
+      <div class="mb-6 flex flex-wrap gap-2">
+        @if (f.estado === 'rechazado') {
+          <!--
+            UN FESTIVAL RECHAZADO NO OFRECE «PUBLICAR» COMO ACCIÓN PRINCIPAL: revertía el
+            rechazo de un clic. Publicarlo sigue siendo posible, pero secundario y con una confirmación
+            que dice que revierte una decisión; lo recomendable es reabrir la revisión (arriba).
+          -->
+          <app-boton importancia="secundaria" [ocupado]="publicando()" identificador="publicar-rechazado" (accion)="cambiarPublicacion('publicado')">Publicar de todos modos</app-boton>
+        } @else if (f.estado !== 'publicado') {
+          <app-boton importancia="confirmar" [ocupado]="publicando()" (accion)="cambiarPublicacion('publicado')">Publicar</app-boton>
+        } @else {
+          <app-boton importancia="secundaria" [ocupado]="publicando()" (accion)="cambiarPublicacion('borrador')">Despublicar</app-boton>
+          <app-boton importancia="secundaria" [ocupado]="publicando()" (accion)="cambiarPublicacion('archivado')">Archivar</app-boton>
+        }
+        @if (f.esRegistroHistorico && !f.fusionadoEnId) {
+          <app-boton importancia="secundaria" identificador="fusionar-festival" (accion)="abrirFusion()">Fusionar con otra copia</app-boton>
+        }
+        @if (f.estado !== 'publicado') {
+          <app-boton importancia="secundaria" identificador="previsualizar-festival" (accion)="previsualizando.set(true)">Previsualizar</app-boton>
+        } @else {
+          <a [href]="'/ecosistema/festivales/' + f.id" target="_blank" rel="noopener"
+             class="inline-flex min-h-control items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-dato font-bold text-slate-600 transition hover:border-morado hover:text-morado">Ver en el portal</a>
+        }
+      </div>
+      @if (previsualizando()) {
+        <app-dialogo-de-previsualizacion
+          modulo="festivales"
+          [id]="f.id"
+          [nombre]="f.nombre"
+          [estadoEtiqueta]="etiquetaDeEstado(f.estado)"
+          (cerrar)="previsualizando.set(false)" />
+      }
+    }
+
+    <section class="space-y-4">
+      <h3 class="border-t border-filete pt-4 rotulo-de-seccion">Quién responde y de dónde vino</h3>
+      <dl class="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+        <div class="flex flex-col">
+          @if (f.esRegistroHistorico) {
+            <!-- (REC-13): el Programa lo custodia, pero no es su organización responsable. -->
+            <dt class="order-2 mt-1 text-dato text-rotulo">Organización responsable</dt>
+            <dd class="order-1 text-lectura font-semibold text-valor">Ninguna todavía: registro histórico</dd>
+            <dd class="order-3 mt-1 text-dato text-rotulo">Lo custodia el PNMC hasta que una organización lo reclame.</dd>
+          } @else if (f.organizacionResponsableId !== null) {
+            <dt class="order-2 mt-1 text-dato text-rotulo">Organización responsable</dt>
+            <dd class="order-1 text-lectura font-semibold text-valor">
+              <button type="button" class="text-left text-morado underline-offset-2 hover:underline" (click)="verOrganizacion.emit(f.organizacionResponsableId!)">{{ f.organizacionResponsableNombre }}</button>
+            </dd>
+            @if (puedePublicar) {
+              <!--
+                CUANDO NADIE DE LA ORGANIZACION PUEDE ENTRAR, su Festival se queda congelado: nadie
+                lo edita y ninguna otra puede tomarlo, porque el circuito de reclamación solo ofrece
+                los que ya están en custodia del Programa. Esto no recupera el acceso de nadie:
+                desbloquea el proceso.
+              -->
+              <dd class="order-3 mt-2"><app-boton importancia="terciaria" tamano="menudo" (accion)="pedirLiberacion()">Devolver al PNMC</app-boton></dd>
+            }
+          } @else {
+            <dt class="order-2 mt-1 text-dato text-rotulo">Organización responsable</dt>
+            <dd class="order-1 break-words text-lectura text-rotulo">Sin registrar</dd>
+            <dd class="order-3 mt-1 text-dato text-rotulo">Todavía no hay ninguna que responda por él.</dd>
+          }
+        </div>
+        <div class="flex flex-col">
+          <dt class="order-2 mt-1 text-dato text-rotulo">Procedencia</dt>
+          <dd class="order-1"><app-sello-de-procedencia [procedencia]="f.procedencia" [detallado]="true"></app-sello-de-procedencia></dd>
+        </div>
+      </dl>
+      <!--
+        EL HISTORIAL VA AQUI Y NO EN LA BARRA DE ACCIONES. Es la continuación de la misma pregunta:
+        el sello dice de dónde vino y el historial dice qué le ha pasado desde entonces. Y es una
+        lectura, así que no depende de `puedePublicar`: quien puede abrir la ficha puede saber
+        quién la tocó.
+      -->
+      @if (f.absorbidos?.length) {
+        <p class="text-dato text-rotulo" data-testid="festival-absorbidos">
+          Absorbió {{ f.absorbidos!.length === 1 ? 'una copia duplicada' : f.absorbidos!.length + ' copias duplicadas' }}:
+          @for (a of f.absorbidos!; track a.id; let ultimo = $last) {
+            <button type="button" class="text-morado underline-offset-2 hover:underline" (click)="abrirOtraFicha(a.id)">{{ a.nombre }} (n.º {{ a.id }})</button>{{ ultimo ? '.' : ', ' }}
+          }
+          Su historia se lee en el historial de este Festival.
+        </p>
+      }
+      <app-boton importancia="secundaria" tamano="menudo" identificador="abrir-historial" (accion)="abrirHistorial()">Ver historial</app-boton>
+      @if (historialAbierto()) {
+        <app-historial-de-registro
+          [titulo]="f.nombre"
+          [registro]="{ tabla: tablaDeAuditoria, id: f.id }"
+      [cambiosDe]="{ moduloId: 'festivales', registroId: f.id }"
+          [procedencia]="f.procedencia"
+          [estados]="estadosDelHistorial()"
+          [cargandoEstados]="cargandoEstados()"
+          (cerrar)="historialAbierto.set(false)"></app-historial-de-registro>
+      }
+    </section>
+
+    <section class="mt-8 space-y-4">
+      <h3 class="border-t border-filete pt-4 rotulo-de-seccion">Datos permanentes</h3>
+      <dl class="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+        <!-- EL MUNICIPIO SOLO NO UBICA: hay municipios con el mismo nombre en departamentos distintos. -->
+        <div app-dato-en-lectura class="flex flex-col" rotulo="Territorio"
+            [valor]="f.municipio && f.departamento ? ((f.municipio | nombrePropio) + ' (' + (f.departamento | nombrePropio) + ')') : ((f.municipio || f.departamento || 'Cobertura nacional') | nombrePropio)"></div>
+        <div app-dato-en-lectura class="flex flex-col" rotulo="Periodicidad" [valor]="etiquetaDePeriodicidad(f.periodicidad)"></div>
+        <div app-dato-en-lectura class="flex flex-col" rotulo="Correo de contacto" [valor]="f.correoContacto"></div>
+        <div app-dato-en-lectura class="flex flex-col sm:col-span-2" rotulo="Descripción" [valor]="f.descripcion" [prosa]="true"></div>
+      </dl>
+      @if (f.practicasMusicales.length > 0 || f.territoriosSonoros.length > 0) {
+        <dl class="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+          @if (f.practicasMusicales.length > 0) {
+            <div app-dato-en-lectura class="flex flex-col" rotulo="Prácticas musicales" [valor]="nombresDe(f.practicasMusicales)"></div>
+          }
+          @if (f.territoriosSonoros.length > 0) {
+            <div app-dato-en-lectura class="flex flex-col" rotulo="Territorios sonoros" [valor]="nombresDe(f.territoriosSonoros)"></div>
+          }
+        </dl>
+      }
+    </section>
+
+    <!--
+      LAS EDICIONES VAN DENTRO DEL FESTIVAL, no en una sección propia. Son su historial de
+      realizaciones, no un módulo equivalente.
+    -->
+    <section class="mt-8 space-y-4">
+      <h3 class="border-t border-filete pt-4 rotulo-de-seccion">Ediciones · {{ f.ediciones.length }}</h3>
+      @if (f.ediciones.length === 0) {
+        <p class="text-cuerpo leading-relaxed text-prosa">
+          Este Festival todavía no tiene ediciones registradas. Las registra la organización
+          responsable desde su espacio, y la consola las supervisa cuando se publican.
+        </p>
+      } @else {
+        <ul class="divide-y divide-filete">
+          @for (edicion of f.ediciones; track edicion.id) {
+            <li class="flex flex-wrap items-start justify-between gap-3 py-3">
+              <div class="min-w-0">
+                <p class="text-lectura font-semibold text-valor">{{ edicion.nombre || (edicion.anio ? 'Edición ' + edicion.anio : 'Edición sin nombre') }}</p>
+                <p class="mt-0.5 text-dato text-rotulo">
+                  @if (edicion.numeroEdicion) { N.º {{ edicion.numeroEdicion }} · }
+                  {{ edicion.anio || 'Sin año' }}
+                  @if (edicion.fechaInicio) { · {{ edicion.fechaInicio | fecha }} }
+                </p>
+                <span class="mt-1 block"><app-sello-de-procedencia [procedencia]="edicion.procedencia"></app-sello-de-procedencia></span>
+              </div>
+              <span class="flex shrink-0 flex-wrap items-center gap-2">
+                <app-indicador-de-estado
+                  [etiqueta]="rotuloDeEdicion(edicion.estadoVisibilidad)"
+                  [tono]="tonoDelEstado(edicion.estadoVisibilidad)"
+                  [matiz]="matizDelEstado(edicion.estadoVisibilidad)"
+                  [conTexto]="true"></app-indicador-de-estado>
+                <!-- LA ORGANIZACIÓN LA PUBLICÓ SIN REVISIÓN: el Programa solo la observa después. -->
+                @if (edicion.estadoVisibilidad === 'publicada') {
+                  <app-boton importancia="terciaria" tamano="menudo" identificador="observar-edicion"
+                    [etiqueta]="'Observar la edición ' + (edicion.nombre || edicion.anio || '')"
+                    (accion)="observarEdicion(edicion)">Observar</app-boton>
+                }
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</app-panel-lateral>
+
+@if (edicionObservada(); as observada) {
+  <app-admin-edition-review-panel [encima]="true" [edicionId]="observada.id" [nombre]="observada.nombre"
+    (cerrar)="cerrarObservacion()" (enviada)="alEnviarObservacion()" />
+}
+
+@if (liberando(); as l) {
+  <app-dialogo-de-formulario
+    encima
+    titulo="Devolver el Festival al PNMC"
+    proposito="La organización que hoy lo administra dejará de hacerlo y el Festival quedará en custodia del Plan Nacional de Música para la Convivencia. Desde ahí, otra organización podrá reclamarlo por el circuito de siempre, con su justificación y su conciliación de datos."
+    verbo="Devolver al PNMC"
+    [guardando]="publicando()"
+    [puedeGuardar]="!!l.motivo.trim()"
+    identificador="devolver-al-programa"
+    (guardar)="liberar()"
+    (cerrar)="cancelarLiberacion()">
+    <p class="text-cuerpo leading-relaxed text-prosa">
+      <b>No se toca ninguna contraseña</b> y <b>no cambia de dónde vino el registro</b>: cambia
+      quién responde por él ahora.
+    </p>
+    <label class="campo" for="motivo-liberacion">
+      <span class="campo__rotulo">Por qué se devuelve</span>
+      <textarea id="motivo-liberacion" name="motivoLiberacion" rows="3" [ngModel]="l.motivo" (ngModelChange)="motivoDeLiberacion($event)"
+        placeholder="La fundación se disolvió y nadie puede entrar a su cuenta."
+        class="campo__control"></textarea>
+      <small class="campo__ayuda">
+        Es la decisión más fuerte de esta pantalla: dentro de un año nadie recordará por qué se tomó.
+      </small>
+    </label>
+  </app-dialogo-de-formulario>
+}
+
+@if (fusion(); as fu) {
+  <app-dialogo-de-formulario
+    encima
+    titulo="Fusionar con otra copia"
+    proposito="Une dos copias del mismo Festival histórico. Se conserva este; la copia que elijas queda archivada y su ficha pública lleva aquí. Sus ediciones, mercados, eventos, archivos y solicitudes de administración pasan a este Festival, y los datos que aquí falten se completan con los suyos."
+    verbo="Fusionar"
+    [guardando]="publicando()"
+    [puedeGuardar]="puedeFusionar(fu)"
+    identificador="fusionar-duplicados"
+    (guardar)="fusionar()"
+    (cerrar)="fusion.set(null)">
+    @if (fu.cargando && !fu.candidatos) {
+      <p class="text-cuerpo text-prosa" role="status">Buscando otras copias de este Festival…</p>
+    } @else if (fu.candidatos; as c) {
+      @if (c.bloqueo) {
+        <p class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-cuerpo text-amber-900" role="alert">{{ c.bloqueo }}</p>
+      }
+      @if (!c.candidatos.length) {
+        <p class="text-cuerpo leading-relaxed text-prosa">No hay otras copias con un nombre parecido en el mismo departamento. Si la copia se llama distinto, búscala por su número.</p>
+      } @else {
+        <fieldset class="space-y-3" data-testid="candidatos-de-fusion">
+          <legend class="campo__rotulo">¿Qué copia se absorbe?</legend>
+          @for (cand of c.candidatos; track cand.id) {
+            <label class="flex items-start gap-3 rounded-lg border border-filete p-3" [class.opacity-60]="!!cand.codigoBloqueo">
+              <input type="radio" name="absorbido" class="mt-1" [value]="cand.id" [checked]="fu.elegido === cand.id" [disabled]="!!cand.codigoBloqueo"
+                (change)="cambiarFusion({ elegido: cand.id })" />
+              <span class="min-w-0">
+                <span class="block text-lectura font-semibold text-valor">{{ cand.nombre }} <span class="font-normal text-rotulo">(n.º {{ cand.id }})</span></span>
+                <span class="block text-dato text-rotulo">
+                  {{ lugarDe(cand) }} · {{ etiquetaDeEstado(cand.estado) }}
+                  · {{ cand.ediciones ? (cand.ediciones === 1 ? '1 edición' : cand.ediciones + ' ediciones') + (cand.aniosDeEdiciones.length ? ' (' + cand.aniosDeEdiciones.join(', ') + ')' : '') : 'sin ediciones' }}
+                  @if (cand.reclamacionAbiertaDe) { · solicitud abierta de {{ cand.reclamacionAbiertaDe }} }
+                </span>
+                @if (cand.razonDelParecido) { <span class="mt-1 block text-dato text-rotulo" data-testid="razon-del-parecido">Por qué se propone: {{ cand.razonDelParecido }}</span> }
+                @if (cand.bloqueo) { <span class="mt-1 block text-dato text-amber-800">{{ cand.bloqueo }}</span> }
+              </span>
+            </label>
+          }
+        </fieldset>
+      }
+      @if (fu.elegido) {
+        <!--
+          LA COMPARACIÓN LADO A LADO (T2). Antes de fusionar se ven las dos copias con los mismos
+          criterios que usa la fusión: qué se queda de este Festival, qué se completa con la copia, qué
+          pasa a este Festival y qué dos copias tienen en común. Solo lee: no cambia nada hasta confirmar.
+        -->
+        <section class="space-y-4" data-testid="comparacion-de-copias" aria-labelledby="comparacion-titulo" aria-live="polite">
+          <h4 id="comparacion-titulo" class="campo__rotulo">Así quedaría la fusión</h4>
+          @if (fu.comparando) {
+            <p class="text-cuerpo text-prosa" role="status">Comparando las dos copias…</p>
+          } @else if (fu.comparacion; as cmp) {
+            @if (cmp.bloqueo) {
+              <p class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-cuerpo text-amber-900" role="alert">{{ cmp.bloqueo }}</p>
+            }
+            <div class="overflow-x-auto">
+              <table class="w-full border-collapse text-dato" data-testid="tabla-de-comparacion">
+                <caption class="sr-only">Datos de este Festival y de la copia, y qué hará la fusión con cada uno</caption>
+                <thead>
+                  <tr class="border-b border-filete text-left text-rotulo">
+                    <th scope="col" class="py-2 pr-3 font-semibold">Dato</th>
+                    <th scope="col" class="py-2 pr-3 font-semibold">Este Festival, que se conserva</th>
+                    <th scope="col" class="py-2 pr-3 font-semibold">La copia, que se archiva</th>
+                    <th scope="col" class="py-2 font-semibold">Qué pasa</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (campo of camposQueDifieren(cmp); track campo.clave) {
+                    <tr class="border-b border-filete bg-amber-50 align-top" [attr.data-resultado]="campo.resultado">
+                      <th scope="row" class="py-2 pr-3 text-left font-semibold text-valor">{{ campo.etiqueta }}</th>
+                      <td class="py-2 pr-3 text-prosa">{{ valorComparado(campo, campo.enLoQueSeConserva) }}</td>
+                      <td class="py-2 pr-3 text-prosa">{{ valorComparado(campo, campo.enLaCopia) }}</td>
+                      <td class="py-2 font-semibold text-valor">
+                        {{ resultadoComparado(campo) }}
+                        @if (campo.resultado === 'completa' || campo.resultado === 'une') {
+                          <span class="block font-normal text-rotulo">Queda: {{ valorComparado(campo, campo.quedaAsi) }}</span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                  @for (campo of camposIguales(cmp); track campo.clave) {
+                    <tr class="border-b border-filete align-top text-rotulo" [attr.data-resultado]="campo.resultado">
+                      <th scope="row" class="py-2 pr-3 text-left font-normal">{{ campo.etiqueta }}</th>
+                      <td class="py-2 pr-3">{{ valorComparado(campo, campo.enLoQueSeConserva) }}</td>
+                      <td class="py-2 pr-3">{{ valorComparado(campo, campo.enLaCopia) }}</td>
+                      <td class="py-2">{{ resultadoComparado(campo) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            @if (camposVacios(cmp) > 0) {
+              <p class="text-dato text-rotulo">{{ camposVacios(cmp) === 1 ? 'Un dato está vacío' : camposVacios(cmp) + ' datos están vacíos' }} en las dos copias.</p>
+            }
+            <div data-testid="traslado-de-la-fusion" class="rounded-lg border border-filete p-3 text-cuerpo text-prosa">
+              @if (resumenDeTraslado(cmp.traslado); as pasa) {
+                <p>Pasan a este Festival: {{ pasa }}.</p>
+              } @else {
+                <p>La copia no tiene ediciones, mercados, eventos ni archivos que trasladar.</p>
+              }
+              @if (cmp.traslado.aniosEnLasDos.length) {
+                <p class="mt-1 text-amber-900" data-testid="anios-en-las-dos">
+                  Las dos copias tienen {{ cmp.traslado.aniosEnLasDos.length === 1 ? 'la edición de' : 'las ediciones de' }}
+                  {{ cmp.traslado.aniosEnLasDos.join(', ') }}: pasarán las de la copia y este Festival tendrá dos por año. Puedes revisarlas después en su ficha.
+                </p>
+              }
+              <p class="mt-1 text-rotulo">El nombre, el estado, el alcance y el territorio se quedan como están en este Festival.</p>
+            </div>
+            <label class="flex items-start gap-3 text-cuerpo text-prosa" for="fusion-entendido">
+              <input id="fusion-entendido" name="fusionEntendido" type="checkbox" class="mt-1"
+                [ngModel]="fu.entendido" (ngModelChange)="cambiarFusion({ entendido: $event })" [disabled]="!!cmp.codigoBloqueo" />
+              <span>Entiendo que «{{ cmp.absorbido.nombre }}» (n.º {{ cmp.absorbido.id }}) queda archivada, que su ficha pública lleva a este Festival y que la fusión no se deshace desde la consola.</span>
+            </label>
+          }
+        </section>
+      }
+      <label class="campo" for="fusion-numero">
+        <span class="campo__rotulo">¿Se llama distinto? Búscala por su número</span>
+        <span class="flex gap-2">
+          <input id="fusion-numero" name="fusionNumero" inputmode="numeric" class="campo__control" [ngModel]="fu.numero" (ngModelChange)="cambiarFusion({ numero: $event })" placeholder="Por ejemplo: 105" />
+          <app-boton importancia="secundaria" tamano="menudo" [deshabilitado]="!fu.numero.trim()" (accion)="abrirFusion(fu.numero.trim())">Buscar</app-boton>
+        </span>
+      </label>
+      <label class="campo" for="fusion-motivo">
+        <span class="campo__rotulo">Por qué son el mismo Festival</span>
+        <textarea id="fusion-motivo" name="fusionMotivo" rows="3" class="campo__control" [ngModel]="fu.motivo" (ngModelChange)="cambiarFusion({ motivo: $event })"
+          placeholder="Las dos fuentes describen el mismo encuentro de Manizales; la segunda tiene menos datos."></textarea>
+        <small class="campo__ayuda">Queda en la bitácora y en el historial de los dos registros.</small>
+      </label>
+    }
+  </app-dialogo-de-formulario>
+}

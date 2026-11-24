@@ -1,0 +1,356 @@
+<!-- La identidad institucional permanece fija en escritorio; solo el formulario se desplaza. -->
+<section class="portal-acceso min-h-[100dvh] overflow-hidden bg-[#fbfcfb] font-nunito text-titulo lg:h-[100dvh]">
+  <div class="grid min-h-[100dvh] lg:h-full lg:grid-cols-2">
+    <aside class="relative flex flex-col justify-between overflow-hidden bg-morado px-6 pb-12 pt-28 sm:px-10 sm:pt-32 lg:h-full lg:py-28 lg:pl-16 lg:pr-14" aria-labelledby="acceso-identidad">
+      <div aria-hidden="true" class="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-verde-medio/10 blur-[120px]"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute -bottom-40 -left-24 h-[28rem] w-[28rem] rounded-full bg-morado-vivo/20 blur-[140px]"></div>
+      <div class="relative z-10 flex flex-1 flex-col justify-center">
+        <p class="font-alternate text-xs font-bold text-verde">{{ vista() === 'ingreso' ? 'Espacio de gestión' : texto('access_eyebrow') }}</p>
+        <h2 id="acceso-identidad" class="mt-3 max-w-md font-alternate text-3xl uppercase leading-[1.05] text-white sm:text-4xl">{{ vista() === 'ingreso' ? 'Gestiona tu perfil y los procesos de tu organización.' : texto('access_title') }}</h2>
+        <p class="mt-4 max-w-sm text-sm leading-relaxed text-white/65">{{ vista() === 'ingreso' ? 'Administra tu perfil, tus organizaciones y sus procesos dentro del Sistema de Información de la Música.' : texto('access_intro') }}</p>
+      </div>
+      <div class="relative z-10 mt-14 shrink-0 border-t border-white/15 pt-5">
+        <p class="font-alternate text-xs font-bold text-white">SIMUS</p>
+        <p class="mt-1 text-xs text-white/55">Sistema de Información de la Música</p>
+        <p class="mt-4 max-w-sm text-xs leading-relaxed text-white/80">{{ texto('access_footer_note') }}</p>
+        <div class="mt-6 flex flex-wrap items-center gap-4 sm:gap-5">
+          <img [src]="imagen('marca_gov_co')" width="400" height="80" class="h-auto w-[5.5rem] sm:w-[6.5rem]" [alt]="imagenAlt('marca_gov_co')" />
+          <span aria-hidden="true" class="h-4 w-px bg-white/20"></span>
+          <img [src]="imagen('marca_gov_co_sello')" width="142" height="140" class="h-auto w-[2.2rem] sm:w-[2.6rem]" [alt]="imagenAlt('marca_gov_co_sello')" />
+          <span aria-hidden="true" class="h-4 w-px bg-white/20"></span>
+          <img [src]="imagen('marca_culturas_blanco')" width="479" height="370" class="h-auto w-[2.9rem] sm:w-[3.5rem]" [alt]="imagenAlt('marca_culturas_blanco')" />
+        </div>
+      </div>
+    </aside>
+
+    <main id="contenido-principal" tabindex="-1" class="flex flex-col px-6 pb-14 pt-28 sm:px-10 sm:pt-32 lg:h-full lg:overflow-y-auto lg:px-16 lg:pt-28" [class.lg:justify-center]="vista() === 'ingreso' || tipoDeRegistro() === null" aria-label="Tu cuenta en SIMUS">
+      <div class="mx-auto w-full" [class]="vista() === 'registro' && tipoDeRegistro() !== null ? 'max-w-xl' : 'max-w-md'">
+    <!--
+      UNA SOLA CABECERA. El rótulo, el título y la presentación del registro ya están en la columna
+      morada (con los textos editables del CMS); esta columna dice solo qué se hace aquí, sin repetirlos ni
+      llamar «Acceso externo» —la categoría técnica de la cuenta— a lo que para la persona es su cuenta.
+    -->
+    <h1 class="font-alternate text-3xl font-bold uppercase text-morado">{{ vista() === 'ingreso' ? 'Ingresa a SIMUS' : 'Crea tu cuenta' }}</h1>
+    @if (vista() === 'ingreso') {
+      <p class="mt-3 max-w-2xl text-sm leading-relaxed text-tinta-media">Entra con tu correo y contraseña para gestionar tu perfil y los procesos de tus organizaciones.</p>
+    }
+
+    <div role="tablist" aria-label="Ingresar o registrarse" class="mt-7 inline-flex w-full rounded-xl border border-filete bg-niebla p-1">
+      <button type="button" role="tab" [attr.aria-selected]="vista() === 'ingreso'" (click)="openExternalLogin()"
+        [class]="vista() === 'ingreso' ? 'bg-morado text-white shadow-sm' : 'bg-transparent text-tinta-media hover:text-morado'"
+        class="flex-1 cursor-pointer rounded-lg border-0 px-4 py-2.5 pointer-coarse:min-h-11 font-alternate text-xs font-bold transition">Ingresar</button>
+      <button type="button" role="tab" [attr.aria-selected]="vista() === 'registro'" (click)="openRegistrationForm()"
+        [class]="vista() === 'registro' ? 'bg-morado text-white shadow-sm' : 'bg-transparent text-tinta-media hover:text-morado'"
+        class="flex-1 cursor-pointer rounded-lg border-0 px-4 py-2.5 pointer-coarse:min-h-11 font-alternate text-xs font-bold transition">Registrarse</button>
+    </div>
+
+    @if (error()) { <p role="alert" class="mt-5 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ error() }}</p> }
+
+    @if (vista() === 'ingreso') {
+      @if (recuperacion() === 'cerrada') {
+      <form class="mt-7 max-w-md space-y-5" novalidate (ngSubmit)="startLogin()" [attr.aria-busy]="loading() ? 'true' : null">
+        <div>
+          <label for="acceso-correo" class="block text-sm font-bold text-titulo">Correo electrónico</label>
+          <input id="acceso-correo" [(ngModel)]="login.email" (ngModelChange)="alEscribirIngreso('loginEmail')" (blur)="alSalirDelIngreso('loginEmail')" name="loginEmail" type="email" inputmode="email" autocomplete="email" placeholder="nombre@correo.org" [attr.aria-invalid]="erroresIngreso()['loginEmail'] ? 'true' : null" [attr.aria-describedby]="erroresIngreso()['loginEmail'] ? 'acceso-correo-error' : null" class="simus-campo">
+          @if (erroresIngreso()['loginEmail']) { <span id="acceso-correo-error" class="mt-1 block text-xs font-medium text-peligro">{{ erroresIngreso()['loginEmail'] }}</span> }
+          @else if (correoDeIngresoCorrecto()) { <span class="mt-1 block text-xs font-medium text-emerald-800" data-campo-correcto>Correo con formato válido.</span> }
+        </div>
+        <div class="text-sm font-bold text-titulo"><label for="acceso-contrasena">Contraseña</label>
+          <span class="relative mt-1 block"><input id="acceso-contrasena" [(ngModel)]="login.password" (ngModelChange)="alEscribirIngreso('loginPassword')" name="loginPassword" placeholder="Tu contraseña" [type]="mostrarContrasena() ? 'text' : 'password'" autocomplete="current-password" [attr.aria-invalid]="erroresIngreso()['loginPassword'] ? 'true' : null" [attr.aria-describedby]="erroresIngreso()['loginPassword'] ? 'acceso-contrasena-error' : null" class="simus-campo !mt-0 pr-12"><button type="button" (click)="alternarMostrarContrasena()" [attr.aria-label]="mostrarContrasena() ? 'Ocultar contraseña' : 'Mostrar contraseña'" [attr.aria-pressed]="mostrarContrasena()" class="absolute inset-y-0 right-0 grid w-11 place-items-center rounded-r-lg text-tinta-media transition hover:text-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-morado"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" class="h-5 w-5"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/>@if (mostrarContrasena()) { <path d="M4 4 20 20"/> }</svg></button></span>
+          @if (erroresIngreso()['loginPassword']) { <span id="acceso-contrasena-error" class="mt-1 block text-xs font-medium text-peligro">{{ erroresIngreso()['loginPassword'] }}</span> }
+        </div>
+        <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+          <app-boton tipo="submit" importancia="principal" tamano="comodo" [ocupado]="loading()" identificador="acceso-ingresar">{{ loading() ? 'Ingresando…' : 'Ingresar' }}</app-boton>
+          <button type="button" (click)="abrirRecuperacion()" data-testid="olvide-mi-contrasena" class="cursor-pointer border-0 bg-transparent p-0 text-sm font-bold text-morado underline underline-offset-2 hover:text-titulo">¿Olvidaste tu contraseña?</button>
+        </div>
+        <p class="border-t border-filete pt-5 text-sm text-tinta-media" data-testid="acceso-ir-a-registro">¿Aún no tienes cuenta?
+          <button type="button" (click)="openRegistrationForm()" class="cursor-pointer border-0 bg-transparent p-0 text-sm font-bold text-morado underline underline-offset-2 hover:text-titulo">Crea una cuenta</button>
+        </p>
+      </form>
+      } @else if (recuperacion() === 'formulario') {
+        <!--
+          RECUPERAR LA CONTRASEÑA. Pide solo el correo y no promete nada sobre la cuenta: la
+          respuesta es la misma exista o no. Las cuentas de la consola de administración NO usan este
+          camino, y la pantalla lo dice.
+        -->
+        <form class="mt-7 max-w-md space-y-5" novalidate (ngSubmit)="solicitarRecuperacion()" data-testid="recuperacion-formulario">
+          <h2 id="recuperacion-titulo" tabindex="-1" class="font-alternate text-xl font-bold text-morado outline-none">Restablece tu contraseña</h2>
+          <p class="text-sm leading-relaxed text-tinta-media">Escribe el correo de tu cuenta y te enviamos un enlace para elegir una contraseña nueva. El enlace vale 60 minutos y se usa una sola vez.</p>
+          <div>
+            <label for="recuperacion-correo" class="text-sm font-bold text-titulo">Correo electrónico</label>
+            <input id="recuperacion-correo" name="recuperacionCorreo" type="email" autocomplete="email" [(ngModel)]="correoDeRecuperacion"
+                   [attr.aria-invalid]="errorDeRecuperacion() ? 'true' : null" aria-describedby="recuperacion-correo-error recuperacion-nota" placeholder="nombre@correo.org" class="simus-campo">
+            <app-error-de-campo identificador="recuperacion-correo-error" [mensaje]="errorDeRecuperacion()" />
+          </div>
+          <p id="recuperacion-nota" class="rounded-lg border border-filete bg-morado-50 p-3 text-xs leading-relaxed text-tinta-media">
+            Esto es para cuentas de organizaciones y de personas. Las cuentas de la consola de administración no se recuperan por correo: pídele al equipo administrador de SIMUS que restablezca tu contraseña.
+          </p>
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
+            <app-boton tipo="submit" importancia="principal" tamano="comodo" [ocupado]="enviandoRecuperacion()">{{ enviandoRecuperacion() ? 'Enviando…' : 'Enviar enlace' }}</app-boton>
+            <button type="button" (click)="cerrarRecuperacion()" class="cursor-pointer border-0 bg-transparent p-0 text-sm font-bold text-morado underline underline-offset-2 hover:text-titulo">Volver a ingresar</button>
+          </div>
+        </form>
+      } @else {
+        <div class="mt-7 max-w-md space-y-5" data-testid="recuperacion-enviada">
+          <h2 id="recuperacion-titulo" tabindex="-1" class="font-alternate text-xl font-bold text-morado outline-none">Revisa tu correo</h2>
+          <p role="status" class="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm leading-relaxed text-emerald-900">{{ avisoDeRecuperacion() }}</p>
+          <p class="text-xs leading-relaxed text-tinta-media">¿No te llegó? Espera unos minutos y revisa el correo no deseado. Puedes pedir otro enlace; el anterior deja de servir.</p>
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
+            <button type="button" (click)="cerrarRecuperacion()" appBoton="principal" tamano="comodo">Volver a ingresar</button>
+            <button type="button" (click)="recuperacion.set('formulario')" class="cursor-pointer border-0 bg-transparent p-0 text-sm font-bold text-morado underline underline-offset-2 hover:text-titulo">Pedir otro enlace</button>
+          </div>
+        </div>
+      }
+    } @else {
+      @if (invitacion(); as invitada) {
+        <!--
+          LLEGAR DESDE UNA INVITACIÓN: sin elegir tipo y sabiendo a qué se viene. El correo
+          viaja enmascarado (docs/desarrollo/19-cuentas-y-organizaciones.md §19.4), así que se dice cuál es en vez de prellenarlo.
+        -->
+        <div class="mt-7 rounded-lg border border-filete bg-morado-50 p-4 text-sm leading-relaxed text-tinta-media" data-testid="registro-invitacion">
+          Te invitaron a <strong class="text-titulo">{{ invitada.organizacion }}</strong> como <strong class="text-titulo">{{ invitada.rol === 'administrador' ? 'administrador' : 'editor' }}</strong>.
+          Crea tu cuenta con el correo <strong class="text-titulo">{{ invitada.correoInvitado }}</strong>, que es al que llegó la invitación; al terminar volverás a ella para aceptarla.
+          <!--
+            PARA QUÉ SE PIDEN LOS DATOS (ACC-02). El servidor exige los mismos datos personales a toda cuenta
+            externa —nombre, documento y contraseña—, también a quien llega invitado: la cuenta identifica a
+            la persona que responde, y el documento evita cuentas duplicadas. Quitarlos de este camino es una
+            decisión de producto y jurídica ( §ACC-02); mientras tanto se dice para qué sirven, y lo
+            único que se promete es lo que el sistema ya cumple: nada de eso sale en una ficha pública.
+          -->
+          <span class="mt-2 block" data-testid="registro-invitacion-datos">
+            Te pedimos tu nombre y tu documento porque cada cuenta identifica a una persona; no se muestran en ninguna ficha pública.
+          </span>
+        </div>
+      }
+      @if (tipoDeRegistro() === null) {
+        <div class="mt-7" data-testid="registro-elegir-tipo">
+          <h2 class="font-alternate text-base font-bold text-morado">¿Cómo quieres registrarte?</h2>
+          <p class="mt-1 text-sm text-tinta-media">Elige el camino que te corresponde. Podrás cambiarlo antes de crear la cuenta.</p>
+          <div class="mt-4 grid gap-3 sm:grid-cols-2">
+            <button type="button" (click)="tipoDeRegistro.set('individual')" data-testid="registro-tipo-individual" class="group flex min-h-[11rem] cursor-pointer flex-col items-start rounded-xl border border-filete bg-white p-5 text-left transition hover:border-morado hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado">
+              <svg lucideUserCircle2 size="26" strokeWidth="1.5" class="text-morado" aria-hidden="true"></svg>
+              <span class="mt-3 block font-alternate text-lg font-bold leading-tight text-titulo transition-colors group-hover:text-morado">Agente o actor de la música</span>
+              <span class="mt-2 block text-sm leading-relaxed text-tinta-media">Crea tu cuenta personal. Después podrás publicar tu perfil con tus prácticas y tu territorio, y unirte a una organización.</span>
+              <span class="mt-auto pt-4 text-sm font-bold text-morado">Crear cuenta personal <svg lucideArrowRight size="14" aria-hidden="true" class="ml-1 inline"></svg></span>
+            </button>
+            <button type="button" (click)="tipoDeRegistro.set('organizacion')" data-testid="registro-tipo-organizacion" class="group flex min-h-[11rem] cursor-pointer flex-col items-start rounded-xl border border-filete bg-white p-5 text-left transition hover:border-morado hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado">
+              <svg lucideBuilding2 size="26" strokeWidth="1.5" class="text-morado" aria-hidden="true"></svg>
+              <span class="mt-3 block font-alternate text-lg font-bold leading-tight text-titulo transition-colors group-hover:text-morado">Organización</span>
+              <span class="mt-2 block text-sm leading-relaxed text-tinta-media">Registra tu organización y sus procesos, con una persona responsable de la cuenta.</span>
+              <span class="mt-auto pt-4 text-sm font-bold text-morado">Registrar organización <svg lucideArrowRight size="14" aria-hidden="true" class="ml-1 inline"></svg></span>
+            </button>
+          </div>
+          <p class="mt-5 text-sm text-tinta-media">¿Ya tienes cuenta?
+            <button type="button" (click)="openExternalLogin()" class="cursor-pointer border-0 bg-transparent p-0 text-sm font-bold text-morado underline underline-offset-2 hover:text-titulo">Ingresa</button>
+          </p>
+        </div>
+      } @else {
+      <div class="mt-7">
+        <app-indicador-de-pasos id="registro-pasos" class="block scroll-mt-24" [pasos]="pasosDelCamino()" [pasoActivo]="pasoDeRegistro()" [estados]="estadosParaElIndicador()" etiqueta="Pasos del registro" (irAlPaso)="irAlPasoDeRegistro($event)" />
+        <form class="mt-6 space-y-5" novalidate (ngSubmit)="registrar()">
+          @if (pasoDeRegistro() === 1) {
+            <div class="simus-form-grid simus-form-grid--compacto">
+              <div>
+                <label for="registro-firstName" class="text-sm font-semibold text-titulo">Primer nombre<span class="simus-obligatorio" aria-hidden="true">*</span></label>
+                <input id="registro-firstName" name="firstName" autocomplete="given-name" spellcheck="false" autocapitalize="words" type="text" [(ngModel)]="alta.firstName" (ngModelChange)="actualizarCampoAlta('firstName')" (blur)="alSalirDelCampo('firstName')" [attr.aria-invalid]="erroresAlta()['firstName'] ? 'true' : null" aria-describedby="registro-firstName-error registro-nombres-ayuda" class="simus-campo">
+                
+                <app-error-de-campo identificador="registro-firstName-error" [mensaje]="erroresAlta()['firstName']" />
+              </div>
+              <div>
+                <label for="registro-secondName" class="text-sm font-semibold text-titulo">Segundo nombre (opcional)</label>
+                <input id="registro-secondName" name="secondName" autocomplete="additional-name" spellcheck="false" autocapitalize="words" [(ngModel)]="alta.secondName" aria-describedby="registro-nombres-ayuda" class="simus-campo">
+              </div>
+              <div>
+                <label for="registro-firstSurname" class="text-sm font-semibold text-titulo">Primer apellido<span class="simus-obligatorio" aria-hidden="true">*</span></label>
+                <input id="registro-firstSurname" name="firstSurname" autocomplete="family-name" spellcheck="false" autocapitalize="words" type="text" [(ngModel)]="alta.firstSurname" (ngModelChange)="actualizarCampoAlta('firstSurname')" (blur)="alSalirDelCampo('firstSurname')" [attr.aria-invalid]="erroresAlta()['firstSurname'] ? 'true' : null" aria-describedby="registro-firstSurname-error registro-nombres-ayuda" class="simus-campo">
+                
+                <app-error-de-campo identificador="registro-firstSurname-error" [mensaje]="erroresAlta()['firstSurname']" />
+              </div>
+              <div>
+                <label for="registro-secondSurname" class="text-sm font-semibold text-titulo">Segundo apellido (opcional)</label>
+                <input id="registro-secondSurname" name="secondSurname" autocomplete="off" spellcheck="false" autocapitalize="words" [(ngModel)]="alta.secondSurname" aria-describedby="registro-nombres-ayuda" class="simus-campo">
+              </div>
+              <p id="registro-nombres-ayuda" class="simus-field-wide -mt-2 text-xs text-tinta-media">Escríbelos como figuran en tu documento de identidad.</p>
+              <div>
+                <app-campo-de-seleccion tamano="comodo" etiqueta="Tipo de documento" identificador="registro-documentType" [obligatorio]="true" name="documentType" [(ngModel)]="alta.documentType" (ngModelChange)="actualizarCampoAlta('documentType')" (salir)="alSalirDelCampo('documentType')" [invalido]="!!(erroresAlta()['documentType'])" descritoPorExterno="registro-documentType-error">
+                  <option value="">Selecciona</option>
+                  @for (tipo of tiposDeDocumento; track tipo.codigo) { <option [value]="tipo.codigo">{{ tipo.nombre }}</option> }
+                </app-campo-de-seleccion>
+                <app-error-de-campo identificador="registro-documentType-error" [mensaje]="erroresAlta()['documentType']" />
+              </div>
+              <div>
+                <label for="registro-documentNumber" class="text-sm font-semibold text-titulo">Número de documento<span class="simus-obligatorio" aria-hidden="true">*</span></label>
+                <input id="registro-documentNumber" placeholder="1012345678" name="documentNumber" type="text" [(ngModel)]="alta.documentNumber" (ngModelChange)="actualizarCampoAlta('documentNumber')" (blur)="alSalirDelCampo('documentNumber')" [attr.aria-invalid]="erroresAlta()['documentNumber'] ? 'true' : null" aria-describedby="registro-documentNumber-error registro-documentNumber-ayuda" class="simus-campo" inputmode="numeric">
+                <p id="registro-documentNumber-ayuda" class="mt-1 text-xs text-tinta-media">Entre 6 y 15 cifras, sin puntos ni letras.</p>
+                @if (camposCorrectos()['documentNumber'] && !erroresAlta()['documentNumber']) { <p class="mt-1 text-xs font-medium text-emerald-800" data-campo-correcto>Documento con formato válido.</p> }
+                <app-error-de-campo identificador="registro-documentNumber-error" [mensaje]="erroresAlta()['documentNumber']" />
+              </div>
+              <div>
+                <label for="registro-phone" class="text-sm font-semibold text-titulo">Teléfono (opcional)</label>
+                <input id="registro-phone" placeholder="3001234567" name="phone" type="tel" autocomplete="tel" [(ngModel)]="alta.phone" (ngModelChange)="actualizarCampoAlta('phone')" (blur)="alSalirDelCampo('phone')" [attr.aria-invalid]="erroresAlta()['phone'] ? 'true' : null" aria-describedby="registro-phone-error" class="simus-campo">
+                
+                <app-error-de-campo identificador="registro-phone-error" [mensaje]="erroresAlta()['phone']" />
+                @if (camposCorrectos()['phone'] && !erroresAlta()['phone']) { <p class="mt-1 text-xs font-medium text-emerald-800" data-campo-correcto>Teléfono con formato válido.</p> }
+              </div>
+              <div>
+                <label for="registro-email" class="text-sm font-semibold text-titulo">Correo electrónico<span class="simus-obligatorio" aria-hidden="true">*</span></label>
+                <input id="registro-email" placeholder="nombre@correo.org" name="email" type="email" autocomplete="email" [(ngModel)]="alta.email" (ngModelChange)="actualizarCampoAlta('email')" (blur)="alSalirDelCampo('email')" [attr.aria-invalid]="erroresAlta()['email'] ? 'true' : null" aria-describedby="registro-email-error" class="simus-campo">
+                
+                <app-error-de-campo identificador="registro-email-error" [mensaje]="erroresAlta()['email']" />
+                @if (camposCorrectos()['email'] && !erroresAlta()['email']) { <p class="mt-1 text-xs font-medium text-emerald-800" data-campo-correcto>Correo con formato válido.</p> }
+              </div>
+              @if (correoYaRegistrado()) {
+                <p class="simus-field-wide -mt-3 text-sm" role="status" data-correo-ya-registrado>
+                  <button type="button" (click)="ingresarConEsteCorreo()" class="cursor-pointer border-0 bg-transparent p-0 font-bold text-morado underline underline-offset-2">Ingresar con este correo</button>
+                </p>
+              }
+              <div>
+                <label for="registro-password" class="text-sm font-semibold text-titulo">Contraseña<span class="simus-obligatorio" aria-hidden="true">*</span></label>
+                <input id="registro-password" placeholder="Una frase fácil de recordar" name="password" type="password" autocomplete="new-password" [(ngModel)]="alta.password" (ngModelChange)="actualizarCampoAlta('password')" (blur)="alSalirDelCampo('password')" [attr.aria-invalid]="erroresAlta()['password'] ? 'true' : null" aria-describedby="registro-password-error registro-password-ayuda" class="simus-campo" minlength="12">
+                <div id="registro-password-ayuda" class="mt-2 text-xs text-tinta-media" data-reglas-de-clave>
+                  <p class="font-semibold">Tu contraseña debe cumplir:</p>
+                  <ul class="mt-1 space-y-0.5">
+                    @for (regla of reglasDeLaClave(); track regla.id) {
+                      <li class="flex items-start gap-1.5" [class.text-emerald-800]="regla.cumple" [attr.data-regla]="regla.id" [attr.data-cumple]="regla.cumple">
+                        @if (regla.cumple) { <svg lucideCheck size="14" strokeWidth="2.5" aria-hidden="true" class="mt-0.5 shrink-0"></svg> } @else { <svg lucideCircle size="14" aria-hidden="true" class="mt-0.5 shrink-0"></svg> }
+                        <span>{{ regla.texto }}<span class="sr-only">: {{ regla.cumple ? 'cumple' : 'pendiente' }}</span></span>
+                      </li>
+                    }
+                  </ul>
+                </div>
+                <app-error-de-campo identificador="registro-password-error" [mensaje]="erroresAlta()['password']" />
+              </div>
+              <div>
+                <label for="registro-confirmPassword" class="text-sm font-semibold text-titulo">Confirma tu contraseña<span class="simus-obligatorio" aria-hidden="true">*</span></label>
+                <input id="registro-confirmPassword" placeholder="Repite la contraseña" name="confirmPassword" type="password" autocomplete="new-password" [(ngModel)]="alta.confirmPassword" (ngModelChange)="actualizarCampoAlta('confirmPassword')" (blur)="alSalirDelCampo('confirmPassword')" [attr.aria-invalid]="erroresAlta()['confirmPassword'] ? 'true' : null" aria-describedby="registro-confirmPassword-error" class="simus-campo">
+                
+                <app-error-de-campo identificador="registro-confirmPassword-error" [mensaje]="erroresAlta()['confirmPassword']" />
+                @if (camposCorrectos()['confirmPassword'] && !erroresAlta()['confirmPassword']) { <p class="mt-1 text-xs font-medium text-emerald-800" data-campo-correcto>Las contraseñas coinciden.</p> }
+              </div>
+            </div>
+            @if (tipoDeRegistro() === 'individual') {
+              <fieldset class="mt-6 border-t border-filete pt-5" data-categorias-del-registro>
+                <legend class="text-sm font-semibold text-titulo">Cómo quieres que te encuentren (opcional)</legend>
+                <p class="mt-1 text-sm text-tinta-media">Elige lo que haces y los servicios que ofreces. Se guardan en tu perfil, que sigue oculto hasta que tú lo publiques; puedes completarlo después.</p>
+                <div class="mt-3"><app-selector-de-categorias prefijo="registro-categorias" [departamentos]="departamentosParaCategorias()" [(valor)]="categorias" /></div>
+              </fieldset>
+            }
+          }
+          @if (pasoDeRegistro() === 2 && preparando() && !locations().length) {
+            <app-esqueleto variante="formulario" [cantidad]="4" etiqueta="Preparando el formulario" />
+          } @else if (pasoDeRegistro() === 2) {
+            <div class="simus-form-grid simus-form-grid--compacto">
+              <div class="simus-field-wide">
+                <label for="registro-organizationName" class="text-sm font-semibold text-titulo">Nombre de la organización<span class="simus-obligatorio" aria-hidden="true">*</span></label>
+                <input id="registro-organizationName" placeholder="Colectivo Marimba Viva" name="organizationName" type="text" [(ngModel)]="alta.organizationName" (ngModelChange)="actualizarCampoAlta('organizationName')" (blur)="alSalirDelCampo('organizationName')" [attr.aria-invalid]="erroresAlta()['organizationName'] ? 'true' : null" aria-describedby="registro-organizationName-error" class="simus-campo">
+                
+                <app-error-de-campo identificador="registro-organizationName-error" [mensaje]="erroresAlta()['organizationName']" />
+              </div>
+              <div class="simus-field-wide">
+                <app-campo-de-nit name="organizationIdentificationNumber" identificador="registro-organizationIdentificationNumber" [marcador]="nitDeEjemplo" nombre="organizationIdentificationNumber"
+                                  [(ngModel)]="alta.organizationIdentificationNumber" (ngModelChange)="actualizarCampoAlta('organizationIdentificationNumber')"
+                                  [error]="erroresAlta()['organizationIdentificationNumber'] ?? null" />
+              </div>
+              <div>
+                <label for="registro-headquartersDepartmentCode" class="text-sm font-semibold text-titulo">Departamento de la sede<span class="simus-obligatorio" aria-hidden="true">*</span></label>
+                <app-filtro-desplegable completo tamano="comodo" etiqueta="Departamento de la sede" idDelControl="registro-headquartersDepartmentCode" obligatorio name="headquartersDepartmentCode" [(ngModel)]="alta.headquartersDepartmentCode" (ngModelChange)="alta.headquartersMunicipalityCode = ''; actualizarCampoAlta('headquartersDepartmentCode')" (salir)="alSalirDelCampo('headquartersDepartmentCode')" [invalido]="!!(erroresAlta()['headquartersDepartmentCode'])" descritoPorExterno="registro-headquartersDepartmentCode-error" [opciones]="departments() | opcionesDesde:'code':'name':'Selecciona':true" />
+                <app-error-de-campo identificador="registro-headquartersDepartmentCode-error" [mensaje]="erroresAlta()['headquartersDepartmentCode']" />
+              </div>
+              <div>
+                <label for="registro-headquartersMunicipalityCode" class="text-sm font-semibold text-titulo">Municipio de la sede<span class="simus-obligatorio" aria-hidden="true">*</span></label>
+                <app-filtro-desplegable completo tamano="comodo" etiqueta="Municipio de la sede" idDelControl="registro-headquartersMunicipalityCode" obligatorio name="headquartersMunicipalityCode" [(ngModel)]="alta.headquartersMunicipalityCode" (ngModelChange)="actualizarCampoAlta('headquartersMunicipalityCode')" (salir)="alSalirDelCampo('headquartersMunicipalityCode')" [invalido]="!!(erroresAlta()['headquartersMunicipalityCode'])" descritoPorExterno="registro-headquartersMunicipalityCode-error" [opciones]="municipiosDelAlta() | opcionesDesde:'municipalityCode':'municipalityName':'Selecciona':true" />
+                <app-error-de-campo identificador="registro-headquartersMunicipalityCode-error" [mensaje]="erroresAlta()['headquartersMunicipalityCode']" />
+              </div>
+            </div>
+          }
+          @if (pasoDeRegistro() === 3 && preparando() && !politicasDelRegistro().length) {
+            <app-esqueleto variante="formulario" [cantidad]="3" etiqueta="Cargando las autorizaciones" />
+          } @else if (pasoDeRegistro() === 3) {
+            <!--
+              LAS CASILLAS SALEN DEL SERVIDOR, UNA POR FINALIDAD.
+
+              Eran dos, escritas a mano en esta plantilla, con el título y la versión de un PDF del
+              Ministerio pegados dentro de una frase compuesta aquí. Dos problemas: lo único que
+              quedaba guardado como prueba era a qué fila apuntaban —el texto vivía en un servidor
+              ajeno que puede cambiar el documento sin dejar rastro— y el día que apareciera una
+              tercera finalidad habría que venir a escribirla.
+
+              Ahora cada casilla es una política vigente, con su texto entero desplegable y su
+              versión a la vista, y lo que se marca es lo que el servidor copia dentro de la
+              autorización. La Ley 1581 art. 12 obliga a informar ANTES de pedir la autorización;
+              esto es lo que se informa.
+            -->
+            <div id="registro-politicas" tabindex="-1" class="mt-2 outline-none">
+              @for (politica of politicasDelRegistro(); track politica.clave) {
+                @let marcada = aceptada(politica.clave);
+                @let abierta = politicaDesplegada() === politica.clave;
+                <div class="relative">
+                  <label class="flex cursor-pointer gap-3 py-4 pr-20">
+                    <input
+                      type="checkbox"
+                      [checked]="marcada"
+                      (change)="alternarPolitica(politica.clave); actualizarCampoAlta('politicasAceptadas')"
+                      [name]="'politica-' + politica.clave"
+                      class="mt-0.5 h-5 w-5 flex-shrink-0 accent-verde-medio"
+                    >
+                    <span class="min-w-0 flex-1">
+                      <span class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                        <span class="text-sm font-bold text-titulo">{{ politica.titulo }}@if (politica.obligatoria) {<span class="simus-obligatorio" aria-hidden="true">*</span><span class="sr-only"> (obligatoria)</span>}</span>
+                      </span>
+                      <span class="mt-1.5 block text-xs leading-relaxed text-tinta-media">
+                        {{ abierta ? politica.texto : (politica.texto.length > 190 ? (politica.texto.slice(0, 190) + '…') : politica.texto) }}
+                      </span>
+                      <!--
+                        LA VERSION, A LA VISTA. Es lo que permite a esta persona comprobar después,
+                        en «Mis autorizaciones», que lo que el sistema guarda es lo que ella leyó.
+                      -->
+                      <span class="mt-1 block text-[0.7rem] text-tinta-suave">Versión {{ politica.version }}</span>
+                    </span>
+                  </label>
+
+                  <!-- Acciones discretas: un icono cada una, con su nombre como ayuda y para lectores de pantalla. -->
+                  <div class="absolute right-0 top-3 flex items-center gap-1">
+                    @if (politica.texto.length > 190) {
+                      <button
+                        type="button"
+                        (click)="alternarTextoDePolitica(politica.clave)"
+                        [attr.aria-expanded]="abierta"
+                        [attr.aria-label]="abierta ? 'Leer menos' : 'Leer el texto completo'"
+                        [title]="abierta ? 'Leer menos' : 'Leer el texto completo'"
+                        class="grid h-7 w-7 cursor-pointer place-items-center rounded-md border-0 bg-transparent text-tinta-suave transition hover:bg-morado-50 hover:text-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado"
+                      >
+                        <svg lucideChevronDown size="16" [class.rotate-180]="abierta" class="transition-transform"></svg>
+                      </button>
+                    }
+                    @if (politica.urlOficial) {
+                      <a
+                        [href]="politica.urlOficial" target="_blank" rel="noopener noreferrer"
+                        [attr.aria-label]="'Documento del Ministerio' + (politica.referenciaOficial ? ' · ' + politica.referenciaOficial : '')"
+                        [title]="'Documento del Ministerio' + (politica.referenciaOficial ? ' · ' + politica.referenciaOficial : '')"
+                        class="grid h-7 w-7 place-items-center rounded-md text-tinta-suave transition hover:bg-morado-50 hover:text-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado"
+                      >
+                        <svg lucideExternalLink size="15"></svg>
+                      </a>
+                    }
+                  </div>
+                </div>
+              }
+
+              <app-error-de-campo identificador="registro-politicas-error" [mensaje]="erroresAlta()['politicasAceptadas']" />
+            </div>
+          }
+          <p class="text-xs text-tinta-media"><span class="simus-obligatorio">*</span> Campo obligatorio</p>
+          <div class="flex justify-between border-t border-filete pt-5">
+            @if (pasoDeRegistro() === 1 && !invitacion()) { <button type="button" (click)="tipoDeRegistro.set(null)" appBoton="secundaria" tamano="comodo">Cambiar tipo de registro</button> }
+            @if (pasoDeRegistro() > 1) { <button type="button" (click)="pasoAnteriorRegistro()" appBoton="secundaria" tamano="comodo">Atrás</button> }
+            @if (pasoDeRegistro() < 3) { <button type="button" (click)="pasoSiguienteRegistro()" appBoton="confirmar" tamano="comodo" class="ml-auto">Siguiente</button> } @else { <span class="ml-auto"><app-boton tipo="submit" importancia="confirmar" tamano="comodo" [ocupado]="loading()" identificador="registro-enviar">{{ loading() ? 'Creando tu cuenta…' : (tipoDeRegistro() === 'individual' ? 'Crear mi cuenta' : 'Registrar organización') }}</app-boton></span> }
+          </div>
+        </form>
+      </div>
+      }
+    }
+      </div>
+    </main>
+  </div>
+
+</section>

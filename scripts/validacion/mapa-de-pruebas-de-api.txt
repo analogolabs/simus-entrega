@@ -1,0 +1,14 @@
+# Mapa explícito archivo -> clases de prueba de API para el modo DIRIGIDO de la validación local
+# (SIMUS_VALIDAR_API=dirigida; ver scripts/validacion/decidir-alcance-de-api.sh y docs/desarrollo/10-pruebas.md «Pruebas de API dirigidas»).
+#
+# Sirve para ficheros de simus-api/ que NO se pueden relacionar solos por nombre (Services/, Historial/...). Todo
+# fichero de simus-api/ o simus-database/ sin relación conocida, o transversal (Program.cs, Security/, Contracts/,
+# Infrastructure/, DbUp, openapi, rutas .Map*), manda a la suite COMPLETA: no se añaden aquí.
+#
+# FORMATO (igual que rutas-que-leen-las-pruebas-de-api.txt):   patrón | ClaseDePrueba [OtraClase ...]
+#   patrón: ruta desde la raíz; si termina en «/» es un prefijo de carpeta, si no, un fichero exacto.
+#   clases: nombre del fichero .cs de simus-api/tests/SIMUS.Api.Tests/ sin extensión.
+# Solo se añade una regla cuando se comprobó que esas clases cubren de verdad el fichero. Las reglas se evalúan antes
+# que la deducción por nombre.
+
+# (sin reglas por ahora: todo lo que no se deduce por nombre corre la suite completa)

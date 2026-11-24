@@ -1,0 +1,51 @@
+<section class="min-h-screen bg-slate-50 pb-24 font-nunito text-titulo">
+  @if (estado() === 'listo' && organizacion(); as o) {
+    <app-compact-hero [backLabel]="'dir_comun_miga_ecosistema' | textoWeb" [current]="o.nombre" [title]="o.nombre" [subtitle]="'org_publica_subtitulo' | textoWeb" (regresoSolicitado)="volver()"></app-compact-hero>
+    <div class="mx-auto max-w-4xl px-6 pt-10 lg:px-8">
+      <article class="rounded-2xl border border-filete bg-white p-8">
+        <div class="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
+          @if (o.fotoUrl) {
+            <img [src]="o.fotoUrl" [alt]="'Imagen de ' + o.nombre" class="h-24 w-24 rounded-xl border border-filete object-cover" width="96" height="96" />
+          }
+          <div>
+            <h2 class="font-alternate text-2xl font-bold">{{ o.nombre }}</h2>
+            @if (o.municipio) { <p class="mt-1 text-sm text-tinta-media">{{ o.municipio }}</p> }
+          </div>
+        </div>
+        @if (o.descripcion) { <p class="mt-6 whitespace-pre-line leading-relaxed">{{ o.descripcion }}</p> }
+
+        <section class="mt-8 border-t border-filete pt-6" aria-labelledby="organizacion-personas">
+          <h3 id="organizacion-personas" class="font-alternate text-xs font-bold text-tinta-media">{{ 'org_publica_personas' | textoWeb }}</h3>
+          @if (o.personas.length) {
+            <ul class="mt-4 grid gap-3 sm:grid-cols-2">
+              @for (persona of o.personas; track persona.clave) {
+                <li>
+                  <a [routerLink]="['/ecosistema/personas', persona.clave]" class="flex min-h-11 items-center gap-3 rounded-xl border border-filete p-3 text-titulo no-underline hover:border-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado">
+                    @if (persona.fotoUrl) {
+                      <img [src]="persona.fotoUrl" alt="" class="h-10 w-10 rounded-full object-cover" width="40" height="40" />
+                    } @else {
+                      <span aria-hidden="true" class="flex h-10 w-10 items-center justify-center rounded-full bg-morado/10 text-sm font-bold text-morado">{{ iniciales(persona.nombreVisible) }}</span>
+                    }
+                    <span>{{ persona.nombreVisible }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="mt-3 text-sm text-tinta-media">{{ 'org_publica_sin_personas' | textoWeb }}</p>
+          }
+        </section>
+      </article>
+    </div>
+  } @else if (estado() === 'no-disponible') {
+    <app-recurso-no-encontrado
+      idBase="organizacion"
+      [titulo]="'org_publica_no_disponible' | textoWeb"
+      causa="Puede que la dirección esté mal escrita, que la organización no esté publicada o que ya no esté activa."
+      etiquetaDeLista="Ver el ecosistema"
+      rutaDeLista="/ecosistema"
+    />
+  } @else {
+    <div class="mx-auto max-w-7xl px-6 pt-28"><app-esqueleto variante="ficha" [etiqueta]="'org_publica_cargando' | textoWeb" /></div>
+  }
+</section>

@@ -1,0 +1,48 @@
+from ._comun import ed
+
+FESTIVAL = dict(
+    clave="encuentro-de-arpas-y-cuatros-del-ariari", nombre="Encuentro de Arpas y Cuatros del Ariari", org="corp-arpa-del-ariari", muni="50313", estado="ajustes_solicitados", trayectoria="ajustes_vigentes",
+    periodicidad="anual", periodicidad_detalle="Se realiza en la última semana de agosto; en 2020 se canceló por la pandemia y en 2021 se hizo una versión virtual transmitida desde un patio de Granada.",
+    practicas=["musicas-populares-tradicionales-regionales-y-patrimoniales", "musicas-campesinas-rurales-y-de-raiz-territorial"],
+    territorio="joropo", director="Leidy Johana Beltrán Moya", tipo_organizador="mixto", cobertura="departamental",
+    desc=("El encuentro nació en 2016 en un patio de Granada, cuando un grupo de arpistas y cuatristas del piedemonte quiso comparar sus estilos sin la presión de un concurso. Lo que se pensó como una tarde de ensayo abierto terminó con trescientas personas escuchando pasajes, golpes y seis por derecho hasta la madrugada.\n\n"
+          "Con el tiempo el evento incorporó contrapunteos de copleros, clínicas de arpa y cuatro, una feria de instrumentos con constructores del Meta y el Guaviare, y un espacio para que las agrupaciones jóvenes conversen con programadores. "
+          "Sus propósitos son mantener vivo el joropo de raíz campesina, pagar de manera justa a quienes tocan y enseñar a los gestores a producir sin depender de un solo patrocinador.\n\n"
+          "La identidad del Ariari está en su manera de recibir: se come mamona al fuego, se baila en el suelo de tierra apisonada y los niños corren entre los músicos mientras ensayan."),
+    contacto=dict(correo_organizador="arpa@arpadelariari.test", telefono_organizador="+57 608 555 0430", sitio_organizador="https://arpadelariari.test",
+                  instagram="https://instagram.test/arpasycuatrosdelariari", facebook="https://facebook.test/arpasycuatrosdelariari", otro="https://arpadelariari.test/feria-de-instrumentos",
+                  telefono="+57 608 555 0431", obs="Contacto principal por correo; los días del encuentro se atiende en la oficina de la corporación en Granada."),
+    aliados=["Escuela Municipal de Música de Granada", "Asociación de Constructores del Piedemonte", "Emisora La Voz del Ariari"],
+    enlaces=[("https://arpadelariari.test/programa-2025.pdf", "Programa de mano de la edición 2025."), ("https://arpadelariari.test/convocatoria-2027.pdf", "Borrador de convocatoria para la edición 2027.")],
+    ediciones=[
+        ed(2016, 1, ((8, 26), (8, 27)), "Arpa y cuatro, cara a cara", "Patio de una casa de Granada",
+           "Tarde de ensayo abierto que se alargó hasta la madrugada. Seis arpistas y siete cuatristas compararon estilos de piedemonte frente a unos trescientos vecinos sentados en el suelo.",
+           [(0, "16:00", "Tarde de ensayo abierto", "conciertos-y-presentaciones", "Patio de una casa en Granada", "Seis arpistas y siete cuatristas tocan pasajes y golpes por turnos.")],
+           cifras=dict(agrupaciones=7, artistas=26, asistentes=300, talleres=0, comunidades=1), tipologia="encuentros", fuente1="recursos-propios"),
+        ed(2017, 2, ((8, 25), (8, 27)), "Con la sabana en los dedos", "Coliseo de Granada",
+           "Segunda edición en coliseo cubierto, con tarima fija y más de veinte músicos. Los copleros hicieron su primer contrapunteo y un niño de ocho años sorprendió con un pasaje de arpa.",
+           [(1, "19:00", "Primer contrapunteo de copleros", "conciertos-y-presentaciones", "Coliseo de Granada", "Tres copleros de Granada y de Puerto Lleras se retan con cuartetas improvisadas.")],
+           cifras=dict(agrupaciones=10, artistas=48, asistentes=900, talleres=1, comunidades=3), tipologia="encuentros", fuente1="alcaldia", fuente2="recursos-propios"),
+        ed(2018, 3, ((8, 24), (8, 26)), "Cuerdas de piedemonte", "Coliseo y plaza de Granada",
+           "La primera feria de instrumentos reunió a constructores del Meta y del Guaviare. Se vendieron treinta cuatros y seis arpas, y se abrió una lista de espera de aprendices para el taller de lutería.",
+           [(0, "09:00", "Feria de instrumentos", "festivales", "Plaza de Granada", "Constructores exhiben arpas, cuatros y maracas, y cada uno explica cómo selecciona la madera.")],
+           formacion="Taller de lutería básica para quince aprendices con constructores invitados.",
+           cifras=dict(agrupaciones=12, artistas=58, asistentes=1300, talleres=2, comunidades=4), tipologia="festival-de-musica", fuente1="gobernacion", fuente2="alcaldia"),
+        ed(2019, 4, ((8, 23), (8, 25)), "Joropo a campo abierto", "Finca La Esmeralda, vereda Aguas Claras",
+           "Se trasladó el encuentro a una finca para recrear las fiestas de hato de antes: ganado, fogón y baile en tierra apisonada. Seiscientas personas, muchas llegadas desde Villavicencio, vivieron una fiesta con reglas campesinas.",
+           [(1, "20:00", "Fiesta de hato", "conciertos-y-presentaciones", "Finca La Esmeralda", "Música continua, sin tarima, con músicos mezclados entre el público como en las fiestas antiguas.")],
+           cifras=dict(agrupaciones=14, artistas=70, asistentes=1600, talleres=2, comunidades=6), tipologia="fiesta-popular", fuente1="gobernacion", fuente2="recursos-propios"),
+        ed(2022, 5, ((8, 26), (8, 28)), "De vuelta a la tierra", "Coliseo y plaza de Granada",
+           "Regreso presencial tras la versión virtual. Se estrenó un bloque de formación para operadores de sonido de música tradicional, de donde salieron cuatro bachilleres con práctica pagada.",
+           [(0, "10:00", "Taller de sonido para música tradicional", "formacion", "Coliseo de Granada", "Un técnico enseña micrófonos, posiciones y mezclas básicas para arpa, cuatro y maracas.")],
+           formacion="Curso corto de operación de sonido para música tradicional: 24 horas con prácticas en escenario real.",
+           cifras=dict(agrupaciones=13, artistas=64, asistentes=1500, talleres=3, comunidades=6), tipologia="festival-de-musica", fuente1="alcaldia", fuente2="mincultura"),
+        ed(2025, 6, ((8, 22), (8, 24)), "Cuatro cuerdas, cuatro regiones", "Coliseo, plaza y parque lineal de Granada",
+           "La edición más ambiciosa invitó a cuatristas del Casanare, Arauca y Guaviare. Hubo dos escenarios simultáneos y una noche de dúos de arpa y cuatro, con el grupo Los Hijos del Ariari entre los más aplaudidos.",
+           [(0, "18:30", "Noche de dúos", "conciertos-y-presentaciones", "Parque lineal", "Pareja de arpa y cuatro en turnos de quince minutos, entre ellos Los Hijos del Ariari."),
+            (1, "11:00", "Clínica de cuatro con invitados de tres departamentos", "formacion", "Escuela Municipal de Música", "Cuatristas comparan afinaciones y rasgueos con cuarenta estudiantes."),
+            (2, "17:00", "Cierre con rueda de grupos", "conciertos-y-presentaciones", "Coliseo", "Doce grupos tocan en rueda continua con arpistas invitados.")],
+           convocatoria="Convocatoria nacional para agrupaciones de música llanera entre el 15 de mayo y el 30 de junio; 38 postulaciones, 16 seleccionadas.",
+           cifras=dict(agrupaciones=16, artistas=92, asistentes=2600, talleres=4, comunidades=8), tipologia="festival-de-musica", fuente1="mincultura", fuente2="gobernacion", estampilla=True, agenda=True),
+    ],
+)

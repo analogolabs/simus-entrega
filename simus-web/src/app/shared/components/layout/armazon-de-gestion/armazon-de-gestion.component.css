@@ -1,0 +1,150 @@
+/* PANEL · Lo propio del armazón del espacio externo. La rejilla y la barra lateral son las de la consola
+   (`../espacio-de-trabajo/estructura.css`) y la cabecera, la de `cabecera.css`. */
+:host { display: block; }
+
+/* La altura de la cabecera la leen la barra lateral y los menús para no meterse debajo (misma medida que la consola). */
+.admin-foundation { --alto-cabecera: 4.5rem; min-height: 100dvh; background: #f7f8f6; color: #334155; font-family: var(--font-nunito, inherit); }
+
+/* Los destinos son enlaces, no botones: se visten igual y sin subrayado. */
+a.sidebar-item, a.sidebar-portal { text-decoration: none; }
+
+/* EL CONTENIDO A TODO EL ANCHO ÚTIL (PANEL): hasta 120 rem y con un aire lateral que crece con la ventana, no una
+   columna estrecha con el resto vacío. Puede encogerse (`min-width: 0`): una tabla ancha se desplaza dentro de su
+   contenedor y no empuja la página hacia el lado. */
+.panel-contenido { min-width: 0; width: 100%; max-width: 120rem; padding: 1.75rem clamp(1.25rem, 2.6vw, 2.75rem) 2rem; }
+
+/* LOS BOTONES FLOTANTES NUNCA CUBREN CONTENIDO (PANEL, decisión 126). La consulta guiada y la ayuda flotan en la esquina inferior
+   derecha (unos 80 px desde el borde) y tapaban «Enviar a revisión» u otras acciones al fondo de una pantalla que no se desplaza. Reservar
+   ese aire a la derecha en pantalla ancha es lo que de verdad lo evita: reservar espacio abajo solo sirve si la página se desplaza. */
+@media (min-width: 801px) {
+  .panel-contenido { padding-right: max(5.5rem, clamp(1.25rem, 2.6vw, 2.75rem)); }
+}
+
+@media (max-width: 800px) {
+  .panel-contenido { padding: 1.25rem 1rem 1.5rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EL MENÚ LATERAL SEGÚN EL ANCHO (gestión externa)
+
+   La forma sale de `menu-lateral.ts` y llega aquí como clases del armazón:
+     · `con-columna`        hay columna lateral (desde 700 px);
+     · `en-riel`            la columna es un riel de iconos (68 px);
+     · `menu-superpuesto`   en tableta, la barra abierta por encima del contenido;
+     · `modo-movil`         sin columna: barra inferior y «Más».
+   Las reglas de `estructura.css` (compartida con la consola) cortan a 800 px por media query; aquí el corte
+   lo manda el ancho medido, así que cada regla lleva su clase y gana por especificidad, sin tocar la consola.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* La columna: ancha o riel, con una transición corta que se apaga con «reducir movimiento». */
+.con-columna .foundation-layout { display: grid; grid-template-columns: 17rem minmax(0, 1fr); }
+.con-columna.en-riel .foundation-layout,
+.con-columna.menu-superpuesto .foundation-layout { grid-template-columns: 4.25rem minmax(0, 1fr); }
+@media (prefers-reduced-motion: no-preference) {
+  .con-columna .foundation-layout { transition: grid-template-columns .18s ease; }
+}
+
+/* El marco ocupa la columna y se queda anclado bajo la cabecera, con el alto de siempre (ventana menos cabecera). */
+.barra-marco { position: sticky; top: var(--alto-cabecera, 0px); align-self: start; z-index: var(--z-barra-de-filtros, 40); min-width: 0; height: calc(100dvh - var(--alto-cabecera, 0px)); }
+.con-columna .foundation-sidebar {
+  display: flex; position: static; height: 100%; padding: 1rem 0 0; overflow: hidden;
+  border-right: 1px solid var(--color-filete); border-bottom: 0; background: var(--color-hueso);
+}
+.con-columna .sidebar-secciones { padding-inline: .75rem; overflow-x: hidden; overflow-y: auto; scrollbar-gutter: stable; }
+.con-columna .sidebar-group:last-of-type { margin-bottom: .25rem; }
+
+/* El rótulo de la identidad sigue en su sitio; las iniciales solo existen en riel. */
+.identidad-riel { display: none; }
+
+/* El pie: el control del menú y el portal público, bajo un solo filete. */
+.sidebar-pie { flex: 0 0 auto; margin: .35rem .75rem .5rem; border-top: 1px solid var(--color-filete); padding-top: .25rem; }
+.sidebar-pie .sidebar-portal { margin: 0; border-top: 0; padding: 0 .625rem; min-height: 2.125rem; }
+.sidebar-control {
+  display: grid; grid-template-columns: 1.125rem minmax(0, 1fr); align-items: center; gap: .625rem; width: 100%; min-height: 2.125rem; margin: 0;
+  border: 0; border-radius: .5rem; background: none; padding: 0 .625rem; color: var(--color-rotulo);
+  font-family: inherit; font-size: var(--text-dato); font-weight: 600; text-align: left; cursor: pointer;
+}
+.sidebar-control:hover { background: var(--color-morado-50); color: var(--color-morado); }
+.sidebar-control:hover .sidebar-icono { color: var(--color-morado-claro); }
+.sidebar-control:focus-visible { outline: 2px solid var(--color-morado); outline-offset: -2px; }
+.sidebar-disparador { display: none !important; }
+
+/* ── RIEL: solo iconos, de 44 px de alto como mínimo, con el rótulo para quien lo lee en voz y el emergente para quien lo ve ── */
+.en-riel .marco-identidad,
+.en-riel .sidebar-grupo-titulo { display: none; }
+.en-riel .identidad-riel {
+  display: grid; flex: 0 0 auto; place-items: center; width: 2.5rem; height: 2.5rem; margin: 0 auto .75rem; border-radius: .625rem;
+  background: var(--color-morado); color: #fff; font-size: var(--text-cuerpo); font-weight: 800;
+}
+.en-riel .sidebar-secciones { padding-inline: .5rem; }
+.en-riel .sidebar-group { margin: 0; padding: .5rem 0; border-top: 1px solid var(--color-filete); }
+.en-riel .sidebar-group:first-of-type { border-top: 0; padding-top: 0; }
+.en-riel .sidebar-grupo-lista[hidden] { display: block; }
+.en-riel .sidebar-item,
+.en-riel .sidebar-control,
+.en-riel .sidebar-portal { position: relative; display: grid; grid-template-columns: 1fr; justify-items: center; min-height: 2.75rem; padding: 0; }
+.en-riel .sidebar-rotulo {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+.en-riel .sidebar-item em { position: absolute; top: .125rem; right: .125rem; min-width: 1.125rem; height: 1.125rem; padding: 0 .25rem; font-size: var(--text-dato); line-height: 1; }
+.en-riel .sidebar-pie { margin-inline: .5rem; }
+
+/* ── TABLETA: la barra se abre por encima del contenido, sin empujarlo ── */
+.menu-superpuesto .foundation-sidebar { position: absolute; inset: 0 auto 0 0; width: 17rem; box-shadow: 6px 0 24px rgba(30, 15, 34, .25); }
+.menu-superpuesto .marco-identidad { display: block; }
+.menu-superpuesto .identidad-riel { display: none; }
+.menu-superpuesto .sidebar-grupo-titulo { display: flex; }
+.velo-del-menu { position: fixed; inset: var(--alto-cabecera, 0px) 0 0 0; z-index: calc(var(--z-barra-de-filtros, 40) - 1); background: rgba(30, 15, 34, .45); }
+
+/* ── EL RÓTULO EMERGENTE DEL RIEL ── */
+.etiqueta-emergente {
+  position: fixed; z-index: var(--z-desplegable, 60); transform: translateY(-50%); pointer-events: none; white-space: nowrap;
+  border-radius: .5rem; background: #2b2230; padding: .375rem .625rem; color: #fff; font-size: var(--text-dato); font-weight: 600;
+}
+
+/* ── MÓVIL: sin columna; barra inferior y «Más» ── */
+.modo-movil { /* Lo que mide la barra inferior: los botones flotantes (consulta guiada) se suben esa altura para no tapar «Más». */
+  --alto-barra-inferior: calc(4.5rem + env(safe-area-inset-bottom, 0px)); }
+.modo-movil .foundation-layout { display: block; }
+.modo-movil .foundation-sidebar { display: none; }
+/* Sin columna, el marco que la fija no tiene nada que fijar: sin esto quedaba como un bloque vacío de alto de ventana, pegado
+   y por encima del contenido (empujaba el contenido 100dvh hacia abajo y se comía los toques). */
+.modo-movil .barra-marco { display: none; }
+.modo-movil .foundation-main { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); }
+.barra-inferior {
+  position: fixed; inset: auto 0 0 0; z-index: var(--z-barra-de-filtros, 40); display: flex; justify-content: space-around;
+  border-top: 1px solid var(--color-filete); background: #fff; padding: .25rem .25rem calc(.25rem + env(safe-area-inset-bottom, 0px));
+}
+.barra-inferior__destino {
+  position: relative; display: flex; flex: 1 1 0; min-width: 0; min-height: 3.5rem; flex-direction: column; align-items: center; justify-content: center; gap: .125rem;
+  border: 0; border-radius: .625rem; background: none; padding: .25rem 0; color: var(--color-valor); font-family: inherit;
+  font-size: var(--text-dato); font-weight: 700; text-decoration: none; cursor: pointer;
+}
+.barra-inferior__destino:focus-visible { outline: 2px solid var(--color-morado); outline-offset: -2px; }
+.barra-inferior__pastilla { position: relative; display: grid; place-items: center; width: 3.5rem; height: 1.875rem; border-radius: .9375rem; }
+.barra-inferior__destino.is-active { color: var(--color-morado); }
+.barra-inferior__destino.is-active .barra-inferior__pastilla { background: var(--color-morado-100); }
+.barra-inferior__rotulo { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barra-inferior em, .hoja-mas__destino em {
+  display: grid; min-width: 1.125rem; height: 1.125rem; place-items: center; border-radius: 99px; background: var(--color-morado);
+  padding: 0 .25rem; color: #fff; font-size: var(--text-dato); font-weight: 800; font-style: normal;
+}
+.barra-inferior em { position: absolute; top: -.25rem; right: .25rem; }
+.velo-del-menu--movil { z-index: var(--z-dialogo, 3100); inset: 0; }
+.hoja-mas {
+  position: fixed; inset: auto 0 0 0; z-index: calc(var(--z-dialogo, 3100) + 1); max-height: 80dvh; overflow-y: auto; border-radius: 1.125rem 1.125rem 0 0;
+  background: #fff; padding: .625rem .75rem calc(.875rem + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -10px 40px rgba(0, 0, 0, .3);
+}
+.hoja-mas__grupo { margin: .5rem .5rem .25rem; color: var(--color-rotulo); font-size: var(--text-dato); font-weight: 800; }
+.hoja-mas__destino {
+  display: grid; grid-template-columns: 1.25rem minmax(0, 1fr) auto; align-items: center; gap: .75rem; min-height: 3rem; border-radius: .625rem; padding: 0 .75rem;
+  color: var(--color-valor); font-size: var(--text-cuerpo); font-weight: 600; text-decoration: none;
+}
+.hoja-mas__destino:hover { background: var(--color-morado-50); }
+.hoja-mas__destino.is-active { background: var(--color-morado-100); color: var(--color-morado); font-weight: 700; }
+.hoja-mas__destino--portal { margin-top: .5rem; border-top: 1px solid var(--color-filete); border-radius: 0; color: var(--color-rotulo); }
+.hoja-mas__destino:focus-visible, .hoja-mas__cerrar:focus-visible { outline: 2px solid var(--color-morado); outline-offset: -2px; }
+.hoja-mas__cerrar {
+  display: flex; align-items: center; justify-content: center; gap: .375rem; width: 100%; min-height: 2.75rem; margin-top: .5rem; border: 1px solid var(--color-filete);
+  border-radius: .625rem; background: #fff; color: var(--color-valor); font-family: inherit; font-size: var(--text-cuerpo); font-weight: 700; cursor: pointer;
+}

@@ -1,0 +1,60 @@
+<!--
+  EL ALTO DE LA BARRA FIJA SE RESERVA ARRIBA (`pt-[calc(var(--alto-barra-superior)+2rem)]`): la barra de
+  navegación del portal es `fixed`, y sin ese margen se superponía al título de esta página anónima.
+-->
+<main id="contenido-principal" tabindex="-1"
+  class="min-h-[70vh] bg-morado-50 px-4 pb-16 pt-[calc(var(--alto-barra-superior)+2rem)] sm:px-6">
+  <div class="mx-auto w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-sm">
+    <div class="flex items-center bg-morado px-6 py-6 sm:px-8">
+      <img src="/assets/branding/logo-simus-blanco.png" width="380" height="135" class="h-10 w-auto" alt="SIMUS" />
+    </div>
+    <div aria-hidden="true" class="flex h-1">
+      <span class="flex-1 bg-rosa"></span><span class="flex-1 bg-morado-claro"></span><span class="flex-1 bg-rosa-claro"></span><span class="flex-1 bg-verde-claro"></span><span class="flex-1 bg-verde"></span>
+    </div>
+
+    <div class="px-6 py-8 sm:px-8">
+      @if (confirmado()) {
+        <div role="status" data-testid="confirmar-boletin-listo">
+          <p class="tipo-etiqueta text-verde-texto">{{ 'boletin_etiqueta' | textoWeb }}</p>
+          <h1 class="tipo-titulo mt-2 text-morado">{{ 'boletin_confirmar_listo_titulo' | textoWeb }}</h1>
+          <p class="tipo-pequeno mt-3 text-tinta-media">
+            {{ 'boletin_confirmar_listo_texto' | textoWeb }}
+          </p>
+          <a routerLink="/" appBoton="principal" tamano="comodo" class="mt-6 inline-flex">{{ 'boletin_volver_inicio' | textoWeb }}</a>
+        </div>
+      } @else if (trabajando()) {
+        <div role="status" aria-live="polite" data-testid="confirmar-boletin-confirmando">
+          <p class="tipo-etiqueta text-verde-texto">{{ 'boletin_etiqueta' | textoWeb }}</p>
+          <h1 class="tipo-titulo mt-2 text-morado">{{ 'boletin_confirmar_trabajando_titulo' | textoWeb }}</h1>
+          <p class="tipo-pequeno mt-3 text-tinta-media">{{ 'boletin_confirmar_trabajando_texto' | textoWeb }}</p>
+        </div>
+      } @else if (!testigo || error()) {
+        <div data-testid="confirmar-boletin-invalido">
+          <p class="tipo-etiqueta text-verde-texto">{{ 'boletin_etiqueta' | textoWeb }}</p>
+          <h1 class="tipo-titulo mt-2 text-morado">{{ testigo ? ('boletin_confirmar_fallo_titulo' | textoWeb) : ('boletin_enlace_invalido_titulo' | textoWeb) }}</h1>
+          <p role="alert" data-testid="confirmar-boletin-error" class="tipo-pequeno mt-3 text-red-700">{{ error() }}</p>
+          <p class="tipo-pequeno mt-3 text-tinta-media">
+            {{ 'boletin_confirmar_vencido' | textoWeb }}
+          </p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            @if (testigo) {
+              <button type="button" data-testid="confirmar-boletin-boton" (click)="confirmar()"
+                appBoton="principal" tamano="comodo">{{ 'boletin_reintentar' | textoWeb }}</button>
+            }
+            <a routerLink="/" appBoton="secundaria" tamano="comodo" class="inline-flex">{{ 'boletin_volver_inicio' | textoWeb }}</a>
+          </div>
+        </div>
+      } @else {
+        <div data-testid="confirmar-boletin-pendiente">
+          <p class="tipo-etiqueta text-verde-texto">{{ 'boletin_etiqueta' | textoWeb }}</p>
+          <h1 class="tipo-titulo mt-2 text-morado">{{ 'boletin_confirmar_pendiente_titulo' | textoWeb }}</h1>
+          <p class="tipo-pequeno mt-3 text-tinta-media">
+            {{ 'boletin_confirmar_pendiente_texto' | textoWeb }}
+          </p>
+          <button type="button" data-testid="confirmar-boletin-boton" (click)="confirmar()"
+            appBoton="principal" tamano="comodo" class="mt-6">{{ 'boletin_confirmar_boton' | textoWeb }}</button>
+        </div>
+      }
+    </div>
+  </div>
+</main>

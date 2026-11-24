@@ -1,0 +1,1866 @@
+{
+  "_lee_esto_primero": "Techo de deuda de INTERFAZ. Lo mantiene trinquete-interfaz.mjs. Hay metricas de dos sentidos: las de 'maximo' son deuda y solo bajan; las de 'minimo' son practica ya saldada y solo suben. La herramienta APRIETA en ambos sentidos y nunca afloja. Si ves un cambio que afloja un numero, es una edicion a mano y hay que discutirla en la revision, no aprobarla de paso.",
+  "que_NO_cubre": "Todo lo que necesita renderizar: contraste real sobre el DOM, recorte, desborde, area tactil, foco visible, orden de tabulacion. Eso lo mide el barrido de dispositivos (playwright.audit.config.ts + e2e-audit/), que necesita frontend, API y base en pie y por eso es una herramienta LOCAL, no una puerta de CI. Este trinquete es el subconjunto que se puede vigilar leyendo ficheros. Atrapa la regresion barata; no sustituye al barrido, que es el que encuentra el defecto.",
+  "ambito": "simus-web/src/**/*.html y el literal `template:` de cada .component.ts. Las plantillas en linea entraron el 14 de septiembre de 2026: las piezas compartidas de la consola viven asi, y al mover un role=dialog o un role=alert de un .html a una de ellas el trinquete veia bajar la practica cuando se habia centralizado.",
+  "por_que_se_mide_sobre_el_fichero_entero": "Las etiquetas de Angular se parten en varias lineas constantemente. Un grep -oE '<img[^>]*>' no ve una etiqueta partida y la deja fuera. Medido el 22 ago 2026: el grep linea a linea daba 6 botones y 27 imagenes; leyendo el fichero entero salen 14 y 50. Las cifras buenas son las de aqui, y por eso NO hay un 'comando_oficial' de grep equivalente: no lo hay.",
+  "_resellado_g1_13_nov_2026": "dialogos_con_rol 89 -> 86 y anuncios_accesibles 242 -> 239: G1 (#204) sustituyo tres usos en plantilla de <app-confirmacion> (Noticias, Agenda y Catalogo: devolver, rechazar, observar y despublicar) por el servicio comun de confirmacion, que se pide desde el codigo y cuyo componente raiz app-confirmacion-global lleva role=dialog y role=alert una sola vez. La practica se centraliza y la metrica estatica, que solo lee plantillas, baja en tres y tres. Mismo caso que el comentario de anuncios_accesibles (15 a 17 de septiembre de 2026).",
+  "_resellado_uic_13_nov_2026": "selectores_nativos 124 -> 108: UI-C (13 nov 2026) sustituyo 16 <select> sueltos por app-filtro-desplegable y app-buscador-de-lista: los filtros y el orden de app-directorio-ecosistema, el panel de filtros del mapa, la barra de procesos del panel de la organizacion y los filtros de Espacios, Redes y Talleres de la consola. Los que quedan son campos de formulario, vestidos por la regla unica de styles.css. El resto de bajadas del sello (colores_literales, mayuscula_sostenida_en_plantillas, tarjetas_anidadas, enlaces_de_router) viene de lo ya fusionado en main y se aprieta en este mismo sello.",
+  "_resellado_uid_15_nov_2026": "selectores_nativos 108 -> 27: UI-D (15 nov 2026) paso 81 <select> de campos de formulario (fichas de Festival, Mercado, Espacio, Red y Taller, asistentes, ingreso y registro, altas de la consola, datos de cuenta) a app-campo-de-seleccion (lista corta, con las opciones escritas dentro de la etiqueta) o a app-filtro-desplegable (departamento y municipio, que ahora admite ngModel). Los 27 que quedan: 16 en Agenda y Catalogo editorial (diseno aprobado en G6, no se tocan); el resto son selects en celdas de tabla o con el valor enlazado a mano (selector de organizacion, rol del equipo, categoria padre, periodicidad de la alta de Festival), el select interno de app-campo-de-seleccion y menciones en comentarios de plantilla. mayuscula_sostenida_en_plantillas 419 -> 157: se quito `uppercase` y su `tracking` de rotulos, botones, pestanas y avisos de panel, consola y piezas compartidas; quedan titulos (h1 a h3) y los archivos de G6. rotulos_de_campo_a_mano 6 -> 2 es consecuencia. colores_literales 72 -> 59 y tarjetas_anidadas 109 -> 79 bajan porque los botones ad hoc pasan a la directiva appBoton. anuncios_accesibles midio 239 (+1) y NO se aprieta: un minimo no sube en este lote.",
+  "_resellado_uie_16_nov_2026": "acentos_laterales 106 -> 39: UI-E (16 nov 2026) pasa 67 apariciones de `border-l-2/4` de las pantallas del panel de la organizacion (avisos de error, de exito y de cambios pedidos, citas de observaciones) a un borde completo con el color del estado, sin acento lateral; quedan los de la consola y del portal, y los dos de la barra vertical de las fichas de Festival y de Mercado, que marcan la pestana activa. selectores_nativos 27 -> 26: el selector de organizacion del panel pasa a app-campo-de-seleccion. degradados_en_plantillas 7 -> 6 (se quita el distintivo con degradado de la organizacion), colores_literales 59 -> 58 y mayuscula_sostenida_en_plantillas 157 -> 152 (titulos y rotulos del armazon del panel). tarjetas_anidadas se mantiene en 79: los avisos nuevos llevan borde y fondo de color, no de superficie. enlaces_de_router sube de 188 a 194 y anuncios_accesibles de 238 a 239 (minimos que solo suben: la barra lateral y la cabecera del panel). Ningun maximo sube ni ningun minimo baja.",
+  "_resellado_sol_17_nov_2026": "enlaces_de_router 199 -> 198: SOL (17 nov 2026) unifico la seccion Solicitudes del panel con la lista comun (app-lista-de-solicitudes): los enlaces escritos a mano en los bloques «Esperan tu accion», «Esperan decision del PNMC» e Historial pasan a un solo enlace de fila, mas los de la ficha de la solicitud. Es un minimo que baja por duplicados retirados, no por perder navegacion: cada fila lleva a su ficha y la ficha conserva \"Volver a Solicitudes\", la ficha publica y \"Abrir el Festival\". Ningun maximo sube.",
+  "_resellado_p1_21_nov_2026": "enlaces_de_router 213 -> 210: P1 de la gestion externa (21 nov 2026, prototipo B4 aprobado) reorganiza el Inicio del panel: los cuatro accesos rapidos sueltos (registrar, anunciar, invitar, editar) pasan a un solo menu «Crear» (app-menu-de-acciones, que navega con el Router desde la orden elegida) y al boton «Editar los datos» de la banda de identidad, y el informe de procesos pasa a ser de solo lectura con un unico enlace, «Ver todos los procesos»: se retiran los enlaces por tipo de la tabla. Es una baja intencionada del diseno aprobado y no se pierde ninguna ruta: cada destino sigue a un clic desde Inicio, el menu lateral o Crear. Ningun maximo sube.",
+  "_resellado_lis_18_nov_2026": "mayuscula_sostenida_en_plantillas 90 -> 87: la lista unica de procesos de la consola (decision 132) sustituye a tres listas copiadas (Talleres, Espacios y Redes), cada una con un titulo en mayuscula sostenida. anuncios_accesibles se mantiene en 259 (la lista nueva usa app-estado-de-lista para carga, vacio y error). Tras unir con main se conserva lo mejor de cada lado: titulos_con_clases_ad_hoc 0 (#242). Ningun maximo sube ni ningun minimo baja.",
+  "_resellado_mercados_18_nov_2026": "enlaces_de_router 216 -> 213 (medido tras unir main): se retiran los componentes seccion-talleres, seccion-espacios y seccion-redes del panel de la organizacion, sin ruta desde la decision 132 (la lista unica de Procesos los sustituyo) y sin ningun uso en plantillas, rutas, especificaciones ni pruebas e2e (grep de selectores y clases). Cada uno llevaba enlaces de router propios; es una baja legitima por codigo muerto y no se pierde navegacion alguna. Ningun otro minimo baja ni ningun maximo sube; anuncios_accesibles no se aprieta en este cambio.",
+  "metricas": {
+    "botones_de_accion_sin_tipo": 0,
+    "imagenes_sin_dimension": 14,
+    "colores_literales": 53,
+    "enlaces_de_router": 210,
+    "dialogos_con_rol": 86,
+    "anuncios_accesibles": 259,
+    "pildoras_de_estado": 0,
+    "formatos_de_fecha_sueltos": 0,
+    "tamanos_fuera_de_escala": 0,
+    "ventanas_sin_directiva": 0,
+    "campos_sin_rotulo": 0,
+    "rotulos_de_campo_a_mano": 2,
+    "selectores_nativos": 26,
+    "acentos_laterales": 8,
+    "mayuscula_sostenida_en_plantillas": 87,
+    "degradados_en_plantillas": 2,
+    "tarjetas_anidadas": 9,
+    "cargando_sueltos": 33,
+    "titulos_con_clases_ad_hoc": 0
+  },
+  "sentido": {
+    "botones_de_accion_sin_tipo": "maximo",
+    "imagenes_sin_dimension": "maximo",
+    "colores_literales": "maximo",
+    "enlaces_de_router": "minimo",
+    "dialogos_con_rol": "minimo",
+    "anuncios_accesibles": "minimo",
+    "pildoras_de_estado": "maximo",
+    "formatos_de_fecha_sueltos": "maximo",
+    "ventanas_sin_directiva": "maximo",
+    "campos_sin_rotulo": "maximo",
+    "rotulos_de_campo_a_mano": "maximo",
+    "cargando_sueltos": "maximo"
+  },
+  "medido_en": "2026-11-18T13:16:24.107Z",
+  "ficheros_escaneados": 228,
+  "rama": "feat/retiro-listas-por-tipo",
+  "commit_base": "10e663f0",
+  "arbol_limpio": false,
+  "historial": [
+    {
+      "fecha": "2026-08-22T14:05:00Z",
+      "via": "sello inicial",
+      "metricas": {
+        "botones_de_accion_sin_tipo": 0,
+        "imagenes_sin_dimension": 50,
+        "colores_literales": 1578,
+        "enlaces_de_router": 4,
+        "dialogos_con_rol": 1,
+        "anuncios_accesibles": 7
+      },
+      "nota": "Cifras medidas de cero por la auditoria de front, no heredadas de ningun informe. Dos metricas cambiaron de definicion durante el sellado, y las dos por el mismo motivo: la primera definicion producia falsos positivos. Queda escrito para que nadie las 'simplifique' de vuelta.",
+      "correcciones_aplicadas_en_este_sello": "Los 8 <button (click)> sin type se corrigieron en el mismo cambio (noticias-page 7, floating-button 1), asi que esa metrica arranca en 0 y no en 8. El diff es 1:1: ocho lineas quitadas, ocho puestas, sin mas alteracion."
+    },
+    {
+      "fecha": "2026-08-22T15:33:56.100Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "imagenes_sin_dimension",
+          "de": 50,
+          "a": 43
+        },
+        {
+          "clave": "colores_literales",
+          "de": 1578,
+          "a": 1534
+        },
+        {
+          "clave": "dialogos_con_rol",
+          "de": 1,
+          "a": 3
+        }
+      ]
+    },
+    {
+      "fecha": "2026-08-23T15:38:52.560Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1534,
+          "a": 1533
+        },
+        {
+          "clave": "dialogos_con_rol",
+          "de": 3,
+          "a": 6
+        }
+      ]
+    },
+    {
+      "fecha": "2026-08-25T01:13:25.351Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1533,
+          "a": 1531
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 7,
+          "a": 9
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-10T21:05:13.754Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "imagenes_sin_dimension",
+          "de": 43,
+          "a": 20
+        },
+        {
+          "clave": "colores_literales",
+          "de": 1531,
+          "a": 1077
+        },
+        {
+          "clave": "enlaces_de_router",
+          "de": 4,
+          "a": 32
+        },
+        {
+          "clave": "dialogos_con_rol",
+          "de": 6,
+          "a": 9
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 9,
+          "a": 35
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-11T01:20:46.416Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1077,
+          "a": 1068
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-11T03:13:17.398Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1068,
+          "a": 1067
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 35,
+          "a": 37
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-11T03:50:37.014Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 37,
+          "a": 40
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-11T15:49:59.459Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1067,
+          "a": 1063
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 40,
+          "a": 43
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-11T16:30:00Z",
+      "via": "edicion a mano, justificada en la revision",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 9,
+          "a": 7
+        }
+      ],
+      "nota": "AFLOJA UN MINIMO, y eso normalmente no se aprueba. Se aprueba aqui porque la practica no empeoro: se encogio la superficie. Los dos dialogos que faltan estaban los dos en external-user-dashboard.component.html, retirado en este mismo cambio junto con el resto del panel externo que colgaba del armazon institucional. Ninguna plantilla viva perdio su role=dialog; se borro el fichero que los contenia. Comprobado antes de tocar la cifra con `git show HEAD:...external-user-dashboard.component.html | grep -c 'role=\"dialog\"'` = 2. La regla sigue en pie para los 7 restantes y para todo dialogo nuevo."
+    },
+    {
+      "fecha": "2026-09-11T16:09:52.318Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1063,
+          "a": 949
+        },
+        {
+          "clave": "enlaces_de_router",
+          "de": 32,
+          "a": 33
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-11T17:30:24.452Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 949,
+          "a": 911
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-11T18:31:19.969Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 7,
+          "a": 9
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 43,
+          "a": 46
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-11T18:57:14.385Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "enlaces_de_router",
+          "de": 33,
+          "a": 36
+        },
+        {
+          "clave": "dialogos_con_rol",
+          "de": 9,
+          "a": 10
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 46,
+          "a": 47
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-11T19:07:12.374Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 10,
+          "a": 11
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 47,
+          "a": 48
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-11T20:27:47.825Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "enlaces_de_router",
+          "de": 36,
+          "a": 41
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 48,
+          "a": 49
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-11T20:45:07.429370Z",
+      "via": "edicion a mano, justificada",
+      "motivo": "Los tres frentes publicos —Catalogo Editorial, Agenda y Noticias— se reemplazaron por el DISENO APROBADO que vive en el diseño aprobado del portal, portado tal cual por decision de direccion. Cuatro metricas aflojan y ninguna es un descuido:",
+      "colores_literales": "911 -> 1169. El diseno aprobado escribe #291242 y #00DA5E literales, que es como se entrego. Sustituirlos por los tokens del @theme renderiza IDENTICO —el token ES ese valor—, pero el propio bloque de styles.css que declaro los tokens dejo escrito que migrar los ~800 usos literales «es una ola aparte, revisable, no algo que se hace de madrugada sin nadie mirando». Hacerla a escondidas dentro de un port de diseno es exactamente eso. Queda PROPUESTA y pendiente de aprobacion.",
+      "enlaces_de_router": "41 -> 37. El suelo se sello contra la implementacion propia que estos tres frentes tenian antes, que navegaba con routerLink. El diseno aprobado navega con manejadores de clic y un dialogo, no con enlaces. Es una caracteristica del diseno, no una regresion introducida: convertirlos en enlaces cambiaria su comportamiento, que es justo lo que no se toca sin aprobacion. Queda ANOTADO como sugerencia.",
+      "dialogos_con_rol": "11 -> 10. Mismo motivo: la implementacion propia retirada aportaba un dialogo mas.",
+      "anuncios_accesibles": "49 -> 47. Mismo motivo: los role=\"status\" que aportaban las pantallas retiradas.",
+      "lo_que_NO_aflojo": "botones_de_accion_sin_tipo se mantiene en 0 e imagenes_sin_dimension en 20: los dos se corrigieron sobre el codigo portado, porque un boton sin type dentro de un formulario lo envia y una imagen sin dimension salta la maquetacion. Son fallos reales y su arreglo no cambia un pixel."
+    },
+    {
+      "fecha": "2026-09-11T21:11:26.651Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 47,
+          "a": 48
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-11T21:18:31.021Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 48,
+          "a": 49
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-11T21:47:03.175Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 10,
+          "a": 11
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 49,
+          "a": 54
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T00:00:46.716Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 11,
+          "a": 14
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 54,
+          "a": 70
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T00:24:43.103Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 14,
+          "a": 16
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T00:47:40.625Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "enlaces_de_router",
+          "de": 37,
+          "a": 38
+        },
+        {
+          "clave": "dialogos_con_rol",
+          "de": 16,
+          "a": 20
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 70,
+          "a": 74
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T02:09:29.038Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "enlaces_de_router",
+          "de": 38,
+          "a": 40
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 74,
+          "a": 75
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T02:46:11.750Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1169,
+          "a": 1167
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T03:27:04.617Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 20,
+          "a": 21
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 75,
+          "a": 77
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T03:44:38.613Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 21,
+          "a": 22
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T17:14:36.792Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1167,
+          "a": 1154
+        },
+        {
+          "clave": "dialogos_con_rol",
+          "de": 22,
+          "a": 23
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T18:10:00Z",
+      "via": "edicion a mano, justificada en la revision",
+      "cambios": [
+        {
+          "clave": "enlaces_de_router",
+          "de": 40,
+          "a": 39
+        }
+      ],
+      "nota": "AFLOJA UN MINIMO, y eso normalmente no se aprueba. Se aprueba aqui porque los dos enlaces que faltan NO se degradaron a href: se convirtieron en <button>, y ese es precisamente el arreglo. Eran las etiquetas de practica musical y territorio sonoro de la vista de CUADRICULA del listado publico de Festivales, escritas como <a routerLink=\"/ecosistema/festivales\" [queryParams]=\"{practica: ...}\">. Navegaban a la MISMA pagina en la que ya estaban y, al hacerlo, reemplazaban la consulta entera: quien venia filtrando por ANTIOQUIA y pulsaba «Bandas de marcha» perdia el ANTIOQUIA sin que nada se lo dijera. Ademas la misma etiqueta se comportaba distinto en la vista de listado, donde era texto muerto. Acotar la pagina en la que uno esta no es navegar: es una accion, va en un boton, y admite aria-pressed —que un enlace no admite— para decir que el filtro ya esta puesto y que pulsarlo otra vez lo quita. Cubierto por festivales-publicos-page.component.spec.ts, «conserva los demas filtros en vez de reemplazarlos» y «las etiquetas son botones con aria-pressed en las DOS vistas». El mismo cambio SUMA un routerLink nuevo en la ficha publica del Festival —el departamento y el municipio, que si llevan a otra pantalla—, asi que el saldo real es -2 enlaces que no debian serlo y +1 que si. La regla sigue en pie para los 39 restantes y para todo enlace nuevo."
+    },
+    {
+      "fecha": "2026-09-12T17:24:19.963Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1154,
+          "a": 1149
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T17:35:19.840Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1149,
+          "a": 1146
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T18:24:21.213Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1146,
+          "a": 1133
+        },
+        {
+          "clave": "dialogos_con_rol",
+          "de": 23,
+          "a": 24
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T18:51:55.209Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1133,
+          "a": 1126
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T18:59:03.375Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1126,
+          "a": 1122
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T19:15:14.714Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1122,
+          "a": 1114
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T19:30:24.680Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1114,
+          "a": 1095
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T22:25:42.117Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1095,
+          "a": 1093
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T22:41:42.664Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1093,
+          "a": 1092
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T22:54:54.972Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1092,
+          "a": 1082
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T23:06:41.645Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "enlaces_de_router",
+          "de": 39,
+          "a": 43
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-12T23:26:44.816Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 77,
+          "a": 78
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-13T02:30:34.217Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1082,
+          "a": 1078
+        },
+        {
+          "clave": "enlaces_de_router",
+          "de": 43,
+          "a": 48
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 78,
+          "a": 80
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-13T03:10:19.789Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1078,
+          "a": 1073
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-13T16:41:57.901Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1073,
+          "a": 1071
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-13T17:14:42.475Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 80,
+          "a": 82
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-13T18:17:17.549Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1071,
+          "a": 1062
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-13T19:22:18.776Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 24,
+          "a": 25
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 82,
+          "a": 83
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-13T19:55:41.390Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 83,
+          "a": 84
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-13T21:13:54.957Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1062,
+          "a": 1060
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-13T21:27:58.540Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1060,
+          "a": 1057
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 84,
+          "a": 85
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-13T23:17:52.584Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 85,
+          "a": 86
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-14T01:25:51.254Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1057,
+          "a": 1055
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-14T01:42:01.732Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1055,
+          "a": 1052
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-14T02:36:17.650Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 25,
+          "a": 26
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 86,
+          "a": 87
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-14T02:44:14.084Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1052,
+          "a": 1047
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-14T02:54:56.117Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1047,
+          "a": 1044
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-14T03:07:18.718Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1044,
+          "a": 1031
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 87,
+          "a": 88
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-14T03:28:19.398Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1031,
+          "a": 1030
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-14T14:51:19.263Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1030,
+          "a": 1025
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-14T15:03:54.975Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1025,
+          "a": 1002
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-14T22:02:29.752Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 1002,
+          "a": 983
+        },
+        {
+          "clave": "enlaces_de_router",
+          "de": 48,
+          "a": 54
+        },
+        {
+          "clave": "dialogos_con_rol",
+          "de": 26,
+          "a": 29
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 88,
+          "a": 93
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T01:11:45.067100Z",
+      "via": "sello inicial de una metrica nueva",
+      "cambios": {
+        "tamanos_fuera_de_escala": {
+          "de": null,
+          "a": 267
+        }
+      },
+      "nota": "Metrica nueva: tamanos de letra escritos con la sintaxis arbitraria de Tailwind dentro del Espacio de Gestion Administrativa. El censo del 15 de septiembre de 2026 midio 316 y el grupo de Publicaciones las salda todas -117 sustituciones en Catalogo Editorial, Agenda, Noticias, Categorias y Banco de archivos-, asi que el sello inicial es 267 y no 316: se sella DESPUES de pagar, para que el techo describa el arbol y no el estado anterior. Casi todas estaban por debajo del suelo de 12 px de la escala; en el Catalogo Editorial se midieron etiquetas a 9,6 px."
+    },
+    {
+      "fecha": "2026-09-15T01:40:47.747Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 983,
+          "a": 982
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T01:57:50.690Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 982,
+          "a": 965
+        },
+        {
+          "clave": "tamanos_fuera_de_escala",
+          "de": 267,
+          "a": 242
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 93,
+          "a": 120
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T03:52:46.526Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 120,
+          "a": 121
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T04:52:12.413Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "tamanos_fuera_de_escala",
+          "de": 242,
+          "a": 50
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T04:53:17.205Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "tamanos_fuera_de_escala",
+          "de": 50,
+          "a": 1
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T13:24:09.195Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 965,
+          "a": 796
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T14:06:25.700Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 121,
+          "a": 122
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T14:32:06.175Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 122,
+          "a": 124
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T14:46:55.148Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 29,
+          "a": 30
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 124,
+          "a": 128
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T15:13:23.312Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "enlaces_de_router",
+          "de": 54,
+          "a": 58
+        },
+        {
+          "clave": "dialogos_con_rol",
+          "de": 30,
+          "a": 31
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 128,
+          "a": 132
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T16:13:13.699Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "enlaces_de_router",
+          "de": 58,
+          "a": 59
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 132,
+          "a": 134
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T17:28:07.170Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "enlaces_de_router",
+          "de": 59,
+          "a": 60
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 134,
+          "a": 135
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T19:06:19.514Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 134,
+          "a": 137
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T19:30:20.453Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "pildoras_de_estado",
+          "de": 2,
+          "a": 0
+        },
+        {
+          "clave": "colores_literales",
+          "de": 796,
+          "a": 795
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 137,
+          "a": 141
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T19:38:40.371Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 31,
+          "a": 51
+        },
+        {
+          "clave": "ventanas_sin_directiva",
+          "de": 999,
+          "a": 4
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T20:04:34.400Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "enlaces_de_router",
+          "de": 60,
+          "a": 63
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 141,
+          "a": 142
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T21:03:30.957Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 795,
+          "a": 794
+        },
+        {
+          "clave": "enlaces_de_router",
+          "de": 63,
+          "a": 69
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 142,
+          "a": 144
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-15T21:10:20.185Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 51,
+          "a": 54
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 144,
+          "a": 147
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-16T01:29:33.095Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 54,
+          "a": 55
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 147,
+          "a": 148
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-16T01:54:18.237Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 55,
+          "a": 58
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-16T02:06:35.947Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 58,
+          "a": 60
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-16T02:50:48.469Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 148,
+          "a": 149
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-16T14:42:43.953Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "enlaces_de_router",
+          "de": 69,
+          "a": 74
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 149,
+          "a": 150
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-17T00:20:32.595Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 150,
+          "a": 156
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-17T00:49:40.201Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 156,
+          "a": 162
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-17T00:57:56.019Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 162,
+          "a": 163
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-17T18:12:06.650Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 163,
+          "a": 167
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-17T18:33:41.031Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 60,
+          "a": 69
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-17T19:00:42.765Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "rotulos_de_campo_a_mano",
+          "de": 99,
+          "a": 13
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-17T20:36:07.397Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "dialogos_con_rol",
+          "de": 69,
+          "a": 72
+        },
+        {
+          "clave": "ventanas_sin_directiva",
+          "de": 4,
+          "a": 0
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-17T20:41:04.331Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 794,
+          "a": 793
+        }
+      ]
+    },
+    {
+      "fecha": "2026-09-17T23:54:52.969Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 167,
+          "a": 193
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-05T01:24:52.197Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "imagenes_sin_dimension",
+          "de": 20,
+          "a": 14
+        },
+        {
+          "clave": "colores_literales",
+          "de": 793,
+          "a": 76
+        },
+        {
+          "clave": "tamanos_fuera_de_escala",
+          "de": 1,
+          "a": 0
+        },
+        {
+          "clave": "enlaces_de_router",
+          "de": 74,
+          "a": 83
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 193,
+          "a": 194
+        },
+        {
+          "clave": "rotulos_de_campo_a_mano",
+          "de": 13,
+          "a": 7
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-07T00:47:42.224Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 76,
+          "a": 74
+        },
+        {
+          "clave": "enlaces_de_router",
+          "de": 83,
+          "a": 133
+        },
+        {
+          "clave": "dialogos_con_rol",
+          "de": 72,
+          "a": 79
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 194,
+          "a": 213
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-12T23:16:20.931Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "enlaces_de_router",
+          "de": 133,
+          "a": 179
+        },
+        {
+          "clave": "dialogos_con_rol",
+          "de": 79,
+          "a": 89
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 213,
+          "a": 245
+        },
+        {
+          "clave": "rotulos_de_campo_a_mano",
+          "de": 7,
+          "a": 6
+        },
+        {
+          "clave": "selectores_nativos",
+          "de": 999999,
+          "a": 136
+        },
+        {
+          "clave": "acentos_laterales",
+          "de": 999999,
+          "a": 108
+        },
+        {
+          "clave": "mayuscula_sostenida_en_plantillas",
+          "de": 999999,
+          "a": 784
+        },
+        {
+          "clave": "degradados_en_plantillas",
+          "de": 999999,
+          "a": 7
+        },
+        {
+          "clave": "tarjetas_anidadas",
+          "de": 999999,
+          "a": 123
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-13T02:42:34.339Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "enlaces_de_router",
+          "de": 179,
+          "a": 187
+        },
+        {
+          "clave": "selectores_nativos",
+          "de": 136,
+          "a": 124
+        },
+        {
+          "clave": "acentos_laterales",
+          "de": 108,
+          "a": 106
+        },
+        {
+          "clave": "mayuscula_sostenida_en_plantillas",
+          "de": 784,
+          "a": 764
+        },
+        {
+          "clave": "tarjetas_anidadas",
+          "de": 123,
+          "a": 111
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-13T06:12:08.879Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "mayuscula_sostenida_en_plantillas",
+          "de": 764,
+          "a": 431
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-13T19:00:00Z",
+      "via": "edicion a mano (nota _resellado_seg_13_nov_2026)",
+      "cambios": [
+        {
+          "clave": "enlaces_de_router",
+          "de": 187,
+          "a": 186
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 239,
+          "a": 238
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-14T03:09:59.188Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 74,
+          "a": 72
+        },
+        {
+          "clave": "enlaces_de_router",
+          "de": 186,
+          "a": 188
+        },
+        {
+          "clave": "selectores_nativos",
+          "de": 124,
+          "a": 108
+        },
+        {
+          "clave": "mayuscula_sostenida_en_plantillas",
+          "de": 431,
+          "a": 419
+        },
+        {
+          "clave": "tarjetas_anidadas",
+          "de": 111,
+          "a": 109
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-16T03:37:24.105Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 72,
+          "a": 59
+        },
+        {
+          "clave": "rotulos_de_campo_a_mano",
+          "de": 6,
+          "a": 2
+        },
+        {
+          "clave": "selectores_nativos",
+          "de": 108,
+          "a": 27
+        },
+        {
+          "clave": "mayuscula_sostenida_en_plantillas",
+          "de": 419,
+          "a": 157
+        },
+        {
+          "clave": "tarjetas_anidadas",
+          "de": 109,
+          "a": 79
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-16T14:16:13.367Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 59,
+          "a": 58
+        },
+        {
+          "clave": "enlaces_de_router",
+          "de": 188,
+          "a": 194
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 238,
+          "a": 239
+        },
+        {
+          "clave": "selectores_nativos",
+          "de": 27,
+          "a": 26
+        },
+        {
+          "clave": "acentos_laterales",
+          "de": 106,
+          "a": 39
+        },
+        {
+          "clave": "mayuscula_sostenida_en_plantillas",
+          "de": 157,
+          "a": 152
+        },
+        {
+          "clave": "degradados_en_plantillas",
+          "de": 7,
+          "a": 6
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-17T01:47:32.154Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "enlaces_de_router",
+          "de": 194,
+          "a": 199
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 239,
+          "a": 246
+        },
+        {
+          "clave": "tarjetas_anidadas",
+          "de": 79,
+          "a": 77
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-17T13:47:24.605Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 246,
+          "a": 247
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-17T22:12:39.239Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "cargando_sueltos",
+          "de": 999999,
+          "a": 38
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-17T23:12:52.458Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "anuncios_accesibles",
+          "de": 247,
+          "a": 248
+        },
+        {
+          "clave": "mayuscula_sostenida_en_plantillas",
+          "de": 152,
+          "a": 148
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-18T00:17:30.354Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 58,
+          "a": 56
+        },
+        {
+          "clave": "enlaces_de_router",
+          "de": 198,
+          "a": 199
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 248,
+          "a": 249
+        },
+        {
+          "clave": "cargando_sueltos",
+          "de": 38,
+          "a": 37
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-18T02:15:01.515Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "colores_literales",
+          "de": 56,
+          "a": 53
+        },
+        {
+          "clave": "enlaces_de_router",
+          "de": 199,
+          "a": 216
+        },
+        {
+          "clave": "anuncios_accesibles",
+          "de": 249,
+          "a": 259
+        },
+        {
+          "clave": "acentos_laterales",
+          "de": 39,
+          "a": 8
+        },
+        {
+          "clave": "mayuscula_sostenida_en_plantillas",
+          "de": 148,
+          "a": 91
+        },
+        {
+          "clave": "degradados_en_plantillas",
+          "de": 6,
+          "a": 2
+        },
+        {
+          "clave": "cargando_sueltos",
+          "de": 37,
+          "a": 33
+        },
+        {
+          "clave": "titulos_con_clases_ad_hoc",
+          "de": 9999,
+          "a": 22
+        },
+        {
+          "clave": "tarjetas_anidadas",
+          "de": 77,
+          "a": 9
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-18T12:52:43.819Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "mayuscula_sostenida_en_plantillas",
+          "de": 91,
+          "a": 90
+        },
+        {
+          "clave": "titulos_con_clases_ad_hoc",
+          "de": 22,
+          "a": 0
+        }
+      ]
+    },
+    {
+      "fecha": "2026-11-18T13:16:24.107Z",
+      "via": "--sellar",
+      "cambios": [
+        {
+          "clave": "mayuscula_sostenida_en_plantillas",
+          "de": 90,
+          "a": 87
+        }
+      ]
+    }
+  ],
+  "decisiones_de_metrica_que_no_se_reabren": [
+    {
+      "metrica": "botones_de_accion_sin_tipo",
+      "decision": "Se exige (click). NO se cuenta todo <button> sin type.",
+      "por_que": "De los 14 <button> sin type medidos el 22 ago 2026, TRES son el boton de envio legitimo de su formulario: external-access-page:198 ('Guardar como borrador'), admin-festival-review-panel:15 y :16 ('Registrar decision'). En los tres, TODOS sus hermanos llevan type=\"button\" explicito, o sea que la convencion del repositorio ya es la correcta. Un trinquete que exigiera cero empujaria a ponerles type=\"button\" y romperia los tres formularios: el trinquete habria causado el defecto que dice prevenir. La regla que si distingue: un boton que hace algo al pulsarlo debe declarar type; el de envio no lleva (click), lleva el (submit) del <form>. Quedan fuera tambien tres botones sin (click) y sin formulario (home-strategies:160, noticias-page:88 y :91) que parecen botones muertos: eso es un hallazgo aparte, no deuda de tipo."
+    },
+    {
+      "metrica": "colores_literales",
+      "decision": "El corte se hace con lookahead de digito hexadecimal, no con \\b.",
+      "por_que": "Con \\b se perdian cinco colores reales por dos motivos distintos. (1) '#00da5e80', el verde de marca con canal alfa: \\b no separa la 'e' del '8', asi que la alternativa de 6 digitos fallaba. (2) '#291242_55%' dentro de un degradado arbitrario de Tailwind: el '_' es caracter de palabra, asi que tampoco habia frontera. Ademas la forma de 8 se prueba ANTES que la de 6; al reves, '#00da5e80' contaria como '#00da5e' y se perderia el alfa."
+    },
+    {
+      "metrica": "formatos_de_fecha_sueltos",
+      "decision": "Solo se mide dentro de src/app/features/admin/, y se admiten TRES formatos: «d MMM y», «d MMM y, HH:mm» y «HH:mm».",
+      "por_que": "El formato de fecha es una decision DEL PANEL administrativo, no del proyecto entero: el portal publico escribe fechas de otra forma —«sabado 4 de octubre»— y ahi es correcto. Los dos primeros formatos viven en features/admin/domain/formatos-de-fecha.ts y la diferencia entre ellos es si la hora importa. El tercero, «HH:mm» a secas, es la hora del autoguardado —«Borrador guardado 16:29»—: se refiere a algo que acaba de ocurrir mientras se mira la pantalla, asi que repetir el dia seria ruido. Arranca en 0 porque los diez formatos que habia se unificaron en el mismo cambio."
+    }
+  ],
+  "mayores_deudores_al_sellar": {
+    "colores_literales": [
+      {
+        "fichero": "app/features/admin/external-user-dashboard/external-user-dashboard.component.html",
+        "n": 114
+      },
+      {
+        "fichero": "app/features/news/pages/noticias-page/noticias-page.component.html",
+        "n": 102
+      },
+      {
+        "fichero": "app/features/admin/admin-web-texts-panel/admin-web-texts-panel.component.html",
+        "n": 98
+      },
+      {
+        "fichero": "app/features/editorial/pages/editorial-page/editorial-page.component.html",
+        "n": 97
+      },
+      {
+        "fichero": "app/features/gallery/pages/galeria-page/galeria-page.component.html",
+        "n": 95
+      }
+    ],
+    "imagenes_sin_dimension": [
+      {
+        "fichero": "app/features/gallery/pages/galeria-page/galeria-page.component.html",
+        "n": 12
+      },
+      {
+        "fichero": "app/features/admin/admin-login/admin-login.component.html",
+        "n": 5
+      },
+      {
+        "fichero": "app/features/editorial/pages/editorial-page/editorial-page.component.html",
+        "n": 4
+      },
+      {
+        "fichero": "app/features/external-access/external-access-page.component.html",
+        "n": 4
+      },
+      {
+        "fichero": "app/features/news/pages/noticias-page/noticias-page.component.html",
+        "n": 4
+      }
+    ]
+  },
+  "git_disponible": true,
+  "entradas_sucias_en_el_ambito": 16,
+  "plantillas_sin_confirmar_al_sellar": [
+    "simus-web/src/app/features/external-access/external-access-page.component.html",
+    "simus-web/src/app/features/panel-organizacion/clasificacion-de-mi-perfil.component.ts",
+    "simus-web/src/app/features/panel-organizacion/espacio-persona/agenda-de-citas-persona.component.ts",
+    "simus-web/src/app/features/panel-organizacion/espacio-persona/procesos-historicos-persona.component.ts",
+    "simus-web/src/app/features/panel-organizacion/herramientas/agenda-de-citas-organizacion.component.ts",
+    "simus-web/src/app/features/panel-organizacion/herramientas/configuracion-de-agenda.component.ts",
+    "simus-web/src/app/features/panel-organizacion/herramientas/procesos-historicos-page.component.ts",
+    "simus-web/src/app/features/panel-organizacion/herramientas/seccion-herramientas.component.ts",
+    "simus-web/src/app/features/panel-organizacion/perfil-publico/portafolio-del-perfil.component.ts",
+    "simus-web/src/app/features/panel-organizacion/procesos-historicos-reclamables.component.html",
+    "simus-web/src/app/features/panel-organizacion/seccion-perfil-publico.component.html",
+    "simus-web/src/app/shared/components/agenda-de-citas/parrilla-de-agenda.component.ts"
+  ],
+  "_resellado_seg_13_nov_2026": "enlaces_de_router 187 -> 186: el seguimiento de ACC2 quito del panel de la organizacion el enlace «Registrar otra organizacion» (decision 99); es una accion retirada a proposito, no una migracion deshecha, y el mismo enlace sigue en Mi espacio. anuncios_accesibles 239 -> 238: el directorio de Festivales (DIR-06) paso a app-directorio-ecosistema y dejo de repetir su propio aria-live del conteo y su aviso de error; ahora los pone una sola vez el componente compartido, que ya los contaba (misma centralizacion que el resellado de G1). Las dos cifras bajan en uno por motivos justificados.",
+  "_resellado_uif_16_nov_2026": "UI-F (16 nov 2026): accesibilidad. Ningun maximo sube y ningun minimo baja. anuncios_accesibles sube (aria-label nuevos de botones de icono, filtros y buscadores) y dialogos_con_rol se mantiene en 86. Los maximos se mantienen: el lote no migro pantallas, corrigio nombres, roles, contraste del tema y estructura de listas de definicion.",
+  "_resellado_carga_17_nov_2026": "cargando_sueltos (metrica nueva): carga (17 nov 2026, decision 117) mide los textos «Cargando…» o «Consultando…» sueltos y los spinners (`animate-spin`, `animate-pulse`) en plantillas. La pieza comun app-esqueleto y app-estado-de-lista (que ahora la usa en lugar del circulo que giraba) sustituyen la mitad; quedan los de pantallas que otros lotes rehacen y los de la consola con bloques mas complejos. Ningun maximo sube ni ningun minimo baja.",
+  "_resellado_mapa_17_nov_2026": "El rediseno del mapa (decision 116, 17 nov 2026) cambia el conmutador de vistas, las tarjetas del directorio y de la agenda y la tabla por piezas comunes (app-selector-segmentado, appBoton, app-menu-de-acciones) y quita los selectores de figura, el filtro de tipo de proceso de la Agenda y la etiqueta del proceso en las tarjetas. Lo que baje (colores_literales) o suba (minimos: enlaces_de_router, anuncios_accesibles) sale de ahi; ningun maximo sube ni ningun minimo baja. cargando_sueltos 38 -> 37: el geovisor adopta app-esqueleto en lugar del circulo que gira.",
+  "_resellado_cierre_18_nov_2026": "titulos_con_clases_ad_hoc 22 -> 0 y mayuscula_sostenida_en_plantillas 91 -> 90: cierre de la deuda del lote 2 (#241). Se retiraron de los h1 a h3 del panel de la organización y de Mi espacio las clases de familia, tamaño, peso y mayúscula escritas a mano (font-alternate, text-titulo/lectura/2xl/sm/base, font-bold/semibold, uppercase, tracking-*); esos encabezados toman la escala común (--tipo-*) por elemento dentro de .armazon-de-gestion (decisión 126). Se conservaron las clases de color y de margen. Ningún máximo sube ni ningún mínimo baja.",
+  "_resellado_lote2_17_nov_2026": "Lote 2 (#230, #234 a #240 unidos en una sola rama): se parte del techo de main y se resella con lo medido en la combinación. Todas las métricas igualan o mejoran el techo de main (acentos_laterales 39 -> 8, tarjetas_anidadas 77 -> 9, mayuscula_sostenida_en_plantillas 148 -> 91, degradados_en_plantillas 6 -> 2, colores_literales 56 -> 53, cargando_sueltos 37 -> 33; los mínimos enlaces_de_router 199 -> 216 y anuncios_accesibles 249 -> 259 suben). La métrica nueva de PANEL, titulos_con_clases_ad_hoc, entra con 22 en lugar de los 0 de su rama: las pantallas de DIR, AGE2, HIST y PERF, escritas sobre la base anterior, traen títulos con clases a mano que se normalizan en la auditoría de UX."
+}

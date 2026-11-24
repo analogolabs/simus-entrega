@@ -1,0 +1,1769 @@
+/* Las fuentes se cargan desde index.html con preconnect + preload para no bloquear el render. */
+@import "tailwindcss";
+
+/*
+  ─────────────────────────────────────────────────────────────────────────────
+  TOKENS DE COLOR
+  ─────────────────────────────────────────────────────────────────────────────
+
+  Por qué existe este bloque
+  ──────────────────────────
+  El proyecto no tenía ninguno. Tailwind 4 corría sin `tailwind.config.js` y sin
+  `@theme`, así que todos los colores vivían literales en las plantillas. Medido
+  sobre el código:
+
+    · 770 usos de #291242 y 509 de #00DA5E
+    · **9 morados distintos** conviviendo como «el morado del plan»:
+      #291242 #6100D7 #533075 #3d1b61 #3d1a62 #3b1a5c #1f1633 #4f267a #361757
+    · **6 verdes**, **6 casi-negros** y **7 grises claros** de fondo
+    · 11 niveles de opacidad solo para `text-white`, de /30 a /95
+
+  Cambiar el morado de marca exigía tocar ~180 sitios, y el contraste era
+  inauditable sin ejecutar el DOM.
+
+  Qué NO hace este bloque
+  ───────────────────────
+  No migra los ~800 usos literales. Eso es una ola aparte, revisable, no algo
+  que se hace de madrugada sin nadie mirando. Esto declara la fuente única para
+  que esa migración tenga a dónde apuntar, y deja escrita la regla que costó
+  una auditoría averiguar.
+
+  LA REGLA DEL VERDE — la parte que importa
+  ─────────────────────────────────────────
+  El verde de marca NO se puede usar como color de texto sobre superficies
+  claras. Ratios medidos sobre el DOM renderizado:
+
+    · #00DA5E sobre blanco ......... 1,88:1   ✘ (AA exige 4,5:1)
+    · #8BF784 sobre blanco ......... 1,33:1   ✘
+    · #00A849 sobre casi blanco .... 2,73:1   ✘
+    · #087B3E sobre blanco ......... 5,4:1    ✔
+    · #00DA5E sobre #291242 ........ 8,88:1   ✔
+
+  Es decir: sobre el morado, el verde de marca cumple de sobra y no se toca.
+  Sobre claro hay que usar `--color-verde-texto`. Se corrigieron 46 sitios con
+  este criterio; el resto de los 270 usos de verde como texto están sobre fondo
+  oscuro y son correctos.
+*/
+/*
+  `static`: sin el, Tailwind 4 elimina los tokens que ninguna utilidad usa
+  todavia, y como la migracion de los ~800 literales es una ola aparte, las
+  variables no llegarian al CSS. Con `static` se emiten siempre y ya se pueden
+  referenciar con `var(--color-...)` desde cualquier sitio.
+*/
+@theme static {
+  /* El único ritmo de parpadeo del sitio (ver «TOKENS DE MOVIMIENTO»): `animate-pulse` ya no tiene su propia curva de 2 s. */
+  --animate-pulse: latido var(--dur-latido) ease-in-out infinite;
+  /* Marca — IDENTIDAD DE SIMUS, tomada del logotipo (6 oct 2026): morado #4C2C54 y amarillo
+     #FFBD00. Hasta el 5 de octubre eran el violeta #4A3C8E y el amarillo #FFB832 del banner. Los
+     nombres de los tokens (`morado`, `verde`) vienen del PNMC.
+       · amarillo sobre morado ............ 7,0:1  ✔
+       · blanco sobre morado .............. 11,7:1  ✔
+       · morado como texto sobre blanco ... 11,7:1  ✔
+       · cian y magenta: solo acentos gráficos, no texto sobre blanco
+         (cian 2,4:1, magenta 3,9:1).
+     Para texto amarillo sobre fondo claro se usa `verde-texto` (ámbar oscuro, 5,9:1). */
+  /*
+    SISTEMA DE COLOR DE SIMUS (6 oct 2026), tomado del logotipo.
+    «El morado identifica. Los neutros estructuran. El magenta, el cian y el amarillo expresan.»
+    El color nunca compite con la información: ayuda a encontrarla, entenderla o recordarla.
+    - Morado #4C2C54 (SIMUS Purple) y su escala: identidad, fondos de color, acciones normales.
+    - Neutros: estructura (texto, fondos alternos, filetes).
+    - Magenta, cian y amarillo: solo acentos (arcos, puntos, datos, estados), nunca grandes fondos.
+      Cian = exploración, información y datos; magenta = expresión cultural y editorial;
+      amarillo = acciones muy importantes y datos destacados.
+  */
+  --color-morado: #4C2C54;
+  --color-morado-claro: #6E4F77;
+  --color-morado-vivo: #3B2242;
+  /* Velo de las fotos que llevan texto encima: el violeta del banner llevado casi a negro. Con el
+     violeta de marca la foto se aclaraba y se veía desteñida; con este se oscurece. */
+  --color-velo: #241329;
+  --color-morado-900: #2E1933;
+  --color-morado-100: #EEE9EF;
+  --color-morado-50: #F7F4F8;
+  /* Títulos de contenido (noticias, eventos, fichas): tinta oscura, no violeta. El violeta queda
+     para lo que se pulsa; así el color dice qué es interactivo y qué es información. */
+  --color-titulo: #252126;
+  --color-verde: #FFBD00;
+  --color-verde-claro: #FFD45C;
+  --color-verde-medio: #E6A800;
+  /* Colores expresivos del logotipo (el amarillo es `verde`, por herencia del PNMC). */
+  --color-magenta: #FF053F;
+  --color-cian: #00B6DD;
+  --color-magenta-suave: #FFE6EC;
+  --color-cian-suave: #E0F8FD;
+  --color-amarillo-suave: #FFF5D6;
+
+  /* El verde legible como TEXTO sobre superficies claras (5,4:1 sobre blanco).
+     No es un color nuevo: ya estaba en el diseño, sin nombre y usado 8 veces. */
+  --color-verde-texto: #8A5A12;
+
+  /* El peldaño de abajo de `verde-texto`: el verde de un botón verde PULSADO o con el puntero
+     encima. Tampoco es un color nuevo —vivía literal en los dos botones de «Registrar proceso» del
+     panel de la organización, uno por proceso— y el segundo apareció al montar la lista de
+     Mercados, que es justo cómo un literal se multiplica. */
+  --color-verde-hondo: #6E470E;
+
+  /* Neutros del proyecto */
+  --color-tinta: #0D0820;
+  /* Hueso cálido de SIMUS: alterna con el blanco para separar secciones. */
+  --color-hueso: #FBF8F5;
+  --color-lila-agua: #EEE9EF;
+  /* Neutros de texto: principal (15,6:1), secundario (8,5:1) y metadato (4,2:1: solo para texto
+     de 18 px o más, o no esencial). El negro puro solo si hace falta. */
+  --color-tinta-principal: #252126;
+  --color-tinta-media: #514B54;
+  --color-tinta-suave: #817A84;
+  /* UI-F: los grises de texto de Tailwind, un paso más oscuros. `slate-500` (#62748e) daba 4,47:1 sobre el
+     fondo `#f7f8f6` del panel y `slate-400` (#90a1b9) 2,63:1 sobre blanco, y las dos se usan como TEXTO en
+     más de 650 sitios (WCAG 1.4.3 pide 4,5:1). Con estos valores: `slate-500` 6,0:1 y `slate-400` 4,95:1
+     sobre `#f5f6f9`; el escalón entre los dos se conserva por el peso y el tamaño, no por un contraste que no se lee. */
+  --color-slate-400: #5b6c85;
+  --color-slate-500: #4f5f78;
+  /* Rosa de SIMUS: color secundario y de acento (números, detalles), nunca de relleno. */
+  /* Fondo alterno de la portada: un gris lila frío, para separar secciones sin teñirlas. */
+  --color-niebla: #F8F7F8;
+  --color-rosa: #BD5F9A;
+  --color-rosa-claro: #E87C9C;
+
+  /* El gris de «sin clasificar» y de las muestras apagadas.
+     Tenía nombre en el geovisor —`COLOR_SIN_CLASIFICAR`— y no lo tenía en el tema, así que cada
+     plantilla que lo necesitaba lo escribía a mano. Es el mismo tono en los dos sitios. */
+  --color-gris-sin-clasificar: #94a3b8;
+
+  /* Agenda de citas: lo que avanza (verde) y lo que pide atención (ámbar fuerte) en barras, etapas y mesas. */
+  --color-avance: #2e9d6a;
+  --color-atencion-fuerte: #b45309;
+
+  /* ────────────────────────────────────────────────────────────────────────
+     ESCALA TIPOGRAFICA
+
+     POR QUE ESTA AQUI Y NO EN `:root`. La escala ya existía —cinco peldaños
+     `--type-step-*`— pero vivía en `:root`, que en Tailwind 4 NO genera
+     utilidades. Resultado medido: **cero usos de
+     esos peldaños en las plantillas**, y 1.110 tamaños escritos a mano en 54
+     valores distintos para llenar el hueco. Una escala que no se puede
+     escribir no es una escala: es documentación.
+
+     Declarada en `@theme`, cada peldaño genera su utilidad —`text-dato`,
+     `text-cuerpo`…— y se puede usar como se usa `text-morado`.
+
+     EL SUELO SON 12 px, Y ES LA DECISION DE FONDO. Del recuento anterior, el
+     48,2 % de los tamaños literales bajaba de 10 px y el 41,6 % se quedaba
+     entre 10 y 12; solo un 3,8 % llegaba a 14. La plataforma se leía, de
+     hecho, a 10 px. Aquí no hay ningún peldaño por debajo de 12, así que un
+     texto ilegible ya no se puede componer usando la escala.
+
+     Y ARRASTRA LAS AREAS DE TOQUE. Los botones de faceta del Catálogo medían
+     13 px de alto porque su texto medía 8,8. Subir el suelo del texto sube el
+     alto mínimo de lo que lo contiene, que es la mitad de ese problema.
+     ──────────────────────────────────────────────────────────────────────── */
+
+  /* El más pequeño ADMISIBLE: metadatos, rótulos, contadores. Nada baja de aquí. */
+  --text-dato: 0.75rem;
+  --text-dato--line-height: 1.0625rem;
+
+  /* El de la interfaz: botones, campos, celdas, navegación. El más usado. */
+  --text-cuerpo: 0.875rem;
+  --text-cuerpo--line-height: 1.25rem;
+
+  /* El de leer de verdad: párrafos, descripciones, texto largo. */
+  --text-lectura: 1rem;
+  --text-lectura--line-height: 1.5rem;
+
+  /* Entradilla y encabezados menores. */
+  --text-destacado: 1.125rem;
+  --text-destacado--line-height: 1.6rem;
+
+  /* Títulos de sección. Por encima de esto manda el diseño de cada pieza. */
+  --text-titulo: 1.25rem;
+  --text-titulo--line-height: 1.75rem;
+
+  /* ALTURAS MINIMAS DE CONTROL — WCAG 2.2 AA (2.5.8) exige 24x24 px.
+     Se declaran como tokens para que el botón y el campo las tomen de un solo
+     sitio y no las repita cada pantalla. El paso «cómodo» son los 44 px que la
+     propia norma señala como solución robusta en táctil. */
+  --spacing-control-minimo: 1.5rem;
+  --spacing-control: 2.25rem;
+  --spacing-control-comodo: 2.75rem;
+  --spacing-control-tactil: 2.75rem;
+
+  /*
+    TOKENS DE CONTROL (UI-B, 12 nov 2026). UNA SOLA FUENTE para lo que antes escribía cada pantalla.
+
+    El barrido de diseño (docs/desarrollo/30-consola-y-acceso.md §30.3) midió 129 campos en 59 pantallas: 8 alturas de búsqueda, 4 de
+    selector nativo, 5 radios, 8 tratamientos de foco y un borde de campo de 1,29:1 sobre blanco.
+    Estos tokens cierran esas diferencias en el origen: campo, botón, desplegable y buscador los
+    toman de aquí, y la revisión `trinquete-tokens.mjs` falla si dejan de cumplir el contraste.
+
+    · ALTURAS: ya existen arriba (`control-minimo` 24 px, `control` 36 px, `control-comodo` 44 px).
+      36 px en áreas de trabajo (consola, panel, filtros de lista); 44 px en formularios, ingreso y
+      directorios públicos; 24 px solo en celdas de tabla y controles en línea.
+    · RADIO: uno solo para todo control (8 px).
+    · BORDE DE CAMPO: #8892a4 da 3,14:1 sobre blanco; WCAG 1.4.11 pide 3:1 para el contorno de un
+      componente de interfaz. El #dfe3ea que había daba 1,29:1: el campo «no se veía» para quien tiene
+      poca visión de contraste. El borde decorativo (filetes, tablas) sigue siendo `--color-filete`.
+    · FOCO: un solo anillo —2 px, 2 px de separación, morado de marca (11,7:1 sobre blanco)—.
+  */
+  --radius-control: 0.5rem;
+  --color-borde-campo: #8892a4;
+  --color-borde-campo-hover: #5f6b80;
+  --color-foco: var(--color-morado);
+  --anillo-foco-ancho: 2px;
+  --anillo-foco-separacion: 2px;
+  /* Colores con FUNCIÓN: peligro y error (6,5:1 sobre blanco), no decoración. */
+  --color-peligro: #b42318;
+  --color-peligro-suave: #fef3f2;
+  /* Sombra de un menú o desplegable flotante: la única sombra de la interfaz, junto al diálogo. */
+  --shadow-menu: 0 8px 24px rgb(37 33 38 / 0.14);
+
+  /*
+    EL HUECO QUE HAY QUE DEJARLE AL LANZADOR FLOTANTE.
+
+    La consulta guiada flota en la esquina inferior derecha de todo el espacio de gestión —lo pidió
+    así la dirección de producto— y por tanto se superpone a lo que pase por debajo. Ya ocurrió una vez
+    con la columna «Acciones» de la tabla del Catálogo, y volvió a ocurrir el 14 de septiembre de
+    2026 con los botones «Publicar Festival» y «Rechazar registro» del pie fijo de la revisión.
+
+    En vez de mover el lanzador pantalla por pantalla, el hueco se declara una vez: 56 px de botón,
+    24 px de margen y un respiro. Cualquier pie fijo alineado a la derecha lo reserva.
+  */
+  --spacing-lanzador-flotante: 5.5rem;
+
+  /*
+    LOS CUATRO PAPELES DEL TEXTO EN LA CONSOLA, CON UN COLOR CADA UNO.
+
+    Medido en el panel de Solicitudes: el resumen del trámite usaba 7
+    combinaciones distintas de tamaño, peso, familia y color, y la ficha completa del mismo
+    trámite, 23. Eran los mismos cuatro papeles —rótulo de dato, valor, texto corrido y rótulo de
+    sección— escritos con grises distintos según de qué componente viniera cada trozo: los de la
+    bandeja en hexadecimal y los de la ficha en la escala `slate` de Tailwind, que no coinciden.
+
+    Declarados aquí, el papel decide el color y deja de depender de quién pintó el bloque.
+  */
+  /*
+    EL ROTULO SE ACLARO DEMASIADO, Y SE MIDIO. la dirección de producto
+    dijo que los datos de la persona responsable se veían «más claros» que los de la organización.
+    Medido en la pantalla: los dos bloques usan exactamente el mismo color —rgb(39,49,77) de trazo,
+    comprobado sobre los píxeles a 2×—, así que la diferencia no estaba entre ellos. Lo que sí
+    estaba mal era el gris de los rótulos: #8b95a7 daba 2,83:1 contra el fondo del panel externo y
+    3,02:1 contra el blanco de la consola, por debajo del 4,5:1 que la norma pide para texto
+    normal. #667081 conserva el mismo matiz y da 4,69:1 y 5,00:1.
+  */
+  --color-rotulo: #667081;
+  --color-valor: #27314d;
+  --color-prosa: #4a5569;
+  --color-seccion: #5a67a6;
+  /* Filete y bordes sutiles sobre blanco. UNA SOLA DECLARACION: había otra, #E3DFE4, más
+     arriba en este mismo bloque; como gana la última, nunca llegó a la hoja compilada. Se conserva
+     el valor que de verdad se ve para no cambiar los bordes de ninguna pantalla. */
+  --color-filete: #e7eaf0;
+  /* Un aviso que no es un error: una lectura que hay que mirar, no una que fallo. Vivia como
+     `#8a5a12` suelto en la hoja del Resumen; desde es un token. */
+  --color-aviso: #8a5a12;
+}
+
+/*
+  TÁCTIL: LA ALTURA DE TRABAJO PASA A LOS 44 px (revisión responsive del portal). Con puntero grueso (teléfono, tableta) el control
+  de 36 px queda corto para el dedo; todos los controles de una fila toman el mismo token, así que la fila sigue pareja. El ratón
+  conserva los 36 px de siempre.
+*/
+@media (pointer: coarse) {
+  :root { --spacing-control: var(--spacing-control-comodo); }
+}
+
+/*
+  EL ANILLO DE FOCO ÚNICO (UI-B). Una utilidad y no ocho copias: botón, enlace, pestaña, chip y los
+  controles propios la piden con `foco-simus`; los campos nativos la reciben en las reglas de abajo.
+  Solo con teclado (`:focus-visible`): el ratón no pinta un anillo donde la persona ya está mirando.
+*/
+@utility foco-simus {
+  &:focus-visible {
+    outline: var(--anillo-foco-ancho) solid var(--color-foco);
+    outline-offset: var(--anillo-foco-separacion);
+  }
+}
+
+:root {
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /*
+    TOKENS DE MOVIMIENTO. UNA SOLA ESCALA PARA TODO EL PORTAL: quien anima algo
+    usa estos valores, no un `duration-[…]` ni un `cubic-bezier(…)` propios. Cambiar un valor aquí cambia todo.
+      --dur-rapida   120 ms  relevo de datos (esqueleto a contenido), foco, color al pasar el puntero
+      --dur-media    200 ms  una transición de interfaz: menú que abre, botón, pestaña, entrada de la página
+      --dur-entrada  500 ms  la ENTRADA de un bloque al desplazarse (`appRevelar`); nada pasa de 600 ms
+      --dur-latido  1200 ms  el parpadeo de los esqueletos y de los indicadores «vivos» (único ritmo)
+    Distancia y escalonado: un bloque sube `--distancia-entrada` (1 rem) y, en una lista, cada elemento entra
+    `--escalon` (70 ms) después del anterior, con tope `--escalon-tope` (420 ms) para que el sexto no espere
+    más que un parpadeo. Solo `opacity` y `transform` (y `scale`/`translate`): nunca `height`, `width`, `top`.
+    Utilidades: `.anim-fundido`, `.anim-entrada`, `.anim-desplegable`, `.transicion-ui`, `.transicion-rapida`.
+    Guía de adopción: `docs/desarrollo/14-sistema-de-diseno.md` §14.14.
+  */
+  --dur-rapida: 120ms;
+  --dur-media: 200ms;
+  --dur-entrada: 500ms;
+  --dur-latido: 1200ms;
+  --distancia-entrada: 1rem;
+  --escalon: 70ms;
+  --escalon-tope: 420ms;
+
+  /*
+    ESCALA ÚNICA DE CAPAS (z-index) Y ALTO DE LA BARRA SUPERIOR. Nadie escribe un `z-[NNNN]` ni un
+    `z-index` numérico nuevo: usa estos tokens (`z-(--z-dialogo)` en Tailwind, `var(--z-dialogo)` en CSS).
+    De abajo arriba:
+      contenido      capas internas de una tarjeta o hero
+      barra-de-filtros  barra o columna de filtros `sticky` (siempre bajo la barra superior)
+      desplegable    menús que salen de un control; flotante: botones fijos de la pantalla
+      barra-superior la navegación `fixed` del portal
+      dialogo        diálogo, ficha o cajón modal del portal; sobre-dialogo: confirmación encima de una ficha
+      dialogo-de-gestion(-encima)  modales de los paneles de gestión y la consola
+      aviso          tutorial guiado y herramientas a pantalla completa; aviso-de-confirmacion: la confirmación común sobre ellas
+      salto          el enlace «Saltar al contenido», siempre encima
+    El mapa (features/map) conserva sus capas internas 800-9999 dentro de su propio contexto. */
+  --z-contenido: 10;
+  --z-barra-de-filtros: 40;
+  --z-desplegable: 60;
+  --z-flotante: 60;
+  --z-barra-superior: 3000;
+  --z-dialogo: 3100;
+  --z-dialogo-sobre-dialogo: 3300;
+  --z-dialogo-de-gestion: 4500;
+  --z-dialogo-de-gestion-encima: 4600;
+  --z-aviso: 9000;
+  --z-aviso-de-confirmacion: 9500;
+  --z-salto: 10000;
+  /* Lo que mide la barra de navegación fija (fila de 3rem más su aire): las páginas reservan este alto. */
+  --alto-barra-superior: 72px;
+  /* Los peldaños antiguos ahora APUNTAN a la escala del tema: una sola fuente.
+     Se conservan porque algún CSS de componente aún los referencia por var(). */
+  --type-step-1: var(--text-dato);
+  --type-step-1-line: 1rem;
+  --type-step-2: var(--text-cuerpo);
+  --type-step-2-line: 1.25rem;
+  --type-step-3: var(--text-lectura);
+  --type-step-3-line: 1.5rem;
+  --type-step-4: var(--text-destacado);
+  --type-step-4-line: 1.6rem;
+  --type-step-5: var(--text-titulo);
+  --type-step-5-line: 1.75rem;
+}
+
+.font-gregor { font-family: 'Impact', 'Oswald', sans-serif; } 
+/*
+  LA TIPOGRAFIA ALTERNA, COMO VARIABLE Y NO SOLO COMO CLASE.
+
+  Existía únicamente como esta clase, y el CSS del armazón administrativo la pedía con
+  `var(--font-alternate, inherit)`: una variable que NUNCA se definió. Peor todavía, iba dentro de la
+  abreviatura `font:`, donde `inherit` no es un valor válido, así que el navegador DESCARTABA LA
+  DECLARACION ENTERA —tamaño, peso y altura de línea incluidos—. Seis reglas de la consola que debían
+  fijar la jerarquía tipográfica no se aplicaban, y por eso todos los títulos se veían casi iguales.
+  Se descubrió midiendo: un número declarado a 2,1 rem pintaba a 12,48 px.
+*/
+:root { --font-alternate: 'Oswald', sans-serif; }
+.font-alternate { font-family: var(--font-alternate); letter-spacing: 0.04em !important; } 
+.font-display { font-family: 'Outfit', sans-serif; }
+.font-nunito { font-family: 'Nunito Sans', sans-serif; } 
+
+html {
+  scroll-behavior: smooth;
+  /* Necesario para el patrón "full-bleed" (w-screen + -translate-x-1/2) usado por
+     secciones que rompen el ancho del contenedor: 100vw incluye el grosor de la
+     scrollbar, lo que genera unos px de desbordamiento horizontal invisible.
+     <html> es el elemento raíz de scroll (no <body>), por eso va aquí. */
+  overflow-x: hidden;
+}
+body {
+  /* Fuente por defecto. Sin ella, todo texto sin clase de fuente salía en la letra del sistema
+     operativo (San Francisco, Segoe, Roboto): 350 textos de la versión 1, medidos en el
+     inventario tipográfico de 02_Documentacion/09_Identidad_visual. */
+  font-family: 'Nunito Sans', sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button, a, input, select, textarea {
+  transition-timing-function: var(--ease-soft);
+}
+
+/*
+  CONTROLES DE FORMULARIO
+  -----------------------
+  Un campo de texto y una lista que aparecen en la misma fila deben tener la
+  misma presencia visual. Antes cada pantalla decidía entre `p-2`, `p-3` o
+  alturas implícitas; el resultado eran filas desalineadas y selectores mucho
+  más delgados que el campo vecino. Esta base se limita a formularios y a las
+  fichas que declaran `data-simus-form`, para no alterar buscadores compactos,
+  barras de herramientas ni controles del mapa.
+*/
+:where(form, [data-simus-form]) :is(
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='color']):not([type='hidden']):not([type='submit']):not([type='button']):not([type='reset']),
+  select
+) {
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-block-size: 2.75rem;
+  max-inline-size: 100%;
+}
+
+:where(form, [data-simus-form]) textarea {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  resize: vertical;
+}
+
+/*
+  EL <select> NATIVO, UNO SOLO (UI-C, docs/desarrollo/30-consola-y-acceso.md §30.6).
+  El barrido midió cuatro alturas (21, 40, 44 y 47 px), tres radios (0, 8 y 12) y una flecha distinta en
+  cada sistema operativo. Esta regla vive FUERA de las capas y con especificidad cero (`:where`), a
+  propósito: gana a las utilidades sueltas que cada pantalla le ponía (`rounded-xl`, `py-3`, `border-filete`)
+  y se deja ganar por quien declara su altura con una clase propia (`.simus-campo`, formularios a 44 px).
+  Altura 36 px (token), radio 8, borde de 3:1, flecha propia y el anillo de foco único. El ancho, el margen
+  y el rótulo los sigue decidiendo quien lo coloca. En una celda de tabla, `data-tamano="menudo"` (24 px).
+  Una lista corta se queda en un <select>; una de más de siete opciones es `app-filtro-desplegable`.
+*/
+:where(select:not([multiple]):not([size])) {
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  height: var(--spacing-control);
+  border: 1px solid var(--color-borde-campo);
+  border-radius: var(--radius-control);
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding: 0 2.25rem 0 0.75rem;
+  color: var(--color-valor);
+  font-family: inherit;
+  font-size: var(--text-cuerpo);
+  line-height: 1.25rem;
+  cursor: pointer;
+}
+:where(select:not([multiple]):not([size])):hover:not(:disabled) { border-color: var(--color-borde-campo-hover); }
+:where(select:not([multiple]):not([size])):focus-visible {
+  outline: var(--anillo-foco-ancho) solid var(--color-foco);
+  outline-offset: var(--anillo-foco-separacion);
+  border-color: var(--color-foco);
+}
+:where(select:not([multiple]):not([size])):disabled { background-color: #f6f7f9; color: var(--color-rotulo); cursor: not-allowed; }
+:where(select:not([multiple]):not([size]))[aria-invalid='true'] { border-color: var(--color-peligro); }
+:where(select[data-tamano='menudo']:not([multiple]):not([size])) { height: var(--spacing-control-minimo); padding-top: 0; padding-bottom: 0; font-size: var(--text-dato); }
+
+/* Para grupos de campos de peso equivalente. Las filas que expresamente deben
+   ocupar todo el ancho conservan sus `col-span` existentes. */
+.simus-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  align-items: start;
+  gap: 1rem;
+}
+
+.simus-form-grid--compacto {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem 1.25rem;
+}
+
+/* Campo de formulario: misma altura en cajas de texto y listas, para que la columna se lea pareja. */
+.simus-campo {
+  display: block;
+  width: 100%;
+  height: var(--spacing-control-comodo);
+  margin-top: 0.25rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--color-borde-campo);
+  border-radius: var(--radius-control);
+  background-color: #fff;
+  color: #0f172a;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.25rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.simus-campo:hover { border-color: var(--color-borde-campo-hover); }
+.simus-campo:focus { outline: var(--anillo-foco-ancho) solid var(--color-foco); outline-offset: var(--anillo-foco-separacion); border-color: var(--color-foco); }
+.simus-campo[aria-invalid='true'] { border-color: var(--color-peligro); }
+select.simus-campo {
+  appearance: none;
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  cursor: pointer;
+}
+select.simus-campo:disabled { cursor: not-allowed; opacity: 0.6; }
+.simus-obligatorio { margin-left: 0.15rem; color: var(--color-magenta); font-weight: 700; }
+
+.simus-form-grid > .simus-field-wide {
+  grid-column: 1 / -1;
+}
+
+.transition-all,
+.transition-colors,
+.transition-transform,
+.transition-shadow {
+  transition-timing-function: var(--ease-soft) !important;
+}
+
+::selection { background-color: var(--color-verde); color: var(--color-morado); } 
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #fff; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; border: 2px solid #fff; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-verde); }
+
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(41, 18, 66, 0.15); border-radius: 10px; border: 1.5px solid transparent; background-clip: padding-box; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-verde); }
+
+.thin-horizontal-scrollbar::-webkit-scrollbar { height: 3px; }
+.thin-horizontal-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.thin-horizontal-scrollbar::-webkit-scrollbar-thumb { background: rgba(41, 18, 66, 0.15); border-radius: 99px; }
+.thin-horizontal-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-verde); }
+
+.leaflet-container { border-radius: 2.8rem; font-family: inherit; }
+.leaflet-container.map-canvas {
+  border-radius: 1.35rem;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.22);
+}
+.leaflet-container.map-edge-canvas {
+  border-radius: 0;
+  box-shadow: none;
+}
+.leaflet-pane,
+.leaflet-control-container,
+.leaflet-bottom,
+.leaflet-top { z-index: 400 !important; }
+.leaflet-interactive {
+  pointer-events: all !important;
+}
+.leaflet-interactive:focus {
+  outline: none !important;
+}
+.process-count-marker-shell {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  display: flex;
+  justify-content: center;
+  outline: none;
+}
+.process-count-marker-badge {
+  align-items: center;
+  background: var(--process-marker-color, var(--color-morado));
+  border: 2px solid rgba(255, 255, 255, 0.96);
+  border-radius: 999px;
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.28);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 900;
+  height: 28px;
+  justify-content: center;
+  letter-spacing: -0.02em;
+  min-width: 32px;
+  padding: 0 7px;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.process-count-marker-shell:hover .process-count-marker-badge {
+  box-shadow: 0 7px 18px rgba(15, 23, 42, 0.36);
+  transform: scale(1.08);
+}
+.process-count-marker-shell:focus-visible .process-count-marker-badge {
+  box-shadow: 0 0 0 3px rgba(0, 218, 94, 0.42), 0 7px 18px rgba(15, 23, 42, 0.32);
+}
+/* ------------------------------------------------------------------------------------
+ * SENALADOR MUNICIPAL DEL MODO DE PRACTICAS E INFLUENCIA (29 de agosto de 2026)
+ *
+ * SE APOYA EN EL PATRON DE ARRIBA, `.process-count-marker-*`, que estaba escrito con su
+ * hover y su `:focus-visible` y NO LO USABA NADIE: `grep -rn process-count-marker src/`
+ * devuelve solo sus cuatro lineas de este mismo fichero. Aqui se reusa su forma en vez
+ * de inventar otra.
+ *
+ * NINGUNA CLASE SIN REGLA. Es la leccion de `glow-marker-calor-halo` y
+ * `glow-marker-calor-core`, que el codigo pasaba a Leaflet como `className` y no existen
+ * en ninguna hoja de estilos: los circulos del falso mapa de calor se quedaban con el
+ * dibujo por defecto y nadie lo noto. La misma trampa que `archipelago-label`.
+ *
+ * EL ARO DISCONTINUO ES EL DATO, NO EL ADORNO. Dice que la posicion tiene resolucion de
+ * MUNICIPIO y no de proceso. Se lee tambien en escala de grises, sin depender del color,
+ * que es lo que un aviso de precision tiene que cumplir.
+ *
+ * EL FOCO VA CON `box-shadow` y no con `outline` porque tres reglas mas arriba
+ * `.leaflet-interactive:focus { outline: none !important }` se lo llevaria por delante.
+ * ----------------------------------------------------------------------------------*/
+.senalador-municipal-envoltura {
+  background: transparent;
+  border: 0;
+}
+.senalador-municipal {
+  align-items: center;
+  /*
+    SEMITRANSPARENTE Y CON BORDE OPACO, que es el tratamiento con el que se dibujan los símbolos
+    proporcionales desde siempre. Con relleno sólido, los círculos que se pisan —y en la zona
+    andina se pisan casi todos— tapan por completo a los de detrás: se ve el mayor y se pierden los
+    tres que tiene debajo, que es lo contrario de lo que un mapa de símbolos viene a enseñar. Con
+    relleno translúcido el solape se lee como solape, y el borde opaco mantiene cada círculo
+    reconocible como una unidad.
+  */
+  background: color-mix(in srgb, var(--senalador-color, var(--color-morado)) 78%, transparent);
+  border: 2px solid var(--senalador-color, var(--color-morado));
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.22);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 900;
+  /* La cifra se lee sobre cualquier solape gracias a la sombra del texto, no al relleno. */
+  text-shadow: 0 1px 2px rgba(15, 23, 42, 0.55);
+  /*
+    EL TAMAÑO LO MANDA EL DATO, NO LA HOJA DE ESTILOS. `min-width: 30px` recortaba por abajo la
+    escala de los símbolos: todo lo que el cálculo dejaba entre 22 y 29 px se pintaba de 30, así
+    que los municipios con pocos procesos salían todos del mismo tamaño y la parte baja de la
+    escala —que es donde está la mayoría— dejaba de decir nada. Se quedan como respaldo por si
+    algún día se usa el señalador sin medida.
+  */
+  box-sizing: border-box;
+  height: 30px;
+  justify-content: center;
+  letter-spacing: -0.02em;
+  min-width: 0;
+  padding: 0 2px;
+  position: relative;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.senalador-municipal::after {
+  border: 1.5px dashed rgba(41, 18, 66, 0.45);
+  border-radius: 999px;
+  content: '';
+  inset: -6px;
+  pointer-events: none;
+  position: absolute;
+}
+.leaflet-marker-icon:hover .senalador-municipal {
+  box-shadow: 0 7px 18px rgba(15, 23, 42, 0.36);
+  transform: scale(1.08);
+}
+.leaflet-marker-icon:focus-visible .senalador-municipal {
+  box-shadow: 0 0 0 3px rgba(0, 218, 94, 0.42), 0 7px 18px rgba(15, 23, 42, 0.32);
+}
+.senalador-municipal-cifra {
+  line-height: 1;
+}
+/* La pastilla de un grupo: mas grande y con doble aro, para que se distinga de un
+ * municipio suelto sin depender del color. */
+/*
+  LA BURBUJA DEL GRUPO YA NO FIJA SU TAMAÑO AQUI. Lo decide `iconCreateFunction`, que la escala
+  con la misma raíz cuadrada que los símbolos sueltos: un alto fijo de 36 px era lo que hacía que
+  a escala nacional todas midieran igual y el modo «proporcional» no lo fuera.
+*/
+.senalador-municipal-grupo {
+  font-size: 12px;
+}
+.senalador-municipal-grupo::after {
+  border-style: solid;
+  inset: -4px;
+}
+/* El agrupador trae su propio icono redondo con fondo azul claro. Se apaga: el que
+ * manda es el de arriba, construido por `iconCreateFunction`. */
+.marker-cluster,
+.marker-cluster div {
+  background: transparent !important;
+}
+
+/* La lista de nombres dentro del globo del senalador. */
+.municipality-tooltip .tooltip-lista {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+.municipality-tooltip .tooltip-lista li {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  opacity: 0.9;
+}
+.municipality-tooltip .tooltip-nota {
+  font-size: 12px;
+  line-height: 1.35;
+  margin-top: 5px;
+  opacity: 0.7;
+}
+
+.map-basemap-washed {
+  filter: grayscale(100%) contrast(75%) brightness(105%);
+}
+.department-label {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: #1e0f28;
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  /* Como se escribe el nombre: sin mayusculas sostenidas se lee mas rapido y ocupa menos. */
+  text-transform: none;
+  text-shadow: none;
+  opacity: 0 !important;
+  visibility: hidden;
+  pointer-events: none !important;
+  transition: opacity 140ms ease;
+}
+.map-department-labels-visible .department-label {
+  opacity: 1 !important;
+  visibility: visible;
+}
+/*
+ * SIN CAJA NI HALO. Se probaron un velo blanco translucido y un halo de texto: los dos ensucian el
+ * relleno del mapa y lo hacen menos legible. Texto casi negro, de peso medio, directo sobre el verde
+ * (contraste sobre el tono mas oscuro de la escala: unos 5:1). `.leaflet-tooltip` pone fondo blanco,
+ * borde y sombra con la misma especificidad y se carga despues, por eso se anula aqui con mas peso.
+ */
+.leaflet-tooltip.department-label {
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+.department-label:before { display: none; }
+
+/* ------------------------------------------------------------------------------------
+ * ROTULOS DE MUNICIPIO
+ *
+ * Mismo mecanismo que los de departamento y por el mismo motivo: el tooltip permanente
+ * esta siempre puesto y lo que decide si se lee es una clase en el contenedor del mapa,
+ * que pone `updateDepartmentLabelVisibility()` segun el zoom. Conmutar una clase es mucho
+ * mas barato que crear y destruir tooltips en cada gesto.
+ *
+ * Aparecen mas tarde que los departamentales —zoom 8,5 frente a 7— porque un departamento
+ * puede tener 125 municipios, como Antioquia, y a media distancia se pisan entre si.
+ * ----------------------------------------------------------------------------------*/
+.municipality-label {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: #1e0f28;
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  /* Como se escribe el nombre, sin mayusculas sostenidas: ocupa menos y se pisa menos. */
+  text-transform: none;
+  text-shadow: none;
+  opacity: 0 !important;
+  visibility: hidden;
+  pointer-events: none !important;
+  transition: opacity 140ms ease;
+}
+.map-municipality-labels-visible .municipality-label {
+  opacity: 0.9 !important;
+  visibility: visible;
+}
+.municipality-label:before { display: none; }
+.municipality-label span { white-space: nowrap; }
+.country-label-marker {
+  background: transparent;
+  border: none;
+  pointer-events: none !important;
+}
+.country-label-marker span {
+  color: rgba(15, 23, 42, 0.68);
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: none;
+  pointer-events: none !important;
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 1.2rem;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.18);
+}
+.leaflet-popup-content {
+  margin: 0;
+}
+.leaflet-popup,
+.leaflet-popup-content-wrapper,
+.leaflet-popup-content,
+.leaflet-popup-tip-container {
+  pointer-events: none !important;
+}
+.leaflet-popup-close-button {
+  display: none !important;
+}
+.leaflet-popup-tip {
+  background: white;
+}
+.custom-municipality-tooltip {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid rgba(41, 18, 66, 0.16) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1) !important;
+  color: var(--color-morado) !important;
+  font-family: 'Oswald', sans-serif !important;
+  padding: 8px 12px !important;
+  pointer-events: none !important;
+}
+.custom-municipality-tooltip:before {
+  display: none !important;
+}
+.custom-municipality-tooltip .tooltip-title {
+  font-weight: 800 !important;
+  font-size: 12px !important;
+  letter-spacing: 0.01em !important;
+  margin: 0 !important;
+  color: var(--color-morado) !important;
+}
+.custom-municipality-tooltip .tooltip-value {
+  font-size: 12px !important;
+  color: #16a34a !important;
+  margin-top: 2px !important;
+  margin-bottom: 0 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* Cuando los datos reemplazan al esqueleto (decisión 117): un fundido de 120 ms, nunca más de 150. Sin movimiento con prefers-reduced-motion. */
+.aparece { animation: fadeIn var(--dur-rapida) var(--ease-soft); }
+@media (prefers-reduced-motion: reduce) { .aparece { animation: none; } }
+
+/* High-Performance Page Entrance & Loading Transitions */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pageSlideUp {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fadeIn var(--dur-media) var(--ease-soft) forwards;
+}
+/*
+  SIN `forwards`, Y NO ES UN DESCUIDO: ES LO QUE DEJA QUE UN MODAL TAPE LA BARRA DE NAVEGACIÓN.
+
+  Esta clase la lleva `<main id="contenido-principal">` (`PortalLayoutComponent` y los armazones propios), o sea el ancestro
+  de TODA página del sitio. `pageSlideUp` anima `opacity`, y un elemento con una animación de
+  `opacity` en efecto es un contexto de apilamiento; con `forwards` la animación sigue en efecto
+  para siempre, así que `<main>` lo era de forma permanente.
+
+  La consecuencia, medida: el modal de «Crear un Festival» declaraba
+  `z-[4500]` y la barra `z-[3000]`, pero esos dos números nunca llegaban a compararse. El del modal
+  quedaba encerrado dentro de `<main>`, y `<main>` —estático y sin `z-index`— se pinta por debajo de
+  cualquier elemento posicionado con z-index positivo. La barra tapaba los primeros 60 px del
+  diálogo y el título «Crear un Festival» no se veía. Subir el número no arregló nada: ya se había
+  subido de `z-[100]` a `z-[4500]` ese mismo día y el diálogo siguió cortado.
+
+  El efecto visual no cambia: la animación termina en `opacity: 1`, que es el valor base del
+  elemento, así que sin relleno se queda exactamente donde estaba. Lo que cambia es que, al
+  terminar, `<main>` deja de ser un contexto de apilamiento.
+
+  Lo fija `e2e/modal-festival-encima.spec.ts`, que no mira el `z-index` —estaba bien— sino quién
+  pinta encima. Es una prueba de extremo a extremo porque Karma monta cada componente solo, sin
+  `<main>` ni barra: ahí no hay nada con lo que competir y el defecto es invisible.
+*/
+.animate-page-entrance {
+  animation: pageSlideUp var(--dur-media) var(--ease-soft);
+}
+
+/* Native dialogs are hidden until opened; the flex layout only applies in the top layer. */
+.mosaic-detail-dialog[open] {
+  display: flex;
+}
+
+/* Premium Micro-Interactions: Push Feedback for Buttons */
+/* Solo propiedades que no mueven el diseño (antes `all 0.3s`, que arrastraba ancho, alto y margen). */
+button, a.btn, .btn-link {
+  transition: color var(--dur-media) var(--ease-soft), background-color var(--dur-media) var(--ease-soft),
+    border-color var(--dur-media) var(--ease-soft), box-shadow var(--dur-media) var(--ease-soft),
+    opacity var(--dur-media) var(--ease-soft), transform var(--dur-media) var(--ease-soft),
+    scale var(--dur-media) var(--ease-soft);
+}
+button:active, a.btn:active, .btn-link:active {
+  /* Se usa la propiedad `scale`, NO `transform`, y sin `!important`. Los dos
+     cambios arreglan el mismo defecto medido el 22 ago 2026.
+
+     Tailwind v4 compila `active:scale-95` a la propiedad `scale`, no a
+     `transform`. Como esta regla escribia `transform` Y llevaba `!important`,
+     las dos se APLICABAN A LA VEZ y el encogimiento se multiplicaba: los 25
+     botones con `active:scale-95` encogian 0,96 x 0,95 = 0,912, no 0,95.
+
+     Escribiendo la misma propiedad, un `active:scale-*` explicito ahora
+     SUSTITUYE a este valor por defecto en vez de componerse con el. Y sin
+     `!important` la utilidad de Tailwind (0,2,0 de especificidad) gana a este
+     selector (0,1,1), que es justo lo que se quiere: quien elige un valor a
+     proposito manda sobre el global.
+
+     PENDIENTE, y es decision de diseno, no defecto: esta regla alcanza los 346
+     botones del arbol, entre ellos 11 tarjetas-boton de 13 a 26rem de alto que
+     se encogen enteras al pulsarlas. Reducir su alcance exige decidir que
+     tarjeta no debe pulsar, y eso no se decide en una correccion. */
+  scale: 0.96;
+}
+
+/* El autocompletado no puede imponer el tema oscuro a los formularios claros. Los accesos que
+   deliberadamente usan fondo oscuro declaran su propio override local. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #0f172a;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/*
+  TEMA PNMC. El Plan Nacional de Música para la Convivencia conserva su propia paleta dentro de SIMUS:
+  el violeta profundo y el verde neón con los que se conoció, sobre el mismo lenguaje (tipografía,
+  esquinas, filetes, jerarquía). Se activa con la clase `tema-pnmc` en el contenedor de la página y
+  solo redefine variables: todo lo que usa `morado`, `verde` y los neutros cambia de tono sin tocar
+  las plantillas, y la barra de navegación y el pie (fuera del contenedor) siguen siendo SIMUS.
+    · Verde neón (#00DA5E): solo como acento sobre violeta (8,9:1) o como relleno con texto violeta;
+      como letra sobre claro se usa `verde-texto` (#087B3E, 5,4:1).
+    · Violeta (#2A1250) para fondos y acciones; violeta vivo (#6100D7) para detalles.
+*/
+.tema-pnmc {
+  --color-morado: #2A1250;
+  --color-morado-claro: #4B2A80;
+  --color-morado-vivo: #6100D7;
+  --color-velo: #1A0A33;
+  --color-morado-900: #1D0B38;
+  --color-morado-100: #E9E0F7;
+  --color-morado-50: #F5F0FC;
+  --color-titulo: #1B1230;
+  --color-verde: #00DA5E;
+  --color-verde-claro: #8BF784;
+  --color-verde-medio: #00A849;
+  --color-verde-texto: #087B3E;
+  --color-verde-hondo: #008B38;
+  --color-hueso: #F8F5FC;
+  --color-lila-agua: #E9E0F7;
+  --color-niebla: #F6F2FC;
+  --color-filete: #E3DAF2;
+  --color-tinta-media: #4D4563;
+  --color-tinta-suave: #7C7494;
+  --barra: #00DA5E;
+}
+
+/* Accesibilidad: respetar la preferencia de movimiento reducido del sistema (WCAG 2.3.3).
+   Neutraliza animaciones, transiciones y el scroll suave para usuarios sensibles. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Se anulan `transform` Y `scale`. Antes solo `transform`, y por eso este
+     bloque no hacia lo que decia: Tailwind v4 compila `active:scale-95` a la
+     propiedad `scale`, que quedaba intacta. Los 30 botones que declaran su
+     propia pulsacion seguian encogiendo para quien pide menos movimiento. */
+  button:active, a.btn:active, .btn-link:active {
+    transform: none !important;
+    scale: none !important;
+  }
+  /* NO se anula `translate` en `*`. Se intento y es una regresion: Tailwind v4
+     escribe TAMBIEN el posicionamiento con esa propiedad, y `-translate-x-full`
+     es lo que mantiene fuera de pantalla el cajon lateral del panel
+     administrativo y el menu movil. Anularlo en todo el arbol dejaria el cajon
+     cerrado A LA VISTA, encima del contenido, y solo para quien pide menos
+     movimiento: el peor sitio posible para meter un fallo.
+
+     Distinguir en CSS un translate decorativo de uno de posicion no se puede.
+     Asi que aqui se neutraliza solo la pulsacion, que es lo que este bloque
+     puede prometer de verdad. */
+}
+/*
+  El círculo de la leyenda de tamaños. Mismo tratamiento que el señalador del mapa —relleno
+  translúcido y borde opaco— para que la muestra y lo que se muestra se vean iguales; sin la
+  sombra ni el aro discontinuo, que ahí no dicen nada.
+*/
+.senalador-municipal-leyenda {
+  background: color-mix(in srgb, currentColor 78%, transparent);
+  border-radius: 999px;
+  box-sizing: border-box;
+  display: block;
+  opacity: 0.85;
+}
+
+/*
+  LA ATRIBUCION DE LA CARTOGRAFIA: DISCRETA, PERO PRESENTE.
+
+  La dirección de producto preguntó si se podía ocultar el «© OpenFreeMap · © OpenMapTiles · Datos de
+  OpenStreetMap» del pie del mapa. NO SE PUEDE, y no por criterio de diseño: las tres fuentes exigen
+  atribución visible en su licencia —OpenStreetMap bajo ODbL, y OpenFreeMap y OpenMapTiles en sus
+  condiciones de uso—. Quitarla sería usar la cartografía incumpliendo la licencia con la que se
+  publica, y este mapa es la cara pública de una entidad del Estado.
+
+  Lo que sí se puede es que deje de competir con el mapa: tipografía más pequeña, tinta apagada,
+  fondo casi transparente y sin subrayados hasta que se pasa por encima. Sigue siendo legible —esa
+  es la condición— y ya no es lo primero que se ve en la esquina.
+*/
+.leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.62) !important;
+  border-radius: 6px 0 0 0;
+  color: #94a3b8 !important;
+  font-size: 11px !important;
+  line-height: 1.4;
+  padding: 1px 5px !important;
+}
+.leaflet-control-attribution a {
+  color: #64748b !important;
+  text-decoration: none;
+}
+.leaflet-control-attribution a:hover,
+.leaflet-control-attribution a:focus-visible {
+  color: var(--color-morado) !important;
+  text-decoration: underline;
+}
+
+/*
+  EL DIAL DEL LENTE, CON EL MOVIMIENTO QUE SE HAYA PEDIDO.
+
+  El giro de los tres círculos es lo que hace legible que son tres lecturas de lo mismo y no tres
+  pantallas; pero para quien marcó «reducir movimiento» en su sistema, una transición de posición es
+  exactamente lo que pidió no tener. Se apaga la animación y el cambio sigue siendo completo: el
+  círculo activo se agranda, los otros se apartan, sólo que sin recorrido.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .dial-del-lente {
+    transition: none !important;
+  }
+}
+
+/*
+  LA TABLA DE LA CONSOLA: UN SOLO CONTRATO.
+
+  La auditoría del 14 de septiembre de 2026 midió dos tablas en Ecosistema musical con dos
+  densidades —72 y 91 px de fila—, dos tratamientos de cabecera y el morado de marca escrito a mano
+  en once sitios. Aquí queda lo que toda tabla administrativa comparte: cabecera, fila, celda,
+  línea secundaria, columna de acciones, hover y densidad. Lo que cambia entre módulos —qué
+  columnas hay— se decide en cada plantilla; cómo se ven, aquí.
+
+  Va en la capa `components` para que una utilidad puntual —`text-right`, `hidden lg:table-cell`—
+  siga pudiendo ganar donde haga falta.
+*/
+@layer components {
+  .tabla-administrativa { width: 100%; border-collapse: collapse; font-size: var(--text-cuerpo); color: var(--color-valor); }
+  /* `overflow-wrap` no es adorno: con `table-layout: fixed`, un rotulo mas ancho que su columna
+     no la ensancha —se DERRAMA sobre el de al lado—. Medido en el
+     Catalogo Editorial: «CATALOGACIONPUBLICACION» escrito uno encima del otro. */
+  .tabla-administrativa__cabecera th { padding: .7rem 1rem; text-align: left; vertical-align: bottom; border-bottom: 1px solid var(--color-filete); color: var(--color-rotulo); font-size: var(--text-dato); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; line-height: 1.25; overflow-wrap: break-word; }
+  .tabla-administrativa__cabecera th:first-child { padding-left: 1.25rem; }
+  .tabla-administrativa__cabecera th:last-child { padding-right: 1.25rem; }
+  .tabla-administrativa__ordenar { display: inline-flex; align-items: center; gap: .35rem; min-height: var(--spacing-control-minimo); margin: -.35rem -.5rem; padding: .35rem .5rem; border: 0; border-radius: .4rem; background: none; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; }
+  .tabla-administrativa__ordenar:hover { color: var(--color-morado); }
+  .tabla-administrativa__ordenar:focus-visible { outline: 2px solid var(--color-morado-vivo); outline-offset: 1px; }
+  .tabla-administrativa__ordenar[aria-pressed="true"], .tabla-administrativa__cabecera th[aria-sort]:not([aria-sort="none"]) .tabla-administrativa__ordenar { color: var(--color-morado); }
+  /* LA FLECHA SOLO SE VE ENTERA EN LA COLUMNA QUE ORDENA. En las demás queda como pista tenue —al
+     posarse se enciende—; con las seis flechas iguales no se distinguía cuál mandaba. */
+  .tabla-administrativa__ordenar > span { opacity: .3; transition: opacity .12s; }
+  .tabla-administrativa__ordenar:hover > span, .tabla-administrativa__cabecera th[aria-sort]:not([aria-sort="none"]) .tabla-administrativa__ordenar > span { opacity: 1; }
+  .tabla-administrativa__cabecera th.text-right .tabla-administrativa__ordenar { flex-direction: row-reverse; }
+  /* Los anchos de la tabla de Festivales, con un `colgroup`: el dato manda sobre el contenido. */
+  .tabla-de-festivales { table-layout: fixed; }
+  .tabla-de-festivales__nombre { width: 32%; }
+  .tabla-de-festivales__estado { width: 9.5rem; }
+  .tabla-de-festivales__organizacion { width: 24%; }
+  .tabla-de-festivales__territorio { width: 15%; }
+  .tabla-de-festivales__fecha { width: 9.5rem; }
+  .tabla-de-festivales__acciones { width: 7.5rem; }
+  @media (max-width: 1279px) { .tabla-de-festivales__organizacion { width: 0; } }
+  @media (max-width: 1023px) { .tabla-de-festivales { table-layout: auto; } }
+  /* Noticias y Agenda comparten forma: un título, uno o dos datos y el estado. */
+  .tabla-de-publicaciones { table-layout: fixed; }
+  .tabla-de-publicaciones__titulo { width: auto; }
+  .tabla-de-publicaciones__cuando { width: 12rem; }
+  .tabla-de-publicaciones__donde { width: 16%; }
+  .tabla-de-publicaciones__estado { width: 12rem; }
+  .tabla-de-publicaciones__fecha { width: 10rem; }
+  .tabla-de-publicaciones__acciones { width: 7.5rem; }
+  @media (max-width: 1023px) { .tabla-de-publicaciones { table-layout: auto; } }
+  /* Organizaciones: nombre y responsable mandan; el resto son datos de ancho conocido. */
+  .tabla-de-organizaciones { table-layout: fixed; }
+  .tabla-de-organizaciones__nombre { width: 26%; }
+  .tabla-de-organizaciones__responsable { width: 20%; }
+  .tabla-de-organizaciones__procesos { width: 13%; }
+  .tabla-de-organizaciones__territorio { width: 14%; }
+  .tabla-de-organizaciones__creacion { width: 10rem; }
+  .tabla-de-organizaciones__estado { width: 8rem; }
+  .tabla-de-organizaciones__acciones { width: 7.5rem; }
+  @media (max-width: 1023px) { .tabla-de-organizaciones { table-layout: auto; } }
+
+  /* Los anchos del acervo editorial. Con siete columnas y títulos largos, el reparto automático
+     movía la tabla entera al cambiar de orden o de filtro. */
+  .tabla-del-acervo { table-layout: fixed; }
+  .tabla-del-acervo__marca { width: 2.75rem; }
+  /* «Obra» se lleva el ancho que dejó «Catalogación»: con la portada al lado es la columna que
+     identifica el registro, y era la más estrecha de las que tenían texto largo. */
+  .tabla-del-acervo__obra { width: 42%; }
+  .tabla-del-acervo__autoria { width: 24%; }
+  .tabla-del-acervo__publicacion { width: 21%; }
+  .tabla-del-acervo__acciones { width: 7.5rem; }
+  @media (max-width: 1023px) { .tabla-del-acervo { table-layout: auto; } }
+
+  /* Los anchos de la bitácora. Con 766 actuaciones y paginación, el reparto automático movía las
+     cuatro columnas cada vez que una página traía un nombre de registro más largo. */
+  .tabla-de-la-bitacora { table-layout: fixed; }
+  .tabla-de-la-bitacora__fecha { width: 11rem; }
+  .tabla-de-la-bitacora__actuacion { width: 24%; }
+  .tabla-de-la-bitacora__registro { width: 30%; }
+  .tabla-de-la-bitacora__responsable { width: 28%; }
+  .tabla-de-la-bitacora__acciones { width: 6.5rem; }
+  /* Las listas de reparto del tablero de Análisis: el nombre y su cifra a la derecha. */
+  .tabla-de-reparto__nombre { width: auto; }
+  .tabla-de-reparto__cifra { width: 6rem; }
+  /* Qué cambió en una actuación de la bitácora: el campo, antes y después. */
+  .tabla-de-cambios__campo { width: 30%; }
+  .tabla-de-cambios__antes { width: 35%; }
+  .tabla-de-cambios__despues { width: 35%; }
+  .tabla-de-cambios .cambia td { color: var(--color-valor); font-weight: 600; }
+  /* Los cambios pendientes de Gestión del sitio: el grupo, cuántos esperan y abrirlo. */
+  .tabla-de-pendientes__grupo { width: auto; }
+  .tabla-de-pendientes__cuantos { width: 6rem; }
+  .tabla-de-pendientes__acciones { width: 5rem; }
+  @media (max-width: 1023px) { .tabla-de-la-bitacora { table-layout: auto; } }
+
+  /* Los anchos del registro de cuentas. */
+  .tabla-de-usuarios { table-layout: fixed; }
+  .tabla-de-usuarios__usuario { width: auto; }
+  .tabla-de-usuarios__rol { width: 22%; }
+  .tabla-de-usuarios__apartados { width: 11rem; }
+  .tabla-de-usuarios__estado { width: 9rem; }
+  .tabla-de-usuarios__acciones { width: 7.5rem; }
+  @media (max-width: 1023px) { .tabla-de-usuarios { table-layout: auto; } }
+
+  /*
+    EL ROTULO DE UN APARTADO DENTRO DE UNA PAGINA.
+
+    El segundo peldaño de la jerarquía, por debajo de la cabecera de página: dice de qué es este
+    trozo de pantalla —«Indicadores», «Asistente de consulta», «Datos del trámite»— sin estrenar un
+    encabezado con su propio antetítulo y su propia descripción, que es lo que hacía que la consola
+    llegara a tener diecisiete firmas de título.
+
+    SIN FILETE PROPIO. Lo que separa un apartado del anterior es el aire de arriba, que por eso es
+    mayor que el de abajo; un filete por rótulo llena la pantalla de rayas. El espaciado de .08em
+    es el medido en «ATENCIÓN PRIORITARIA» del Resumen operativo y en los títulos de grupo de la
+    barra lateral, que son las dos referencias que la dirección de producto dio por buenas.
+
+    Sale de `.tramite-seccion`, que hacía esto mismo pero solo dentro de la bandeja.
+  */
+  .titulo-de-apartado { margin: 1.75rem 0 .6rem; color: var(--color-seccion); font-size: var(--text-dato); font-weight: 900; letter-spacing: .08em; text-transform: uppercase; font-family: var(--font-alternate); }
+  .titulo-de-apartado:first-child { margin-top: 0; }
+
+  /* Los anchos de las dos tablas de Salud del sistema. */
+  .tabla-de-capacidades { table-layout: fixed; }
+  .tabla-de-capacidades__modulo { width: 40%; }
+  .tabla-de-capacidades__area { width: 40%; }
+  .tabla-de-capacidades__registros { width: 20%; }
+
+  .tabla-de-divipola { table-layout: fixed; }
+  .tabla-de-divipola__departamento { width: 22%; }
+  .tabla-de-divipola__cuantos { width: 8rem; }
+  .tabla-de-divipola__municipios { width: auto; }
+  @media (max-width: 1023px) { .tabla-de-capacidades, .tabla-de-divipola { table-layout: auto; } }
+
+  /* Los anchos de la lista de correos del boletín. */
+  .tabla-del-boletin { table-layout: fixed; }
+  .tabla-del-boletin__correo { width: auto; }
+  .tabla-del-boletin__estado { width: 9rem; }
+  .tabla-del-boletin__origen { width: 12%; }
+  .tabla-del-boletin__alta { width: 9rem; }
+  .tabla-del-boletin__baja { width: 9rem; }
+  .tabla-del-boletin__acciones { width: 7.5rem; }
+  @media (max-width: 1023px) { .tabla-del-boletin { table-layout: auto; } }
+
+  /*
+    EL VOCABULARIO DE CONTENIDO, EN UNA SOLA TABLA CON DIVISIONES.
+
+    Los cuatro grupos —común, agenda, noticias, editorial— eran cuatro bloques en rejilla, cada uno
+    con su propia lista: el mismo dato dibujado cuatro veces y las cifras de uso sin alinearse entre
+    grupos, que es justo lo que hay que comparar para decidir si una categoría merece compartirse.
+    Ahora el grupo es una FILA DIVISORIA con su nombre y su botón de añadir.
+  */
+  .tabla-de-categorias { table-layout: fixed; }
+  .tabla-de-categorias__categoria { width: auto; }
+  .tabla-de-categorias__uso { width: 10rem; }
+  .tabla-de-categorias__orden { width: 7rem; }
+  .tabla-de-categorias__acciones { width: 12rem; }
+  @media (max-width: 1023px) { .tabla-de-categorias { table-layout: auto; } }
+
+  /* La fila que separa un grupo del anterior: el filete de arriba es lo que hace la división. */
+  .tabla-de-categorias__division > * { padding: 1.4rem 1rem .55rem; border-top: 2px solid var(--color-filete); vertical-align: bottom; }
+  .tabla-de-categorias__grupo:first-of-type .tabla-de-categorias__division > * { border-top: 0; }
+  .tabla-de-categorias__division th { text-align: left; color: var(--color-seccion); font-family: var(--font-alternate); font-size: var(--text-dato); font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .tabla-de-categorias__division th:first-child { padding-left: 1.25rem; }
+  .tabla-de-categorias__division td:last-child { padding-right: 1.25rem; }
+  /* La nota del grupo común: explica una vez por qué ese grupo es distinto, sin gritar. */
+  .tabla-de-categorias__nota { display: block; max-width: 44rem; margin-top: .35rem; color: var(--color-prosa); font-family: var(--font-body, inherit); font-size: var(--text-dato); font-weight: 400; letter-spacing: 0; line-height: 1.5; text-transform: none; }
+
+  /* La misma tabla para los proyectos: se gestionan igual que las categorías. */
+  .tabla-de-proyectos { table-layout: fixed; }
+  .tabla-de-proyectos__proyecto { width: auto; }
+  .tabla-de-proyectos__estado { width: 9rem; }
+  .tabla-de-proyectos__uso { width: 14rem; }
+  .tabla-de-proyectos__acciones { width: 8rem; }
+  @media (max-width: 1023px) { .tabla-de-proyectos { table-layout: auto; } }
+
+  /*
+    LA CASILLA DE SELECCION DE UNA FILA.
+
+    <b>CENTRADA DE VERDAD, y no «casi».</b> Iba dentro de un `label` con `flex items-center`, que
+    centra la casilla respecto al LABEL —que mide lo que mide la casilla— y no respecto a la celda:
+    en una fila de tres líneas quedaba pegada arriba. El centrado lo tiene que hacer la CELDA, y por
+    eso vive aquí y no en una utilidad suelta.
+
+    La columna se declara estrecha y la casilla no crece: un control de selección no compite por
+    ancho con los datos.
+  */
+  /* LA ESPECIFICIDAD IMPORTA AQUI: `.tabla-administrativa__fila > td` fija `vertical-align: top`
+     para las celdas de varias líneas y gana a una clase suelta, así que la casilla se quedaba
+     arriba —medido: hasta 50 px por encima del centro en una fila de 152—. Se iguala la forma del
+     selector en vez de recurrir a `!important`. */
+  .tabla-administrativa__cabecera th.tabla-administrativa__marca,
+  .tabla-administrativa__fila > td.tabla-administrativa__marca { width: 2.75rem; text-align: center; vertical-align: middle; padding-inline: .5rem; }
+  .casilla-de-fila { display: inline-flex; align-items: center; justify-content: center; min-height: var(--spacing-control-minimo); min-width: var(--spacing-control-minimo); cursor: pointer; }
+  .casilla-de-fila input[type="checkbox"] { width: 1rem; height: 1rem; margin: 0; border-radius: .25rem; border: 1px solid #c3cad8; accent-color: var(--color-morado); cursor: pointer; }
+  .casilla-de-fila input[type="checkbox"]:focus-visible { outline: 2px solid var(--color-morado-vivo); outline-offset: 2px; }
+
+  /*
+    LA MINIATURA DE UNA OBRA, junto a su título.
+
+    <b>DIMENSIONES FIJAS Y LA PORTADA ENTERA DENTRO.</b> Las cubiertas del acervo no comparten
+    proporción; `object-fit: contain` deja ver la portada completa —recortarla le corta el título a
+    unas y la firma a otras, que en un catálogo es justo lo que hay que reconocer— sobre un marco
+    del mismo tamaño en todas las filas, que es lo que hace que la columna se lea como una columna.
+
+    Sin portada, el mismo marco con un icono tenue: un hueco haría dudar de si falta el dato o
+    falló la carga.
+  */
+  .miniatura-de-obra { display: grid; place-items: center; flex: 0 0 auto; width: 2.5rem; height: 3.25rem; overflow: hidden; border: 1px solid var(--color-filete); border-radius: .25rem; background: #f6f7f9; color: #c3cad8; }
+  .miniatura-de-obra img { width: 100%; height: 100%; object-fit: contain; }
+
+  /*
+    LA BARRA DE LO SELECCIONADO EN UNA TABLA.
+
+    <b>OCUPA EL SITIO DE LA BARRA DE RESULTADOS, no uno nuevo.</b> Mientras hay algo elegido, lo que
+    importa no es cuántas filas hay sino cuántas se han marcado y qué se puede hacer con ellas: la
+    barra de lista se apaga y esta la sustituye, así que la tabla no se va hacia abajo al marcar la
+    primera casilla.
+
+    <b>LA JERARQUIA ES EL MENSAJE.</b> Antes eran cuatro botones idénticos —Borrador, En revisión,
+    Publicado, Retirado— y ninguno decía cuál saca cuarenta publicaciones del portal. La acción
+    esperada es la confirmadora, las que devuelven al circuito interno son secundarias, y la que
+    tiene consecuencia pública va detrás de un filete y en rojo.
+
+    Fondo tenue y filete, no una tarjeta con sombra: es un estado de la lista, no un objeto nuevo.
+  */
+  .barra-de-seleccion { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; margin-bottom: 1rem; padding: .55rem .9rem; border: 1px solid color-mix(in oklab, var(--color-morado) 22%, transparent); border-radius: .7rem; background: color-mix(in oklab, var(--color-morado) 5%, #fff); }
+  .barra-de-seleccion__cuenta { margin: 0; color: var(--color-valor); font-size: var(--text-cuerpo); }
+  .barra-de-seleccion__cuenta b { color: var(--color-morado); font-weight: 800; }
+  .barra-de-seleccion__enlace { margin-left: .5rem; border: 0; background: none; padding: 0; color: var(--color-morado); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: .2em; cursor: pointer; }
+  .barra-de-seleccion__acciones { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin-left: auto; }
+  .barra-de-seleccion__separador { width: 1px; align-self: stretch; margin-inline: .35rem; background: color-mix(in oklab, var(--color-morado) 20%, transparent); }
+  @media (max-width: 800px) { .barra-de-seleccion__acciones { margin-left: 0; } .barra-de-seleccion__separador { display: none; } }
+
+  /*
+    EL EXPLORADOR Y LOS RESULTADOS, en dos zonas que se leen como dos.
+
+    El filete va en el HUECO, no pegado a ninguna de las dos columnas: `column-gap` reparte el aire
+    y el borde izquierdo de la segunda columna cae justo en medio. Así separa sin encerrar.
+  */
+  .explorador-y-resultados { display: grid; gap: 1.25rem; }
+  @media (min-width: 1024px) {
+    .explorador-y-resultados { grid-template-columns: 15rem minmax(0, 1fr); column-gap: 2.5rem; }
+    .explorador-y-resultados > :nth-child(2) { border-left: 1px solid var(--color-filete); padding-left: 2.5rem; margin-left: -1.25rem; }
+  }
+  .tabla-administrativa__fila { border-bottom: 1px solid var(--color-filete); transition: background-color .12s; }
+  .tabla-administrativa__fila:hover { background: rgba(41, 18, 66, .03); }
+  .tabla-administrativa__fila > td { padding: .85rem 1rem; vertical-align: top; }
+  .tabla-administrativa__fila > td:first-child { padding-left: 1.25rem; }
+  .tabla-administrativa__fila > td:last-child { padding-right: 1.25rem; }
+  .tabla-administrativa--densa .tabla-administrativa__fila > td { padding-top: .55rem; padding-bottom: .55rem; }
+  /* EL NOMBRE DE UN REGISTRO ES EL CONTROL QUE ABRE SU FICHA, y medía 19 px de alto: por debajo de
+     los 24 que pide el criterio 2.5.8 de WCAG 2.2 AA, que este proyecto cumple en sus botones y no
+     estaba cumpliendo en el control MÁS usado de toda la consola. Medido
+     en Festivales, Organizaciones y Catálogo Editorial.
+
+     SE CRECE CON RELLENO Y SE COMPENSA CON MARGEN: en un elemento en línea el relleno vertical SÍ
+     agranda el área que recibe el clic, y el margen negativo devuelve la fila a su altura de antes,
+     así que la tabla no cambia de aspecto. No se pasa a `inline-block` porque es lo que deja que un
+     nombre largo se parta como texto dentro de su celda. */
+  .tabla-administrativa__principal { display: inline; margin: -.3rem 0; border: 0; padding: .3rem 0; background: none; color: var(--color-valor); font: inherit; font-weight: 600; line-height: 1.35; text-align: left; overflow-wrap: anywhere; }
+  button.tabla-administrativa__principal { cursor: pointer; }
+  button.tabla-administrativa__principal:hover { color: var(--color-morado); text-decoration: underline; }
+  button.tabla-administrativa__principal:focus-visible { outline: 2px solid var(--color-morado-vivo); outline-offset: 2px; border-radius: .2rem; }
+  .tabla-administrativa__secundaria { display: block; margin-top: .2rem; color: var(--color-rotulo); font-size: var(--text-dato); line-height: 1.4; overflow-wrap: anywhere; }
+  .tabla-administrativa__cifra { font-size: var(--tipo-texto-tamano); font-weight: 600; line-height: var(--tipo-texto-linea); color: var(--color-valor); font-variant-numeric: tabular-nums; } /* una cifra de tabla es un VALOR (t-valor), no un titular en Oswald */
+  .tabla-administrativa__acciones { text-align: right; white-space: nowrap; }
+  .tabla-administrativa__acciones > * { display: inline-flex; gap: .35rem; }
+  /* En un teléfono la tabla se desplaza dentro de su contenedor y las acciones quedaban fuera de la vista:
+     la columna se ancla al borde derecho para alcanzarse sin desplazar. */
+  @media (max-width: 800px) {
+    /* La primera columna (el nombre) no baja de 12 rem: sin esto la tabla la apretaba hasta partir las palabras
+       letra a letra («Camila / Restr / epo») y la tabla era ilegible; ahora la tabla se desplaza en su contenedor. */
+    .tabla-administrativa__cabecera th:first-child, .tabla-administrativa__fila > td:first-child { min-width: 12rem; }
+    td.tabla-administrativa__acciones { position: sticky; right: 0; z-index: 1; background: var(--fondo-del-panel-admin, #fff); box-shadow: -10px 0 8px -8px rgba(41, 18, 66, .18); }
+  }
+  .tabla-administrativa__pie { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 1.5rem; padding: .9rem 1.25rem; border-top: 1px solid var(--color-filete); color: var(--color-rotulo); font-size: var(--text-dato); }
+  .tabla-administrativa__nota { margin: 0; padding: .75rem 1.25rem; border-top: 1px solid var(--color-filete); color: var(--color-prosa); font-size: var(--text-dato); line-height: 1.5; }
+}
+
+/*
+  LA BARRA DE HERRAMIENTAS DE UNA LISTA: buscador, filtros y acción principal en una sola línea,
+  con la misma altura de control que el resto de la consola. Cada lista traía la suya con sus
+  propios paddings; esto es lo común.
+*/
+@layer components {
+  .barra-de-lista { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; padding: 0 0 1rem; }
+  /* AQUI VIVIA `.barra-de-lista__buscador`, con su lupa colocada a mano y su campo. Lo pinta ahora
+     `app-buscador-de-lista`, que además filtra al escribir y lleva su aspa; dejar las reglas aquí
+     era dejar una segunda definición del mismo campo esperando a divergir. */
+  .barra-de-lista__filtro { min-height: var(--spacing-control); width: auto; border: 1px solid var(--color-borde-campo); border-radius: var(--radius-control); background: #fff; padding: .45rem .8rem; color: var(--color-valor); font-size: var(--text-cuerpo); cursor: pointer; transition: border-color .12s, box-shadow .12s; }
+  .barra-de-lista__filtro:focus { outline: var(--anillo-foco-ancho) solid var(--color-foco); outline-offset: var(--anillo-foco-separacion); border-color: var(--color-foco); }
+  .barra-de-lista__resumen { margin: 0; color: var(--color-rotulo); font-size: var(--text-dato); }
+  .barra-de-lista__extremo { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-left: auto; }
+}
+
+/*
+  LA FRANJA DE CIFRAS DE UN TABLERO: la cifra protagonista, el rótulo debajo y, si hace falta, una
+  línea de alcance. Separadas por espacio, no por marcos. Resumen operativo, Análisis y Salud del
+  sistema la dibujaban cada uno a su manera —uno con clases propias en su hoja, dos con utilidades
+  sueltas y tarjetas—; desde es una pieza, `app-franja-de-cifras`.
+*/
+@layer components {
+  .franja-de-cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 1.5rem 2.5rem; margin: 0; padding: 0; list-style: none; }
+  .franja-de-cifras.con-filete { border-top: 1px solid var(--color-filete); padding-top: 1.4rem; }
+  .franja-de-cifras__dato { display: flex; flex-direction: column; gap: .15rem; margin: 0; border: 0; background: none; padding: 0; text-align: left; font: inherit; color: inherit; }
+  button.franja-de-cifras__dato { cursor: pointer; }
+  button.franja-de-cifras__dato:hover .franja-de-cifras__rotulo, button.franja-de-cifras__dato:focus-visible .franja-de-cifras__rotulo { color: var(--color-morado); }
+  .franja-de-cifras__cifra { color: var(--color-morado); font-family: var(--font-alternate); font-size: 2.25rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .franja-de-cifras__cifra.es-texto { font-size: 1.35rem; }
+  /* Un cero no es una alarma: es que no hay nada, y se apaga. */
+  .franja-de-cifras__cifra.es-cero { color: var(--color-rotulo); }
+  .franja-de-cifras__cifra.es-correcto { color: var(--color-verde-texto); }
+  .franja-de-cifras__cifra.es-aviso { color: var(--color-aviso); }
+  .franja-de-cifras__rotulo { color: var(--color-rotulo); font-size: var(--text-dato); font-weight: 700; }
+  .franja-de-cifras__detalle { color: var(--color-prosa); font-size: var(--text-dato); line-height: 1.4; }
+}
+
+/*
+  LOS CAMPOS DE UN FORMULARIO DE LA CONSOLA, Y SU DIALOGO.
+
+  Los formularios de alta y edición —Noticias, Agenda, Categorías, Catálogo Editorial— repetían la
+  misma cadena de clases en cada campo: medido, treinta y una veces solo
+  en Noticias y Agenda, con tres variantes de tamaño de letra para el mismo papel. Aquí vive una vez.
+*/
+@layer components {
+  /* EL ROTULO DE SECCION, EN UNA SOLA FORMA (docs/desarrollo/14-sistema-de-diseno.md §14.2 P2).
+
+     Había tres versiones del mismo papel; la de 11 px en `slate-400` quedaba por debajo del suelo de
+     12 px y con contraste de 2,6:1. Esta es la versión que ya dominaba —familia alternativa, cuerpo
+     de dato, color de sección, versalitas— y reproduce exactamente lo que se veía: el espaciado
+     efectivo era el 0,04em de `.font-alternate`, que gana con `!important` al `tracking-[0.18em]`
+     que llevaban escrito las plantillas. Se distingue del rótulo de CAMPO (`.campo__rotulo`) por la
+     familia y el color. */
+  .rotulo-de-seccion {
+    font-family: var(--font-alternate); font-size: var(--text-dato);
+    line-height: var(--text-dato--line-height); font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--color-seccion);
+  }
+  .campo { display: block; }
+  /* EL ROTULO DE UN CAMPO, EN UNA SOLA FORMA.
+
+     El 17 de septiembre de 2026 se contaron **199 rótulos de campo en la consola con 46 firmas de
+     clases distintas**, y la más repetida cubría 79. No era una preferencia estética suelta: dentro
+     de un mismo formulario convivían versalitas negras en gris, minúsculas en negrita oscura y el
+     tratamiento del rótulo de GRUPO usado para un campo, que es el que rompe la jerarquía porque
+     hace que un campo y el encabezado de su sección se lean igual.
+
+     ESTA REGLA NO REDISEÑA NADA: reproduce la firma que ya dominaba —versalitas, peso 900, cuerpo de
+     dato, color de rótulo—, que además es la de los diseños aprobados de Catálogo Editorial, Agenda
+     y Noticias. Convergen los demás hacia ellos, y no al revés.
+
+     SE DISTINGUE DEL ROTULO DE GRUPO por tres cosas a la vez: la familia (el grupo lleva
+     `font-alternate`), el color (el grupo lleva el de sección) y el filete de arriba, que el campo
+     no tiene. */
+  .campo > span, .campo__rotulo {
+    display: block; color: var(--color-rotulo); font-size: var(--text-dato); font-weight: 900;
+    letter-spacing: .05em; text-transform: uppercase;
+  }
+  .campo__ayuda { display: block; margin-top: .25rem; color: var(--color-rotulo); font-size: var(--text-dato); line-height: 1.45; }
+  .campo input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .campo select, .campo textarea, input.campo__control, select.campo__control, textarea.campo__control {
+    display: block; width: 100%; min-height: var(--spacing-control); margin-top: .35rem;
+    border: 1px solid var(--color-borde-campo); border-radius: var(--radius-control); background: #fff; padding: .5rem .8rem;
+    color: var(--color-valor); font-size: var(--text-cuerpo); font-family: inherit;
+    transition: border-color .12s, box-shadow .12s;
+  }
+  .campo input:hover:not(:disabled), .campo select:hover:not(:disabled), .campo textarea:hover:not(:disabled),
+  input.campo__control:hover:not(:disabled), select.campo__control:hover:not(:disabled), textarea.campo__control:hover:not(:disabled) {
+    border-color: var(--color-borde-campo-hover);
+  }
+  /* EL CONTROL NO HEREDA LA TIPOGRAFIA DEL ROTULO. Cuando el `<label>` envuelve al control —que es
+     como está escrita media consola—, las versalitas del rótulo se heredaban dentro y lo que la
+     persona escribía salía EN MAYUSCULAS, en gris y a peso 900. `text-transform`, `letter-spacing`,
+     `font-weight`, `color` y `font-size` se heredan: hay que apagarlos aquí, y solo eso —la caja del
+     control la sigue decidiendo quien lo escribió—. */
+  .campo > span ~ input, .campo > span ~ select, .campo > span ~ textarea,
+  .campo__rotulo input, .campo__rotulo select, .campo__rotulo textarea, .campo__rotulo option {
+    font-weight: 400; letter-spacing: normal; text-transform: none; color: var(--color-valor);
+    font-size: var(--text-cuerpo);
+  }
+  .campo textarea, textarea.campo__control { min-height: 5rem; line-height: 1.5; resize: vertical; }
+  .campo input::placeholder, .campo textarea::placeholder { color: var(--color-rotulo); }
+  .campo input:focus, .campo select:focus, .campo textarea:focus,
+  input.campo__control:focus, select.campo__control:focus, textarea.campo__control:focus {
+    outline: var(--anillo-foco-ancho) solid var(--color-foco); outline-offset: var(--anillo-foco-separacion); border-color: var(--color-foco);
+  }
+  .campo input:disabled, .campo select:disabled, .campo textarea:disabled { background: #f6f7f9; color: var(--color-rotulo); }
+  .campo--en-linea { display: flex; align-items: center; gap: .5rem; color: var(--color-prosa); font-size: var(--text-cuerpo); }
+  .campo--en-linea input { margin-top: 0; width: auto; min-height: 0; }
+
+  /* El diálogo de la consola: velo, hoja, cabecera, cuerpo y pie. */
+  .dialogo-velo { position: fixed; inset: 0; z-index: var(--z-dialogo); display: grid; place-items: center; padding: 1rem; background: rgba(23, 32, 57, .42); }
+  .dialogo { display: flex; max-height: 90dvh; width: 100%; max-width: 44rem; flex-direction: column; overflow: hidden; border-radius: 1rem; background: #fff; box-shadow: 0 24px 60px rgba(16, 24, 40, .22); }
+  .dialogo__cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1.4rem 1.6rem 1.1rem; border-bottom: 1px solid var(--color-filete); }
+  /* EL TEXTO SE SALIA DE LA VENTANA, y la causa estaba aquí. Un hijo de un contenedor flexible tiene
+     `min-width: auto`, que significa «nunca más estrecho que su contenido»: un título sin espacios
+     —el nombre largo de un festival, un correo, una URL— ensanchaba la cabecera por encima del ancho
+     del diálogo, y como `.dialogo` lleva `overflow: hidden`, lo que sobraba no se recortaba con una
+     barra de desplazamiento sino que DESAPARECIA. El botón de cerrar se iba con él.
+
+     Hacen falta las dos reglas. `min-width: 0` permite que el bloque se encoja; `overflow-wrap`
+     dice qué hacer entonces con la palabra que no cabe. Sin la segunda, encogerlo solo esconde
+     antes el texto. */
+  .dialogo__cabecera > :first-child { min-width: 0; flex: 1 1 auto; }
+  .dialogo__titulo, .dialogo__contexto { overflow-wrap: anywhere; }
+  /* En el cuerpo basta `break-word`: parte solo la palabra que no cabe y deja que el resto se
+     componga normal, que es lo que quiere un formulario. */
+  .dialogo__cuerpo, .dialogo--hoja { overflow-wrap: break-word; }
+  .dialogo__contexto { margin: 0 0 .35rem; color: var(--color-seccion); font-family: var(--font-alternate); font-size: var(--text-dato); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .dialogo__titulo { margin: 0; color: var(--color-valor); font-family: var(--font-alternate); font-size: var(--text-titulo); font-weight: 700; line-height: 1.2; }
+  .dialogo__cuerpo { flex: 1 1 auto; overflow-y: auto; padding: 1.4rem 1.6rem; }
+  .dialogo__pie { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .5rem; padding: 1rem 1.6rem; border-top: 1px solid var(--color-filete); }
+  .dialogo__pie--repartido { justify-content: space-between; }
+  /* Un diálogo corto que no necesita cabecera y pie separados: el formulario entero cabe de una vez.
+
+     PERO SE DESPLAZA SI NO CABE. `.dialogo` lleva `overflow: hidden` porque quien se desplaza es su
+     cuerpo; una hoja no tiene cuerpo aparte, así que sin esto un formulario más alto que la ventana
+     quedaba RECORTADO: el botón de guardar existía y no había forma de llegar a él. Se ve en cuanto
+     la ventana baja de 700 px de alto, que es una portátil con el navegador a pantalla completa. */
+  .dialogo--hoja { max-width: 34rem; padding: 1.6rem; overflow-y: auto; overscroll-behavior: contain; }
+  .dialogo--hoja .dialogo__titulo { margin-bottom: .35rem; }
+  /* Las acciones de una hoja van en su propia línea, sin el filete ni el relleno del pie separado. */
+  .dialogo__acciones { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .5rem; margin-top: 1.5rem; }
+  .dialogo__acciones--repartidas { justify-content: space-between; }
+  /* Un diálogo que se abre DESDE otro —o sobre una ficha que ya está en una capa— necesita ir encima. */
+  .dialogo-velo--encima { z-index: var(--z-dialogo-sobre-dialogo); }
+  .dialogo--ancho { max-width: 62rem; }
+  .dialogo-velo--con-desplazamiento { align-items: start; overflow-y: auto; padding-block: 2rem; }
+  @media (max-width: 800px) { .dialogo__cabecera, .dialogo__cuerpo, .dialogo__pie { padding-inline: 1.1rem; } }
+}
+
+
+/*
+  DUOTONO DE LAS FOTOS DE PORTADA (5 oct 2026).
+  Un duotono real, no un velo: la foto pasa a grises y se multiplica sobre el color de las LUCES;
+  encima, el color de las SOMBRAS en modo «aclarar» levanta los negros hasta ese tono. El resultado
+  va de --duotono-sombras (las zonas oscuras) a --duotono-luces (las claras), con la foto entera
+  legible y el texto encima con contraste: el blanco y el amarillo se miden contra las luces.
+*/
+:root {
+  --duotono-sombras: #241329;
+  --duotono-luces: #4C2C54;
+}
+/* Fotos de contenido de la portada: a color, con un filtro muy sutil que les baja el brillo y la
+   saturación para que no compitan con el texto ni con los colores de la marca. No es un tinte. */
+.foto-portada { filter: brightness(0.94) saturate(0.88); }
+/* ENLACE CON PUNTO: la llamada a la acción de texto, sin flecha. Un punto de color (el de la
+   sección, en `--punto`) que crece y se rodea de un halo al pasar el puntero o al enfocarlo. */
+/*
+  ENLACE QUE SE REVELA: en reposo es solo texto; al pasar el puntero (o enfocarlo) crece bajo él una
+  barrita, de izquierda a derecha. Su color sale de `--barra` (por omisión, amarillo). Se activa con
+  el propio elemento o con una fila `.group` que lo contiene.
+    · `.enlace-revela--sobre-oscuro`  además vuelve amarillo el texto (solo para fondos oscuros: el
+                                      amarillo sobre blanco no se lee).
+  En fondos claros el color del texto lo decide cada sitio (p. ej. `hover:text-morado-vivo`).
+*/
+.enlace-revela { position: relative; padding-block: .5rem !important; transition: color var(--dur-media) var(--ease-soft); }
+@media (pointer: coarse) { .enlace-revela { min-height: 2.75rem; display: inline-flex; align-items: center; } }
+.enlace-revela::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: .25rem; border-radius: 9999px; background: var(--barra, var(--color-verde, #FFBD00)); transform: scaleX(0); transform-origin: left center; transition: transform var(--dur-media) var(--ease-soft); }
+.enlace-revela:hover::after, .enlace-revela:focus-visible::after, .group:hover .enlace-revela::after, .group:focus-within .enlace-revela::after { transform: scaleX(1); }
+.enlace-revela--sobre-oscuro:hover, .enlace-revela--sobre-oscuro:focus-visible { color: var(--color-verde, #FFBD00); }
+
+/*
+  APARICIÓN AL DESPLAZARSE (ver `appRevelar`). Solo se oculta lo que la directiva marca con `.revelar`,
+  y ella lo hace únicamente si hay movimiento posible. `--retardo` escalona las listas.
+*/
+/*
+  La aparición es una ANIMACIÓN y no una transición: así el retraso escalonado (`--retardo`) solo vale
+  para la entrada y no se queda pegado a las demás transiciones del elemento (abrir un panel, el
+  puntero encima). `backwards` mantiene el estado inicial durante el retraso y, al terminar, el
+  elemento vuelve a su estilo normal (visible, sin `transform`), sin `will-change` permanente.
+*/
+.revelar { opacity: 0; transform: var(--desde, translateY(var(--distancia-entrada))); }
+.revelar--zoom { --desde: scale(.96); }
+.revelar--visto { opacity: 1; transform: none; animation: aparecer var(--dur-entrada) var(--ease-soft) var(--retardo, 0ms) backwards; }
+@keyframes aparecer { from { opacity: 0; transform: var(--desde, translateY(var(--distancia-entrada))); } to { opacity: 1; transform: none; } }
+
+/* ── UTILIDADES DE MOVIMIENTO (usan los tokens de `:root`; ver «TOKENS DE MOVIMIENTO») ────────────────────────
+   Todas con `backwards` y NUNCA `forwards`/`both`: una animación que se queda «en efecto» convierte al elemento en
+   contexto de apilamiento para siempre (el defecto de `<main>` explicado en `.animate-page-entrance`). */
+@keyframes latido { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+@keyframes entra {
+  from { opacity: var(--entra-opacidad, 1); transform: translate3d(var(--entra-x, 0), var(--entra-y, 0), 0) scale(var(--entra-escala, 1)); }
+}
+/* Fundido corto: cuando algo reemplaza a otra cosa sin cambiar de sitio. */
+.anim-fundido { animation: fadeIn var(--dur-rapida) var(--ease-soft) backwards; }
+/* Entrada de un bloque (misma que `appRevelar`, pero sin esperar a verse): `style="--i: 2"` escalona una lista. */
+.anim-entrada { animation: aparecer var(--dur-entrada) var(--ease-soft) min(calc(var(--i, 0) * var(--escalon)), var(--escalon-tope)) backwards; }
+/* Menús y paneles que salen de un control: aparecen y bajan un poco. */
+.anim-desplegable { --entra-opacidad: 0; --entra-y: -.25rem; animation: entra var(--dur-media) var(--ease-soft) backwards; }
+/* Compatibilidad con las clases `animate-in fade-in slide-in-from-top-N zoom-in-95` que ya estaban escritas en
+   las plantillas (barra de navegación, mapa) y que NO hacían nada: no había ninguna hoja que las definiera. */
+.animate-in { animation: entra var(--dur-media) var(--ease-soft) backwards; }
+.fade-in { --entra-opacidad: 0; }
+.slide-in-from-top-1 { --entra-y: -.25rem; }
+.slide-in-from-top-2 { --entra-y: -.5rem; }
+.zoom-in-95 { --entra-escala: .95; }
+/* Transiciones de control: solo propiedades que no mueven el diseño. */
+.transicion-ui { transition: color var(--dur-media) var(--ease-soft), background-color var(--dur-media) var(--ease-soft), border-color var(--dur-media) var(--ease-soft), box-shadow var(--dur-media) var(--ease-soft), opacity var(--dur-media) var(--ease-soft), transform var(--dur-media) var(--ease-soft); }
+.transicion-rapida { transition: color var(--dur-rapida) var(--ease-soft), background-color var(--dur-rapida) var(--ease-soft), border-color var(--dur-rapida) var(--ease-soft), box-shadow var(--dur-rapida) var(--ease-soft), opacity var(--dur-rapida) var(--ease-soft); }
+
+/* Transición entre pantallas (API de transiciones de vista, activada con `withViewTransitions` en `app.config.ts`).
+   Solo un fundido cruzado corto del contenido; la barra y el pie se quedan quietos. Sin la API, o con «reducir
+   movimiento», no hay transición y la navegación es instantánea. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(root) { animation-duration: var(--dur-media); animation-timing-function: var(--ease-soft); }
+  ::view-transition-old(root) { animation: fadeOut var(--dur-rapida) var(--ease-soft) both; }
+  ::view-transition-new(root) { animation: fadeIn var(--dur-media) var(--ease-soft) both; }
+}
+@keyframes fadeOut { to { opacity: 0; } }
+
+/* Realce al pasar el puntero en las acciones principales: se elevan un poco. */
+.realce { transition: transform var(--dur-media) var(--ease-soft), box-shadow var(--dur-media) var(--ease-soft), background-color var(--dur-media) var(--ease-soft); }
+.realce:active { transform: translateY(0) scale(.98); box-shadow: none; }
+.realce:hover { transform: translateY(-2px); box-shadow: 0 .6rem 1.2rem -.6rem rgb(0 0 0 / .45); }
+
+/* Desenfoque progresivo: fuerte abajo, donde va el texto, y se desvanece hacia arriba. Es una capa
+   con `backdrop-filter` recortada con una máscara en degradado; la foto de arriba queda nítida. */
+.desenfoque-progresivo {
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  -webkit-mask-image: linear-gradient(to top, #000 0%, rgba(0,0,0,.55) 35%, rgba(0,0,0,.15) 65%, transparent 90%);
+  mask-image: linear-gradient(to top, #000 0%, rgba(0,0,0,.55) 35%, rgba(0,0,0,.15) 65%, transparent 90%);
+}
+.duotono { background-color: var(--duotono-luces); isolation: isolate; }
+.duotono__foto { filter: grayscale(1) contrast(1.12); mix-blend-mode: multiply; }
+.duotono__sombras { position: absolute; inset: 0; background-color: var(--duotono-sombras); mix-blend-mode: lighten; }
+
+/*
+  ESCALA TIPOGRÁFICA DE SIMUS (portada, octubre de 2026). Estable: cada texto de la portada usa una
+  de estas clases y ninguna otra medida. Es el sistema que se llevará a las demás páginas.
+
+  Dos familias: Oswald (títulos, antetítulos, enlaces y cifras) y Nunito Sans (lectura). Outfit
+  solo vive en el logotipo.
+
+  FORMATO DE LOS ENCABEZADOS DE SECCIÓN: siempre antetítulo + título + descripción.
+    · Sección que se recorre:  .tipo-etiqueta  +  .tipo-seccion   +  .tipo-subtitulo
+    · Sección que dice algo:   .tipo-etiqueta  +  .tipo-enunciado +  .tipo-subtitulo
+  FORMATO DE TARJETAS Y ELEMENTOS: antetítulo + título + descripción, con los niveles de abajo.
+
+    Nivel             Clase                 Medida      Uso
+    Lema              .tipo-frase           36–44 px    solo el lema del encabezado
+    Título sección    .tipo-seccion         36–56 px    «Explora SIMUS», «Actualidad»…
+    Enunciado         .tipo-enunciado       32–44 px    la frase de «Qué es SIMUS» y del boletín
+    Título grande     .tipo-titulo-grande   36 px       la puerta principal del mosaico
+    Título            .tipo-titulo          22 px       tarjetas, conceptos, subsecciones, noticia principal
+    Título de lista   .tipo-titulo-lista    17 px       noticias secundarias, eventos (Nunito negrita, sin
+                                                      mayúsculas: se distingue de los títulos de sección)
+    Subtítulo         .tipo-subtitulo       18 px       la descripción de cada sección
+    Cuerpo            .tipo-cuerpo          16 px       párrafos
+    Pequeño           .tipo-pequeno         14 px       descripciones de tarjetas y datos de apoyo (mínimo)
+    Antetítulo        .tipo-etiqueta        13 px       antetítulos, fechas y rótulos de cifras (mayúscula inicial)
+    Enlace            .tipo-enlace          14 px       botones y enlaces de texto (mayúscula inicial)
+    Cifra             .tipo-cifra           48–80 px    datos destacados
+
+  MAYÚSCULAS SOSTENIDAS (G7, 12 nov 2026; docs/usuario/23-guia-de-estilo-de-textos.md y docs/referencia/20-decisiones-y-flujos-por-modulo.md decisión 76): solo los TÍTULOS grandes
+  (`.tipo-seccion`, `.tipo-titulo-grande`, `.tipo-titulo`) conservan `text-transform: uppercase`.
+  Antetítulos, enlaces, filtros, listas, rótulos y pistas se escriben con mayúscula inicial solo al
+  comienzo de la frase; el espaciado ancho entre letras iba con las mayúsculas y se fue con ellas.
+  EXCEPCIÓN DOCUMENTADA: `.country-label-marker` (nombres de países en el mapa), por convención cartográfica.
+
+  No llevan `font-alternate` a propósito: esa clase fija el espaciado entre letras con
+  `!important` y aquí cada nivel necesita el suyo.
+*/
+@layer components {
+  .tipo-etiqueta { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: .8125rem; line-height: 1.25; letter-spacing: .02em; }
+  .tipo-seccion { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: clamp(2.25rem, 4vw, 3.5rem); line-height: 1.02; letter-spacing: .01em; text-transform: uppercase; }
+  .tipo-frase { font-family: 'Nunito Sans', sans-serif; font-weight: 300; font-size: clamp(1.5rem, 2.6vw, 2.25rem); line-height: 1.25; }
+  .tipo-enunciado { font-family: 'Nunito Sans', sans-serif; font-weight: 300; font-size: clamp(2rem, 3.2vw, 2.75rem); line-height: 1.14; letter-spacing: -0.01em; }
+  .tipo-titulo-grande { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 2.25rem; line-height: 1.05; letter-spacing: .01em; text-transform: uppercase; }
+  .tipo-titulo { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 1.375rem; line-height: 1.15; letter-spacing: .03em; text-transform: uppercase; }
+  .tipo-titulo-lista { font-family: 'Nunito Sans', sans-serif; font-weight: 700; font-size: 1.0625rem; line-height: 1.35; }
+  /* El titular de la noticia principal: la misma familia y negrita que los demás, más grande (1,625 rem). */
+  /* Titular de tarjeta mediana (rejilla de noticias, fichas): 1,25 rem. */
+  .tipo-titulo-lista--medio { font-weight: 800; font-size: 1.25rem; line-height: 1.25; }
+  .tipo-titulo-lista--destacado { font-weight: 800; font-size: 1.625rem; line-height: 1.2; letter-spacing: -.005em; }
+  .tipo-subtitulo { font-family: 'Nunito Sans', sans-serif; font-weight: 400; font-size: 1.125rem; line-height: 1.6; }
+  .tipo-cuerpo { font-family: 'Nunito Sans', sans-serif; font-weight: 400; font-size: 1rem; line-height: 1.65; }
+  .tipo-pequeno { font-family: 'Nunito Sans', sans-serif; font-weight: 400; font-size: .875rem; line-height: 1.5; }
+  .tipo-enlace { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: .875rem; line-height: 1.25; letter-spacing: .02em; }
+  .tipo-cifra { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: clamp(3rem, 6vw, 5rem); line-height: .95; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .revelar { opacity: 1; transform: none; }
+  .realce:hover { transform: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════════
+   ESCALA TIPOGRÁFICA ÚNICA DEL ESPACIO EXTERNO (PANEL, decisión 126, docs/desarrollo/30-consola-y-acceso.md §30.18)
+
+   Una sola familia de tokens para el panel de la organización y Mi espacio (y la consola, donde convenga):
+   H1, H2, H3, rótulo, texto y ayuda. Antes cada pantalla escribía el suyo —se contaron 40 combinaciones de
+   familia, tamaño, peso y mayúscula en los encabezados del panel— y por eso «Datos de la organización»,
+   «Procesos» y «Solicitudes» no parecían de la misma casa.
+
+   Los encabezados h1, h2 y h3 dentro de `.armazon-de-gestion` toman la escala por ELEMENTO y no por clase:
+   escribir una clase de tamaño en ellos ya no cambia nada (el trinquete cuenta los que aún la llevan).
+   ═══════════════════════════════════════════════════════════════════════════════════════════ */
+:root {
+  --tipo-h1-tamano: 1.75rem; --tipo-h1-linea: 2.125rem; --tipo-h1-peso: 700;
+  --tipo-h2-tamano: 1.125rem; --tipo-h2-linea: 1.6rem; --tipo-h2-peso: 800;
+  --tipo-h3-tamano: 1rem; --tipo-h3-linea: 1.5rem; --tipo-h3-peso: 700;
+  --tipo-rotulo-tamano: .75rem; --tipo-rotulo-linea: 1.0625rem; --tipo-rotulo-peso: 700;
+  --tipo-texto-tamano: .875rem; --tipo-texto-linea: 1.35rem; --tipo-texto-peso: 400;
+  --tipo-ayuda-tamano: .75rem; --tipo-ayuda-linea: 1.0625rem; --tipo-ayuda-peso: 400;
+}
+.armazon-de-gestion :is(h1, h2, h3):not(.sr-only):not(.rotulo-de-seccion) { margin-top: 0; letter-spacing: 0; text-transform: none; }
+.armazon-de-gestion h1:not(.sr-only) { font-family: var(--font-alternate); font-size: var(--tipo-h1-tamano); line-height: var(--tipo-h1-linea); font-weight: var(--tipo-h1-peso); color: var(--color-morado); }
+.armazon-de-gestion h2:not(.sr-only):not(.rotulo-de-seccion) { font-family: var(--font-nunito, inherit); font-size: var(--tipo-h2-tamano); line-height: var(--tipo-h2-linea); font-weight: var(--tipo-h2-peso); color: var(--color-valor); }
+.armazon-de-gestion h3:not(.sr-only):not(.rotulo-de-seccion) { font-family: var(--font-nunito, inherit); font-size: var(--tipo-h3-tamano); line-height: var(--tipo-h3-linea); font-weight: var(--tipo-h3-peso); color: var(--color-valor); }
+/* Utilidades de la misma escala para lo que no es un encabezado. */
+@layer components {
+  .t-rotulo { font-size: var(--tipo-rotulo-tamano); line-height: var(--tipo-rotulo-linea); font-weight: var(--tipo-rotulo-peso); color: var(--color-rotulo); }
+  .t-texto { font-size: var(--tipo-texto-tamano); line-height: var(--tipo-texto-linea); font-weight: var(--tipo-texto-peso); color: var(--color-prosa); }
+  .t-valor { font-size: var(--tipo-texto-tamano); line-height: var(--tipo-texto-linea); font-weight: 600; color: var(--color-valor); }
+  .t-ayuda { font-size: var(--tipo-ayuda-tamano); line-height: var(--tipo-ayuda-linea); font-weight: var(--tipo-ayuda-peso); color: var(--color-rotulo); }
+}
+
+/* ── LA IDENTIDAD, ARRIBA DE LA BARRA LATERAL DEL ESPACIO EXTERNO (PANEL) ──────────────────────────────
+   El rol, el nombre de la entidad y la ciudad (en Mi espacio: «Mi espacio», el nombre y el correo). Fija: lo que se
+   desplaza es la lista de secciones. Los hijos llevan el relleno lateral, no la barra. */
+.identidad-de-gestion { flex: 0 0 auto; min-width: 0; margin: 0 .75rem .5rem; border-bottom: 1px solid var(--color-filete); padding: 0 .625rem .75rem; }
+.identidad-de-gestion p { margin: 0; }
+.identidad-de-gestion__rol { color: var(--color-seccion); font-size: var(--tipo-rotulo-tamano); font-weight: 800; line-height: var(--tipo-rotulo-linea); }
+.identidad-de-gestion__nombre { margin-top: .125rem !important; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; color: var(--color-morado); font-size: var(--text-lectura); font-weight: 800; line-height: 1.25; }
+.identidad-de-gestion__dato { margin-top: .125rem !important; overflow: hidden; color: var(--color-rotulo); font-size: var(--tipo-ayuda-tamano); text-overflow: ellipsis; white-space: nowrap; }
+.identidad-de-gestion__cambiar { display: block; margin-top: .625rem; }
+/* El rótulo de un apartado dentro de una pantalla del espacio externo: la misma escala, sin mayúscula sostenida ni tipografía de título. */
+.armazon-de-gestion .rotulo-de-seccion { font-family: var(--font-nunito, inherit); font-size: var(--tipo-rotulo-tamano); line-height: var(--tipo-rotulo-linea); font-weight: 800; letter-spacing: 0; text-transform: none; color: var(--color-seccion); }
+
+/* ── LA BARRA SUPERIOR FIJA NUNCA TAPA CONTENIDO (punto 31 del mapa de comentarios; regla estructural) ─────────────────
+   La barra principal del portal es `position: fixed` y mide `--alto-barra-superior`. Antes cada pantalla se acordaba de
+   dejarle sitio (o no: «Agenda de citas» y la confirmación del correo quedaron debajo, dos veces). Ahora el armazón lo
+   hace por todas: `PortalLayoutComponent` pone esta clase en su <main> salvo que la ruta declare
+   `data: { barraSuperior: 'propia' }` (un encabezado fotográfico o un margen suyo), y `/gestion/entrada` la lleva igual.
+   Una pantalla nueva queda bien sin tocar nada. La prueba e2e `barra-superior-no-tapa-contenido.spec.ts` recorre todas
+   las rutas de la gestión externa y del portal, a 1440 y a 390 px. El armazón de gestión (Mi espacio, panel, consola) no
+   la necesita: su cabecera va dentro del flujo y el contenido empieza debajo. */
+.reserva-de-barra { padding-top: var(--alto-barra-superior); }
+
+/* ── LAS VISTAS INTERNAS DE UN PROCESO SE PARECEN (punto 33 del mapa de comentarios) ────────────────────────────────
+   Información, Historial, Ediciones, Visión general, Anuncios… eran de la misma ficha y parecían de casas distintas: cada una
+   escribía su propia familia, tamaño y peso para sus títulos. La base es la estética de «Datos de la organización»
+   (`app-panel-de-seccion`): títulos de apartado en la tipografía de títulos (Oswald), morado, dos niveles —apartado y
+   subapartado—; los rótulos de dato en `t-rotulo`, los valores en `t-valor` y el texto corrido en `t-texto`. La clase
+   `vista-de-proceso` va en la raíz de la ficha de cada proceso (Festival, Mercado, Espacio, Lutería y Red). Los títulos que
+   envuelven un botón (acordeones de paso) ponen la tipografía en su propio rótulo, para no arrastrar al botón ni a su ayuda. */
+.armazon-de-gestion .vista-de-proceso :is(h2, h3):not(.sr-only):not(.rotulo-de-seccion):not(:has(button)) { font-family: var(--font-alternate); font-weight: 600; letter-spacing: .01em; color: var(--color-morado); }
+.armazon-de-gestion .vista-de-proceso h2:not(.sr-only):not(.rotulo-de-seccion):not(:has(button)) { font-size: 1.375rem; line-height: 1.2; }
+.armazon-de-gestion .vista-de-proceso h3:not(.sr-only):not(.rotulo-de-seccion):not(:has(button)) { font-size: 1.125rem; line-height: 1.3; }
+
+/* ── CONSOLA · OBJETIVOS DE TOQUE Y DE CLIC ──────────────────────────────────────────────────────────────────
+   La revisión de la consola en teléfono, tableta y portátil midió botones, pestañas y campos de 20 a 40 px
+   (Borradores, «Más acciones», «Ver», ordenar columna, pestañas de la bandeja). Una sola regla en vez de una
+   por pantalla: con puntero táctil el mínimo es el cómodo (44 px, WCAG 2.5.5) y con puntero fino 32 px.
+   Solo la consola (`.admin-foundation`); el portal público tiene sus propias reglas. */
+@media (pointer: coarse) {
+  .admin-foundation :where(button, select, summary, [role='tab'], input:not([type='checkbox'], [type='radio'], [type='hidden'], [type='range'], [type='file'])):not(.sr-only, [hidden]) { min-height: var(--spacing-control-comodo); }
+  .admin-foundation button:not(.sr-only, [hidden]) { min-width: var(--spacing-control-comodo); }
+  .admin-foundation .casilla-de-fila { min-height: var(--spacing-control-comodo); min-width: var(--spacing-control-comodo); }
+}
+@media (pointer: fine) {
+  .admin-foundation :where(button, [role='tab']):not(.sr-only, [hidden]) { min-height: 2rem; min-width: 2rem; }
+}
+/* Teléfono apaisado (menos de 520 px de alto): la cabecera de 72 px se comía una quinta parte de la pantalla y
+   la barra lateral, anclada bajo ella, quedaba en tres renglones. La cabecera se va con el desplazamiento y
+   todo lo que se ancla a ella (barra, índice del CMS, vista previa) pasa a anclarse al borde. */
+@media (pointer: coarse) and (max-height: 520px) {
+  .admin-foundation { --alto-cabecera: 0px; }
+  .admin-foundation .foundation-header { position: static; }
+  .admin-foundation :is(.sidebar-item, .sidebar-grupo-titulo, .sidebar-portal) { min-height: 2.25rem; }
+}
+
+/* ── REVISIÓN DE TELÉFONO, TABLETA Y ESCRITORIO BAJO (gestión externa y agenda de citas) ────────────────────────────
+   `alto:` es la variante de «ventana alta» (56 rem = 896 px de alto o más): lo que se ancla y se desplaza por dentro
+   (columnas con su propio scroll, paneles pegados) solo se hace donde cabe; en un portátil de 720–768 px dos
+   desplazamientos anidados dejaban medio alto de ventana útil. */
+@custom-variant alto (@media (min-height: 56rem));
+
+/* OBJETIVO TÁCTIL DE 44 PX (puntero grueso). Los botones «menudo» (24 px) y «normal» (36 px) están pensados
+   para el ratón; con el dedo se quedan cortos y las filas con botones de ambos tamaños quedan igualadas. Solo cambia con puntero grueso: en escritorio no se mueve nada. */
+@media (pointer: coarse) {
+  :is(button, a):is([class~='min-h-control-minimo'], [class~='min-h-control']) { min-height: var(--spacing-control-tactil); }
+}
+
+/* ── FILA DE CAMPOS: APILA EN MÓVIL (punto 85 del mapa de comentarios; regla común) ───────────────────────────────────
+   Una fila de formulario con varias columnas NO cabe en 360 px: los campos quedan lado a lado, el texto se aprieta o,
+   peor, un `grid` sin plantilla (o un campo con `white-space: nowrap`) ensancha la columna más allá de la pantalla y
+   el contenedor con `overflow: hidden` la esconde. Esta regla es la forma única de poner campos en columnas:
+     <div class="fila-de-campos"> …campos… </div>               2 columnas desde 40 rem (640 px), una columna debajo
+     <div class="fila-de-campos fila-de-campos--3"> … </div>      3 columnas desde 48 rem
+     <div class="fila-de-campos fila-de-campos--rotulada"> <rótulo/> <campo/> <acciones/> </div>
+                                                                  rótulo arriba, campo debajo y acciones al final en móvil;
+                                                                  los tres en una línea desde 40 rem (el rótulo de 9 rem).
+   Las columnas son `minmax(0, 1fr)` y los hijos llevan `min-width: 0`: nada puede ser más ancho que su columna.
+   La prueba `e2e/sin-recortes-ni-desbordes.spec.ts` vigila que ningún campo se salga de su tarjeta. */
+@layer components {
+  .fila-de-campos { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--fila-de-campos-separacion, 1rem); }
+  .fila-de-campos > * { min-width: 0; }
+  @media (min-width: 40rem) { .fila-de-campos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (min-width: 48rem) { .fila-de-campos--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .fila-de-campos--rotulada { align-items: center; gap: .375rem .5rem; }
+  .fila-de-campos--rotulada > .fila-de-campos__acciones { justify-self: end; }
+  @media (min-width: 40rem) { .fila-de-campos--rotulada { grid-template-columns: 9rem minmax(0, 1fr) auto; } }
+}
+
+/* UN TÍTULO NUNCA SE CORTA (punto 86 del mapa de comentarios: el título de «Rueda de citas con programadores…» no se veía
+   completo en el teléfono). Un encabezado con `truncate` (elipsis en una línea) se parte en las líneas que necesite; lo que
+   se abrevia con elipsis son nombres dentro de listas, y esos llevan `title` con el texto completo. Va fuera de las capas
+   para ganarle a la utilidad `truncate` de Tailwind. */
+:is(h1, h2, h3, h4, h5, h6, [role='heading']).truncate { overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
+
+/* UN `fieldset` NO ENSANCHA SU TARJETA: por omisión el navegador le da `min-width: min-content`, y una fila de campos o un texto
+   largo lo hace más ancho que la pantalla (el portafolio del perfil público llegaba 4 px más allá a 360 px). */
+fieldset { min-width: 0; }

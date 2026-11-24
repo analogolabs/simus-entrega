@@ -1,0 +1,169 @@
+# Festivales de las siembras de la demostración (scripts/demo/sembrar-demo.sh completa y los históricos de V20261106_07).
+# Son los nombres y el territorio públicos de la lista /api/v1/publico/festivales de una base recién sembrada (167 Festivales).
+# Columnas separadas por tabulador: departamento, municipio, nombre. Sin datos de personas. Lo usa MedicionDeParecidoTests.
+		Festival de Amazonas de Albania
+		Festival de Amazonas de Carcasí
+		Festival de Amazonas de Ábrego
+		Festival de Canta y Torbellino de Almaguer
+		Festival de Canta y Torbellino de Apartadó
+		Festival de Chirimía de Bituima
+		Festival de Insular de Cajamarca
+		Festival de Joropo de Barrancas
+		Festival de Joropo de Colón
+		Festival de Marimba de Belén
+		Festival de Marimba de Chinavita
+		Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Alto Baudó
+		Festival de Prácticas de Pueblos Indígenas de Candelaria
+		Festival de Prácticas de Pueblos Indígenas de Cubarral
+		Festival de Rrom de Buenavista
+AMAZONAS	EL ENCANTO	Festival de Trova y Parranda de El Encanto
+AMAZONAS	LA CHORRERA	Festival de Trova y Parranda de La Chorrera
+ANTIOQUIA		Festival de Canta y Torbellino de Anorí
+ANTIOQUIA		Festival de Canta y Torbellino de Betania
+ANTIOQUIA	ABEJORRAL	Festival de Canta y Torbellino de Abejorral
+ANTIOQUIA	ABRIAQUÍ	Festival de Canta y Torbellino de Abriaquí
+ANTIOQUIA	ALEJANDRÍA	Festival de Canta y Torbellino de Alejandría
+ANTIOQUIA	AMAGÁ	Festival de Canta y Torbellino de Amagá
+ANTIOQUIA	AMALFI	Festival de Canta y Torbellino de Amalfi
+ANTIOQUIA	ANDES	Festival de Canta y Torbellino de Andes
+ANTIOQUIA	ANGELÓPOLIS	Festival de Canta y Torbellino de Angelópolis
+ANTIOQUIA	ANGOSTURA	Festival de Canta y Torbellino de Angostura
+ANTIOQUIA	ANZÁ	Festival de Canta y Torbellino de Anzá
+ANTIOQUIA	ARBOLETES	Festival de Canta y Torbellino de Arboletes
+ANTIOQUIA	ARGELIA	Festival de Canta y Torbellino de Argelia
+ANTIOQUIA	ARMENIA	Festival de Canta y Torbellino de Armenia
+ANTIOQUIA	BARBOSA	Festival de Canta y Torbellino de Barbosa
+ANTIOQUIA	BELLO	Festival de Canta y Torbellino de Bello
+ATLÁNTICO	BARANOA	Festival de Prácticas de Pueblos Indígenas de Baranoa
+ATLÁNTICO	BARRANQUILLA	Encuentro Voces del Río
+ATLÁNTICO	BARRANQUILLA	Festival de Prácticas de Pueblos Indígenas de Barranquilla
+ATLÁNTICO	CAMPO DE LA CRUZ	Festival de Prácticas de Pueblos Indígenas de Campo de la Cruz
+BOLÍVAR		Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Arroyohondo
+BOLÍVAR	ALTOS DEL ROSARIO	Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Altos del Rosario
+BOLÍVAR	ARENAL	Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Arenal
+BOLÍVAR	ARJONA	Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Arjona
+BOLÍVAR	BARRANCO DE LOBA	Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Barranco de Loba
+BOLÍVAR	CALAMAR	Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Calamar
+BOLÍVAR	CARTAGENA DE INDIAS	Festival Brisas del Caribe
+BOYACÁ		Festival de Marimba de Boavita
+BOYACÁ		Festival de Marimba de Chiquinquirá
+BOYACÁ	ALMEIDA	Festival de Marimba de Almeida
+BOYACÁ	AQUITANIA	Festival de Marimba de Aquitania
+BOYACÁ	ARCABUCO	Festival de Marimba de Arcabuco
+BOYACÁ	BETÉITIVA	Festival de Marimba de Betéitiva
+BOYACÁ	BOYACÁ	Festival de Marimba de Boyacá
+BOYACÁ	BRICEÑO	Festival de Marimba de Briceño
+BOYACÁ	BUENAVISTA	Festival de Marimba de Buenavista
+BOYACÁ	BUSBANZÁ	Festival de Marimba de Busbanzá
+BOYACÁ	CALDAS	Festival de Marimba de Caldas
+BOYACÁ	CAMPOHERMOSO	Festival de Marimba de Campohermoso
+BOYACÁ	CERINZA	Festival de Marimba de Cerinza
+BOYACÁ	CHISCAS	Festival de Marimba de Chiscas
+CALDAS	AGUADAS	Festival de Insular de Aguadas
+CALDAS	ANSERMA	Festival de Insular de Anserma
+CALDAS	ARANZAZU	Festival de Insular de Aranzazu
+CALDAS	MANIZALES	Muestra Andina de Cuerdas
+CAQUETÁ		Festival de Comunidades Académicas de Cartagena del Chairá
+CAQUETÁ	ALBANIA	Festival de Comunidades Académicas de Albania
+CAQUETÁ	BELÉN DE LOS ANDAQUÍES	Festival de Comunidades Académicas de Belén de Los Andaquíes
+CASANARE		Festival de Marimba de Aguazul
+CASANARE	CHÁMEZA	Festival de Marimba de Chámeza
+CASANARE	HATO COROZAL	Festival de Marimba de Hato Corozal
+CAUCA		Encuentro de Marimba y Cantos del Cauca
+CAUCA	ARGELIA	Festival de Canta y Torbellino de Argelia
+CAUCA	BALBOA	Festival de Canta y Torbellino de Balboa
+CAUCA	BOLÍVAR	Festival de Canta y Torbellino de Bolívar
+CAUCA	BUENOS AIRES	Festival de Canta y Torbellino de Buenos Aires
+CAUCA	CAJIBÍO	Festival de Canta y Torbellino de Cajibío
+CAUCA	POPAYÁN	Festival de Músicas del Macizo
+CESAR		Festival de Flautas, Cuerdas y Tambores Sureños de Astrea
+CESAR	AGUACHICA	Festival de Flautas, Cuerdas y Tambores Sureños de Aguachica
+CESAR	AGUSTÍN CODAZZI	Festival de Flautas, Cuerdas y Tambores Sureños de Agustín Codazzi
+CESAR	BECERRIL	Festival de Flautas, Cuerdas y Tambores Sureños de Becerril
+CHOCÓ		Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Bagadó
+CHOCÓ	ACANDÍ	Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Acandí
+CHOCÓ	ATRATO	Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Atrato
+CHOCÓ	BAHÍA SOLANO	Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Bahía Solano
+CHOCÓ	QUIBDÓ	Festival Folclórico de la Chirimía
+CUNDINAMARCA		Festival de Chirimía de Anapoima
+CUNDINAMARCA		Festival de Chirimía de Cajicá
+CUNDINAMARCA	AGUA DE DIOS	Festival de Chirimía de Agua de Dios
+CUNDINAMARCA	ALBÁN	Festival de Chirimía de Albán
+CUNDINAMARCA	ANOLAIMA	Festival de Chirimía de Anolaima
+CUNDINAMARCA	APULO	Festival de Chirimía de Apulo
+CUNDINAMARCA	ARBELÁEZ	Festival de Chirimía de Arbeláez
+CUNDINAMARCA	BELTRÁN	Festival de Chirimía de Beltrán
+CUNDINAMARCA	BOJACÁ	Festival de Chirimía de Bojacá
+CUNDINAMARCA	CABRERA	Festival de Chirimía de Cabrera
+CUNDINAMARCA	CACHIPAY	Festival de Chirimía de Cachipay
+CUNDINAMARCA	CAPARRAPÍ	Festival de Chirimía de Caparrapí
+CUNDINAMARCA	CARMEN DE CARUPA	Festival de Chirimía de Carmen de Carupa
+CUNDINAMARCA	CHÍA	Festival de Chirimía de Chía
+CUNDINAMARCA	CÁQUEZA	Festival de Chirimía de Cáqueza
+CÓRDOBA	AYAPEL	Festival de Rrom de Ayapel
+CÓRDOBA	CANALETE	Festival de Rrom de Canalete
+GUAINÍA	BARRANCOMINAS	Festival de Rajaleña y Cucamba de Barrancominas
+HUILA	AGRADO	Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Agrado
+HUILA	AIPE	Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Aipe
+HUILA	ALGECIRAS	Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Algeciras
+HUILA	ALTAMIRA	Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Altamira
+HUILA	BARAYA	Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Baraya
+HUILA	NEIVA	Festival Sonidos del Huila
+HUILA	NEIVA	Festival del Bambuco
+HUILA	PITALITO	Festival del Bambuco
+LA GUAJIRA	ALBANIA	Festival de Joropo de Albania
+LA GUAJIRA	DIBULLA	Festival de Joropo de Dibulla
+MAGDALENA	ALGARROBO	Festival de Canta y Torbellino de Algarrobo
+MAGDALENA	ARIGUANÍ	Festival de Canta y Torbellino de Ariguaní
+MAGDALENA	CERRO DE SAN ANTONIO	Festival de Canta y Torbellino de Cerro de San Antonio
+MAGDALENA	CHIVOLO	Festival de Canta y Torbellino de Chivolo
+MAGDALENA	SANTA MARTA	Festival de Gaitas y Tambores de la Sierra
+META		Festival de Prácticas de Pueblos Indígenas de Cabuyaro
+META	ACACÍAS	Festival de Prácticas de Pueblos Indígenas de Acacías
+META	BARRANCA DE UPÍA	Festival de Prácticas de Pueblos Indígenas de Barranca de Upía
+META	CASTILLA LA NUEVA	Festival de Prácticas de Pueblos Indígenas de Castilla la Nueva
+META	VILLAVICENCIO	Jornadas Llaneras de la Sabana
+NARIÑO		Festival de Rajaleña y Cucamba de Buesaco
+NARIÑO	ALBÁN	Festival de Rajaleña y Cucamba de Albán
+NARIÑO	ALDANA	Festival de Rajaleña y Cucamba de Aldana
+NARIÑO	ANCUYA	Festival de Rajaleña y Cucamba de Ancuya
+NARIÑO	ARBOLEDA	Festival de Rajaleña y Cucamba de Arboleda
+NARIÑO	BELÉN	Festival de Rajaleña y Cucamba de Belén
+NARIÑO	CHACHAGÜÍ	Festival de Rajaleña y Cucamba de Chachagüí
+NARIÑO	CONSACÁ	Festival de Rajaleña y Cucamba de Consacá
+NORTE DE SANTANDER		Festival de Amazonas de Cácota
+NORTE DE SANTANDER	ARBOLEDAS	Festival de Amazonas de Arboledas
+NORTE DE SANTANDER	BOCHALEMA	Festival de Amazonas de Bochalema
+NORTE DE SANTANDER	BUCARASICA	Festival de Amazonas de Bucarasica
+NORTE DE SANTANDER	CÁCHIRA	Festival de Amazonas de Cáchira
+PUTUMAYO	MOCOA	Festival de Joropo de Mocoa
+QUINDÍO	ARMENIA	Festival de Trova y Parranda de Armenia
+QUINDÍO	BUENAVISTA	Festival de Trova y Parranda de Buenavista
+RISARALDA	APÍA	Festival de Rajaleña y Cucamba de Apía
+RISARALDA	BALBOA	Festival de Rajaleña y Cucamba de Balboa
+SANTANDER		Festival de Amazonas de Barichara
+SANTANDER	AGUADA	Festival de Amazonas de Aguada
+SANTANDER	ARATOCA	Festival de Amazonas de Aratoca
+SANTANDER	BARBOSA	Festival de Amazonas de Barbosa
+SANTANDER	BETULIA	Festival de Amazonas de Betulia
+SANTANDER	BUCARAMANGA	Festival de Amazonas de Bucaramanga
+SANTANDER	CABRERA	Festival de Amazonas de Cabrera
+SANTANDER	CALIFORNIA	Festival de Amazonas de California
+SANTANDER	CAPITANEJO	Festival de Amazonas de Capitanejo
+SUCRE		Festival de Cantos, Pitos y Tambores de Buenavista
+SUCRE	CAIMITO	Festival de Cantos, Pitos y Tambores de Caimito
+SUCRE	CHALÁN	Festival de Cantos, Pitos y Tambores de Chalán
+SUCRE	COLOSÓ	Festival de Cantos, Pitos y Tambores de Colosó
+TOLIMA	ALPUJARRA	Festival de Insular de Alpujarra
+TOLIMA	ALVARADO	Festival de Insular de Alvarado
+TOLIMA	AMBALEMA	Festival de Insular de Ambalema
+TOLIMA	ANZOÁTEGUI	Festival de Insular de Anzoátegui
+TOLIMA	ARMERO	Festival de Insular de Armero
+VALLE DEL CAUCA	ALCALÁ	Festival de Flautas, Cuerdas y Tambores Sureños de Alcalá
+VALLE DEL CAUCA	ANDALUCÍA	Festival de Flautas, Cuerdas y Tambores Sureños de Andalucía
+VALLE DEL CAUCA	ANSERMANUEVO	Festival de Flautas, Cuerdas y Tambores Sureños de Ansermanuevo
+VALLE DEL CAUCA	ARGELIA	Festival de Flautas, Cuerdas y Tambores Sureños de Argelia
+VALLE DEL CAUCA	BOLÍVAR	Festival de Flautas, Cuerdas y Tambores Sureños de Bolívar
+VALLE DEL CAUCA	BUENAVENTURA	Festival de Flautas, Cuerdas y Tambores Sureños de Buenaventura
+VALLE DEL CAUCA	SANTIAGO DE CALI	Circuito Sonoro del Pacífico
+VAUPÉS		Festival de Músicas Urbanas, Alternativas e Independientes - MUAI de Carurú

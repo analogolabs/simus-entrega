@@ -1,0 +1,185 @@
+<!--
+  Las rutas «Datos personales» (`/gestion/cuenta/datos`) y «Contraseña y seguridad»
+  (`/gestion/cuenta/seguridad`): el mismo componente, dos vistas que salen de `data.vista` (ME). Cada una
+  usa todo el ancho: antes todo vivía en una columna estrecha (`max-w-xl`) a la izquierda. Ver el
+  comentario de `panel-cuenta-seguridad.component.ts`. Datos personales y contraseña desde #39.
+-->
+<div class="space-y-6">
+  @if (vista !== 'seguridad') {
+    <app-encabezado-de-pantalla idDelTitulo="datos-titulo" titulo="Datos personales" descripcion="Identifican tu cuenta. Son privados: no aparecen en ninguna ficha pública del sitio ni en los directorios." />
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start">
+        <section aria-labelledby="datos-titulo">
+          @if (cargandoPerfil()) {
+            <app-esqueleto variante="ficha" etiqueta="Cargando tus datos personales" data-testid="datos-cargando" />
+          } @else if (errorDeCarga()) {
+            <app-estado-de-lista tipo="error" titulo="No fue posible cargar tus datos" [detalle]="errorDeCarga()" data-testid="datos-con-error">
+              <app-boton importancia="secundaria" identificador="datos-reintentar" (accion)="cargarPerfil()">Reintentar</app-boton>
+            </app-estado-de-lista>
+          } @else {
+          @if (errorPerfil()) { <p role="alert" class="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ errorPerfil() }}</p> }
+          <form class="mt-4 space-y-4" novalidate (submit)="$event.preventDefault(); guardarPerfil()">
+            <div class="grid gap-4 sm:grid-cols-2">
+            <label for="perfil-primerNombre" class="block text-sm font-bold text-slate-900">
+              Primer nombre <span class="text-verde-texto" aria-hidden="true">*</span>
+              <input id="perfil-primerNombre" name="primerNombre" type="text" autocomplete="given-name" spellcheck="false" autocapitalize="words" maxlength="80" [(ngModel)]="perfil.primerNombre"
+                     [attr.aria-invalid]="erroresPerfil()['primerNombre'] ? 'true' : null"
+                     [attr.aria-describedby]="erroresPerfil()['primerNombre'] ? 'perfil-primerNombre-error perfil-nombres-ayuda' : 'perfil-nombres-ayuda'"
+                     class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+              @if (erroresPerfil()['primerNombre']) { <span id="perfil-primerNombre-error" class="mt-1 block text-xs font-normal text-red-700">{{ erroresPerfil()['primerNombre'] }}</span> }
+            </label>
+            <label for="perfil-segundoNombre" class="block text-sm font-bold text-slate-900">
+              Segundo nombre (opcional)
+              <input id="perfil-segundoNombre" name="segundoNombre" type="text" autocomplete="additional-name" spellcheck="false" autocapitalize="words" maxlength="80" [(ngModel)]="perfil.segundoNombre"
+                     [attr.aria-invalid]="erroresPerfil()['segundoNombre'] ? 'true' : null"
+                     [attr.aria-describedby]="erroresPerfil()['segundoNombre'] ? 'perfil-segundoNombre-error perfil-nombres-ayuda' : 'perfil-nombres-ayuda'"
+                     class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+              @if (erroresPerfil()['segundoNombre']) { <span id="perfil-segundoNombre-error" class="mt-1 block text-xs font-normal text-red-700">{{ erroresPerfil()['segundoNombre'] }}</span> }
+            </label>
+            <label for="perfil-primerApellido" class="block text-sm font-bold text-slate-900">
+              Primer apellido <span class="text-verde-texto" aria-hidden="true">*</span>
+              <input id="perfil-primerApellido" name="primerApellido" type="text" autocomplete="family-name" spellcheck="false" autocapitalize="words" maxlength="80" [(ngModel)]="perfil.primerApellido"
+                     [attr.aria-invalid]="erroresPerfil()['primerApellido'] ? 'true' : null"
+                     [attr.aria-describedby]="erroresPerfil()['primerApellido'] ? 'perfil-primerApellido-error perfil-nombres-ayuda' : 'perfil-nombres-ayuda'"
+                     class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+              @if (erroresPerfil()['primerApellido']) { <span id="perfil-primerApellido-error" class="mt-1 block text-xs font-normal text-red-700">{{ erroresPerfil()['primerApellido'] }}</span> }
+            </label>
+            <label for="perfil-segundoApellido" class="block text-sm font-bold text-slate-900">
+              Segundo apellido (opcional)
+              <input id="perfil-segundoApellido" name="segundoApellido" type="text" autocomplete="off" spellcheck="false" autocapitalize="words" maxlength="80" [(ngModel)]="perfil.segundoApellido"
+                     [attr.aria-invalid]="erroresPerfil()['segundoApellido'] ? 'true' : null"
+                     [attr.aria-describedby]="erroresPerfil()['segundoApellido'] ? 'perfil-segundoApellido-error perfil-nombres-ayuda' : 'perfil-nombres-ayuda'"
+                     class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+              @if (erroresPerfil()['segundoApellido']) { <span id="perfil-segundoApellido-error" class="mt-1 block text-xs font-normal text-red-700">{{ erroresPerfil()['segundoApellido'] }}</span> }
+            </label>
+            <p id="perfil-nombres-ayuda" class="-mt-2 text-xs text-slate-600 sm:col-span-2">Escríbelos como figuran en tu documento de identidad.</p>
+            <div class="block"><app-campo-de-seleccion tamano="comodo" etiqueta="Tipo de documento" identificador="perfil-tipoDocumento" [obligatorio]="true" name="tipoDocumento" [(ngModel)]="perfil.tipoDocumento" [invalido]="!!(erroresPerfil()['tipoDocumento'])" [descritoPorExterno]="erroresPerfil()['tipoDocumento'] ? 'perfil-tipoDocumento-error' : null">
+                <option value="">Elige uno</option>
+                @for (tipo of tiposDeDocumento; track tipo.codigo) { <option [value]="tipo.codigo">{{ tipo.nombre }}</option> }
+              </app-campo-de-seleccion>
+              @if (erroresPerfil()['tipoDocumento']) { <span id="perfil-tipoDocumento-error" class="mt-1 block text-xs font-normal text-red-700">{{ erroresPerfil()['tipoDocumento'] }}</span> }
+            </div>
+            <label for="perfil-numeroDocumento" class="block text-sm font-bold text-slate-900">
+              Número de documento <span class="text-verde-texto" aria-hidden="true">*</span>
+              <input id="perfil-numeroDocumento" name="numeroDocumento" type="text" inputmode="numeric" maxlength="20" [(ngModel)]="perfil.numeroDocumento"
+                     [attr.aria-invalid]="erroresPerfil()['numeroDocumento'] ? 'true' : null"
+                     [attr.aria-describedby]="erroresPerfil()['numeroDocumento'] ? 'perfil-numeroDocumento-error' : null"
+                     class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+              @if (erroresPerfil()['numeroDocumento']) { <span id="perfil-numeroDocumento-error" class="mt-1 block text-xs font-normal text-red-700">{{ erroresPerfil()['numeroDocumento'] }}</span> }
+            </label>
+            <label for="perfil-telefono" class="block text-sm font-bold text-slate-900">
+              Teléfono
+              <input id="perfil-telefono" name="telefono" type="tel" autocomplete="tel" maxlength="80" [(ngModel)]="perfil.telefono"
+                     [attr.aria-invalid]="erroresPerfil()['telefono'] ? 'true' : null"
+                     [attr.aria-describedby]="erroresPerfil()['telefono'] ? 'perfil-telefono-error' : null"
+                     class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+              @if (erroresPerfil()['telefono']) { <span id="perfil-telefono-error" class="mt-1 block text-xs font-normal text-red-700">{{ erroresPerfil()['telefono'] }}</span> }
+            </label>
+            </div>
+
+            <section class="space-y-4 border-t border-filete pt-5" aria-labelledby="datos-opcionales-titulo" data-datos-opcionales>
+              <h2 id="datos-opcionales-titulo">Dónde vives y cómo prefieres que te contacten</h2>
+              <p class="text-sm text-slate-600">Son opcionales y privados. Los usamos para mostrarte lo que ocurre en tu territorio, saber de forma agregada de dónde vienen quienes usan SIMUS y escribirte por el medio que prefieras cuando lo necesitemos. No pedimos tu dirección exacta, fecha de nacimiento ni otros datos que no necesitamos.</p>
+              <app-selector-de-sede idBase="residencia" rotulo="de residencia" [avisarPendiente]="false" [ubicaciones]="ubicaciones()"
+                [departamento]="perfil.residenciaCodigoDepartamento ?? ''" [municipio]="perfil.residenciaCodigoMunicipio ?? ''"
+                [errorDepartamento]="erroresPerfil()['residenciaCodigoDepartamento'] || null" [errorMunicipio]="erroresPerfil()['residenciaCodigoMunicipio'] || null"
+                (cambiar)="elegirResidencia($event)" />
+              <div class="block sm:max-w-sm"><app-campo-de-seleccion tamano="comodo" etiqueta="Medio de contacto preferido" identificador="perfil-canalDeContactoPreferido" name="canalDeContactoPreferido" [(ngModel)]="perfil.canalDeContactoPreferido" [invalido]="!!(erroresPerfil()['canalDeContactoPreferido'])" [descritoPorExterno]="erroresPerfil()['canalDeContactoPreferido'] ? 'perfil-canalDeContactoPreferido-error' : null">
+                  <option value="">Sin preferencia</option>
+                  @for (canal of canalesDeContacto; track canal.codigo) { <option [value]="canal.codigo">{{ canal.nombre }}</option> }
+                </app-campo-de-seleccion>
+                @if (erroresPerfil()['canalDeContactoPreferido']) { <span id="perfil-canalDeContactoPreferido-error" class="mt-1 block text-xs font-normal text-red-700">{{ erroresPerfil()['canalDeContactoPreferido'] }}</span> }
+              </div>
+            </section>
+
+            <div class="flex flex-wrap items-center gap-3">
+              <app-boton tipo="submit" importancia="principal" identificador="guardar-datos" [ocupado]="guardandoPerfil()">{{ guardandoPerfil() ? 'Guardando…' : 'Guardar datos' }}</app-boton>
+              <p role="status" class="text-sm font-bold text-verde-texto">{{ avisoPerfil() }}</p>
+            </div>
+          </form>
+          }
+        </section>
+      <div class="space-y-6">
+          <!--
+            UNA SOLA FOTO DE LA PERSONA. Aquí había una tarjeta «Foto de perfil» que decía que no se
+            podían subir imágenes, con el botón deshabilitado, mientras Perfil público sí las subía: dos fotos
+            que se contradecían. La foto de la persona es la de su perfil público.
+          -->
+          <p data-testid="foto-de-la-persona" class="t-texto border-y border-filete py-3">
+            Tu foto es la de tu <a routerLink="/gestion/cuenta/perfil-publico" class="font-bold text-morado underline underline-offset-2">perfil público</a>: allí la subes o la cambias.
+          </p>
+
+          <section aria-labelledby="cuenta-titulo" class="border-t border-filete pt-5">
+            <h2 id="cuenta-titulo">
+              Correo de acceso
+            </h2>
+            <p class="mt-2 text-cuerpo leading-relaxed text-prosa">
+              Es el correo con el que entras al sitio.
+            </p>
+            <p class="mt-3 break-words rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-900">
+              {{ sesion()?.email }}
+            </p>
+          </section>
+        <p class="t-texto border-y border-filete py-3">Tu contraseña y tu cierre de sesión están en <a routerLink="/gestion/cuenta/seguridad" class="font-bold text-morado underline underline-offset-2">Contraseña y seguridad</a>. Lo que autorizaste sobre tus datos está en <a routerLink="/gestion/cuenta/autorizaciones" class="font-bold text-morado underline underline-offset-2">Mis autorizaciones</a>.</p>
+      </div>
+    </div>
+  }
+
+  @if (vista !== 'datos') {
+    <app-encabezado-de-pantalla idDelTitulo="titulo-de-seguridad" titulo="Contraseña y seguridad" descripcion="Tu contraseña y el cierre de sesión." />
+    <div class="grid gap-6 xl:grid-cols-2 xl:items-start">
+        <section aria-labelledby="seguridad-titulo">
+          <h2 id="seguridad-titulo">
+            Contraseña
+          </h2>
+          <p class="mt-2 text-cuerpo leading-relaxed text-prosa">
+            Al cambiarla se cierran las demás sesiones abiertas con tu cuenta. Esta sigue abierta.
+          </p>
+          <form class="mt-4 space-y-4" novalidate (submit)="$event.preventDefault(); cambiarContrasena()">
+            <label for="clave-actual" class="block text-sm font-bold text-slate-900">
+              Contraseña actual <span class="text-verde-texto" aria-hidden="true">*</span>
+              <input id="clave-actual" name="actual" type="password" autocomplete="current-password" [(ngModel)]="clave.actual"
+                     [attr.aria-invalid]="erroresClave()['actual'] ? 'true' : null"
+                     [attr.aria-describedby]="erroresClave()['actual'] ? 'clave-actual-error' : null"
+                     class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+              @if (erroresClave()['actual']) { <span id="clave-actual-error" class="mt-1 block text-xs font-normal text-red-700">{{ erroresClave()['actual'] }}</span> }
+            </label>
+            <label for="clave-nueva" class="block text-sm font-bold text-slate-900">
+              Contraseña nueva (mínimo 12 caracteres) <span class="text-verde-texto" aria-hidden="true">*</span>
+              <input id="clave-nueva" name="nueva" type="password" autocomplete="new-password" minlength="12" [(ngModel)]="clave.nueva"
+                     [attr.aria-invalid]="erroresClave()['nueva'] ? 'true' : null"
+                     [attr.aria-describedby]="erroresClave()['nueva'] ? 'clave-nueva-error' : null"
+                     class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+              @if (erroresClave()['nueva']) { <span id="clave-nueva-error" class="mt-1 block text-xs font-normal text-red-700">{{ erroresClave()['nueva'] }}</span> }
+            </label>
+            <label for="clave-confirmacion" class="block text-sm font-bold text-slate-900">
+              Repite la contraseña nueva <span class="text-verde-texto" aria-hidden="true">*</span>
+              <input id="clave-confirmacion" name="confirmacion" type="password" autocomplete="new-password" [(ngModel)]="clave.confirmacion"
+                     [attr.aria-invalid]="erroresClave()['confirmacion'] ? 'true' : null"
+                     [attr.aria-describedby]="erroresClave()['confirmacion'] ? 'clave-confirmacion-error' : null"
+                     class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3 font-normal text-slate-900 focus:border-verde-medio focus:outline-none focus-visible:ring-2 focus-visible:ring-verde-medio">
+              @if (erroresClave()['confirmacion']) { <span id="clave-confirmacion-error" class="mt-1 block text-xs font-normal text-red-700">{{ erroresClave()['confirmacion'] }}</span> }
+            </label>
+            <div class="flex flex-wrap items-center gap-3">
+              <button type="submit" [disabled]="guardandoClave()" appBoton="secundaria">{{ guardandoClave() ? 'Cambiando…' : 'Cambiar contraseña' }}</button>
+              <p role="status" class="text-sm font-bold text-verde-texto">{{ avisoClave() }}</p>
+            </div>
+          </form>
+        </section>
+      <div class="space-y-6">
+          <section aria-labelledby="cerrar-sesion-titulo" class="border-t border-filete pt-5">
+            <h2 id="cerrar-sesion-titulo">
+              Cerrar sesión
+            </h2>
+            <p class="mt-2 text-cuerpo leading-relaxed text-prosa">
+              Cierra la sesión en este dispositivo y vuelve al inicio.
+            </p>
+            <button type="button" (click)="cerrarSesion()"
+                    appBoton="secundaria" class="mt-3">
+              Cerrar sesión
+            </button>
+          </section>
+        <p class="t-texto border-y border-filete py-3">Tus datos personales están en <a routerLink="/gestion/cuenta/datos" class="font-bold text-morado underline underline-offset-2">Datos personales</a>. Lo que autorizaste sobre ellos, en <a routerLink="/gestion/cuenta/autorizaciones" class="font-bold text-morado underline underline-offset-2">Mis autorizaciones</a>.</p>
+      </div>
+    </div>
+  }
+</div>

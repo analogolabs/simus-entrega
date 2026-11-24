@@ -1,0 +1,24 @@
+/* UI-E · Lo propio del panel de la organización. La rejilla, la barra lateral (`.foundation-sidebar`, `.sidebar-*`) y la
+   cabecera son las de la consola: `shared/components/layout/espacio-de-trabajo/`. */
+:host { display: block; }
+
+/* La altura de la cabecera la leen la barra lateral y los menús para no meterse debajo (misma medida que la consola). */
+
+/* El inicio, la barra, la cabecera y el ancho del contenido son del armazón compartido (`app-armazon-de-gestion`). */
+.panel-vista { min-width: 0; padding-bottom: 6rem; }
+
+/* ── AVISOS DE LA CABECERA DEL CONTENIDO: un borde de 1 px, sin acentos laterales ni degradados ───── */
+.aviso { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; margin: 0 0 1.25rem; border: 1px solid #cfd6e2; border-radius: .5rem; background: #fff; padding: .75rem 1rem; color: #27314d; font-size: var(--text-cuerpo); }
+.aviso h2 { margin: 0; color: var(--color-valor); font-size: var(--text-lectura); font-weight: 800; line-height: 1.3; }
+.aviso p { margin: .25rem 0 0; }
+.aviso--info { border-color: #b9d7ea; background: #f3f9fd; align-items: center; }
+.aviso--info p, .aviso > p { margin: 0; }
+.aviso--bienvenida { border-color: #b7dcc8; background: #f3faf6; }
+.aviso--error { border-color: #f1b8b2; background: var(--color-peligro-suave); color: #7a271a; }
+.aviso--en-columna { flex-direction: column; align-items: stretch; }
+.aviso__fila { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+.pasos { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .5rem; margin: .75rem 0 0; padding: 0; list-style: none; }
+
+@media (max-width: 800px) {
+  .panel-contenido { padding: 1.25rem 1rem 1.5rem; }
+}

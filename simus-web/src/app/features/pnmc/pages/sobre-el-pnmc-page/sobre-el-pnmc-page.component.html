@@ -1,0 +1,456 @@
+<div class="tema-pnmc bg-white min-h-screen text-left">
+  <!-- Cabecera propia del Plan: antetítulo, título y descripción (sin ruta de migas ni foto). -->
+  <app-pnmc-hero
+    [eyebrow]="getWebText('about_hero_tag')"
+    [title]="getWebText('about_hero_title')"
+  ></app-pnmc-hero>
+
+  <!--
+    NAVEGACION INTERNA DE EL PLAN: pestañas centradas pegadas bajo la barra principal (pieza compartida con Celebra la
+    música) que marcan la sección actual. Cada sección lleva `scroll-mt-28` para no quedar debajo de la barra fija al
+    saltar por dirección con ancla.
+  -->
+  <app-pestanas-de-seccion [secciones]="secciones()" etiqueta="Secciones de El Plan" />
+
+  <!-- PRESENTACIÓN -->
+  <app-content-wrapper id="pnmc-presentacion" class="block scroll-mt-28 [&>section]:!pt-10 lg:[&>section]:!pt-12"> 
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+      <div class="lg:col-span-7 space-y-8">
+        <app-section-header [backgroundText]="getWebText('about_presentation_bg')" [foregroundText]="getWebText('about_presentation_title')" [compact]="true"></app-section-header>
+        <div class="max-w-3xl space-y-5 text-base lg:text-[1.05rem] text-titulo leading-relaxed font-nunito">
+          <div class="space-y-5">
+            <p>{{ getWebText('about_presentation_intro_1') }}</p>
+            <p>{{ getWebText('about_presentation_intro_2') }}</p>
+          </div>
+        </div>
+        <!-- CONSTRUCCIÓN COLECTIVA: la cita, parte de la presentación, con sus comillas sutiles. -->
+        <figure class="relative max-w-3xl border-t border-filete pt-6" appRevelar>
+          <blockquote class="relative">
+            <span aria-hidden="true" class="absolute -left-1 -top-2 select-none font-alternate text-[4.5rem] font-bold leading-none text-verde/50">“</span>
+            <p class="relative pl-12 font-nunito text-base font-semibold leading-relaxed text-titulo lg:text-[1.05rem]">{{ getWebText('about_collective_text') }}</p>
+          </blockquote>
+          <figcaption class="tipo-etiqueta mt-4 text-right text-morado">{{ getWebText('about_collective_tag') }}</figcaption>
+        </figure>
+      </div>
+      
+      <div class="lg:col-span-5 flex items-center justify-center">
+        <div class="w-full max-w-md rounded-2xl bg-[#f9f8fa] p-10 lg:p-12 text-left relative overflow-hidden border border-morado/5 group hover:border-verde/30 transition-all duration-500">
+          <!-- Quote background decoration -->
+          <div aria-hidden="true" class="absolute -top-6 -left-2 text-[12rem] font-alternate font-bold leading-none text-morado/[0.03] select-none pointer-events-none">
+            "
+          </div>
+          
+          <div class="relative z-10 flex flex-col h-full justify-between space-y-8">
+            <div class="flex flex-col space-y-6">
+              <span class="inline-flex w-fit items-center rounded-full bg-morado px-4 py-1.5 text-xs font-bold text-white font-alternate ">
+                {{ getWebText('about_base_tag') }}
+              </span>
+              
+              <p class="font-nunito text-base lg:text-[1.05rem] text-morado font-semibold leading-relaxed italic relative z-10">
+                {{ getWebText('about_base_quote') }}
+              </p>
+            </div>
+            
+            <div class="flex items-center justify-between border-t border-filete/60 pt-6">
+              <div>
+                <!-- Accesibilidad (WCAG 2.2 AA): sobre fondo claro el verde de marca #00DA5E no llega al contraste mínimo (1,88:1 sobre blanco), así que el TEXTO usa el verde oscuro #087B3E (5,4:1). Sobre fondo oscuro (#291242 / slate-900) el verde de marca sí cumple y se conserva. -->
+                <h3 class="font-alternate text-sm font-bold text-titulo">{{ getWebText('about_base_objective_label') }}</h3>
+                <span class="text-tinta-media text-xs font-alternate mt-1.5 block font-semibold">{{ getWebText('about_base_plan_label') }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </app-content-wrapper>
+
+  <app-content-wrapper
+    id="pnmc-enfoques"
+    data-testid="approaches-banner"
+    className="bg-morado text-white"
+  >
+    <div class="flex flex-col lg:flex-row gap-12 lg:gap-20 items-center">
+      <div class="lg:w-1/3">
+        <app-tag [text]="getWebText('about_approaches_tag')" className="bg-white/10 text-verde mb-6"></app-tag>
+        <h2 data-testid="approaches-title" class="tipo-seccion font-alternate md:text-4xl text-white mb-6">{{ getWebText('about_approaches_title') }}</h2>
+        <p class="font-nunito text-sm leading-relaxed text-white/85">{{ getWebText('about_approaches_desc') }}</p>
+      </div>
+      
+      <div class="lg:w-2/3 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Biocultural -->
+        <div class="rounded-2xl border border-white/10 bg-morado-claro/70 p-8 transition-all duration-500 hover:border-verde/60 hover:bg-morado-claro">
+          <svg data-testid="approach-icon" lucideGlobe [size]="32" aria-hidden="true" class="mb-4 text-verde-claro"></svg>
+          <h4 class="font-alternate text-lg font-bold mb-2 text-white">{{ getWebText('about_approach_1_title') }}</h4>
+          <p class="text-xs text-white/95 font-nunito leading-relaxed">{{ getWebText('about_approach_1_desc') }}</p>
+        </div>
+        
+        <!-- Poblacional -->
+        <div class="rounded-2xl border border-white/10 bg-morado-claro/70 p-8 transition-all duration-500 hover:border-verde/60 hover:bg-morado-claro">
+          <svg data-testid="approach-icon" lucideUsers2 [size]="32" aria-hidden="true" class="mb-4 text-verde-claro"></svg>
+          <h4 class="font-alternate text-lg font-bold mb-2 text-white">{{ getWebText('about_approach_2_title') }}</h4>
+          <p class="text-xs text-white/95 font-nunito leading-relaxed">{{ getWebText('about_approach_2_desc') }}</p>
+        </div>
+        
+        <!-- Territorial -->
+        <div class="rounded-2xl border border-white/10 bg-morado-claro/70 p-8 transition-all duration-500 hover:border-verde/60 hover:bg-morado-claro">
+          <svg data-testid="approach-icon" lucideMap [size]="32" aria-hidden="true" class="mb-4 text-verde-claro"></svg>
+          <h4 class="font-alternate text-lg font-bold mb-2 text-white">{{ getWebText('about_approach_3_title') }}</h4>
+          <p class="text-xs text-white/95 font-nunito leading-relaxed">{{ getWebText('about_approach_3_desc') }}</p>
+        </div>
+      </div>
+    </div>
+  </app-content-wrapper>
+
+  <!--
+    EJES Y COMPONENTES. Antes era la página `/ejes`. Cada eje conserva su ancla de entonces
+    (`#musica-para-la-vida`, `#oficios-y-practicas`, `#gobernanza`) y sus textos del panel; el texto
+    completo de cada componente vive en su ficha, `/pnmc/ejes/:componente`.
+  -->
+  <section id="ejes" class="scroll-mt-28 bg-white py-16 md:py-20">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <p class="tipo-etiqueta text-morado">{{ getWebText('ejes_hero_tag') }}</p>
+      <h2 class="tipo-seccion mt-4  text-titulo">
+        {{ getWebText('ejes_hero_title') }}
+      </h2>
+      <p class="mt-5 max-w-3xl font-nunito text-lg font-normal leading-relaxed text-tinta-media">{{ getWebText('ejes_hero_desc') }}</p>
+
+      <!--
+        UN EJE, UNA SOLA VISTA (P-3): el rótulo, el título y el objetivo del eje a la izquierda y, a la derecha,
+        su descripción y sus componentes numerados con su nombre (P-2). Las tarjetas de objetivos separadas
+        desaparecen: el objetivo de cada eje vive aquí. Todo el texto está a la vista, sin cajas dentro de cajas.
+      -->
+      <div class="mt-10 divide-y divide-filete border-y border-filete">
+        @for (eje of ejes(); track eje.id; let i = $index) {
+          <article [id]="anclasDeEje[i]" class="scroll-mt-28 grid gap-6 py-8 lg:grid-cols-12 lg:gap-12" [appRevelar]="i * 100">
+            <header class="lg:col-span-4">
+              <p class="tipo-etiqueta text-verde-texto">Eje {{ eje.id }}</p>
+              <h3 class="tipo-titulo mt-3 text-balance text-titulo">{{ eje.title }}</h3>
+              <!-- EL OBJETIVO BAJO EL NOMBRE DEL EJE, en la misma columna y con su ancho (pedido del 22 nov); a la derecha, la descripción y los componentes. -->
+              <div class="mt-6">
+                <p class="tipo-etiqueta text-morado">{{ getWebText('about_objectives_title') }}</p>
+                <p class="tipo-titulo-lista mt-2 text-titulo">{{ objetivoDeEje(i).titulo }}</p>
+                <p class="tipo-pequeno mt-1 text-tinta-media">{{ objetivoDeEje(i).descripcion }}</p>
+              </div>
+            </header>
+            <div class="lg:col-span-8">
+              @for (parrafo of eje.axisExplain; track $index; let k = $index) {
+                <p [class]="k === 0 ? 'tipo-cuerpo font-semibold text-titulo' : 'tipo-pequeno mt-3 max-w-3xl text-tinta-media'">{{ parrafo }}</p>
+              }
+              <p class="tipo-etiqueta mt-6 text-morado">Componentes · {{ eje.components.length }}</p>
+              <ol class="mt-3 grid list-none gap-x-10 gap-y-1 p-0 sm:grid-cols-2" data-testid="componentes-del-eje">
+                @for (componente of eje.components; track componente.id; let j = $index) {
+                  <li>
+                    <a [routerLink]="['/pnmc', 'ejes', componente.slug]" class="group flex items-baseline gap-3 py-1 no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado">
+                      <span class="w-9 shrink-0 font-alternate text-sm font-bold text-morado">{{ eje.id }}.{{ j + 1 }}</span>
+                      <span class="enlace-revela font-nunito text-[0.95rem] font-normal text-titulo transition-colors group-hover:text-morado" [style.--barra]="colorDeComponente(j)">{{ componente.name }}</span>
+                    </a>
+                  </li>
+                }
+              </ol>
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ACTORES -->
+
+  <!--
+    EL DOCUMENTO. Una franja propia, entre los ejes y las estrategias: la portada real del documento
+    y la descarga del PDF publicado por el Ministerio en mayo de 2025
+    (`assets/pnmc/documento-pnmc-2025-2035.pdf`, ruta en `urlDocumento`).
+  -->
+  <section id="pnmc-documento" aria-labelledby="pnmc-documento-titulo" class="group scroll-mt-20 bg-morado-900 text-white">
+    <div class="mx-auto grid max-w-7xl items-center gap-8 px-6 py-12 sm:grid-cols-[9rem_minmax(0,1fr)] lg:grid-cols-[11rem_minmax(0,1fr)_auto] lg:gap-14 lg:px-8 lg:py-14" appRevelar>
+      <img [src]="imagen('pnmc_documento_portada')" [alt]="imagenAlt('pnmc_documento_portada')" width="700" height="800" loading="lazy" class="w-32 rounded-md border border-white/20 transition-transform duration-500 group-hover:-rotate-2 group-hover:scale-105 sm:w-full" />
+      <div class="min-w-0">
+        <p class="tipo-etiqueta text-verde">{{ 'about_documento_tag' | textoWeb }}</p>
+        <h2 id="pnmc-documento-titulo" class="tipo-titulo-grande mt-2 text-balance">{{ 'about_documento_titulo' | textoWeb }}</h2>
+        <p class="tipo-cuerpo mt-3 max-w-2xl text-white/85">{{ 'about_documento_desc' | textoWeb }}</p>
+      </div>
+      <a [href]="urlDocumento" download="PNMC-2025-2035-Huellas-y-apuestas-de-la-diversidad-sonora.pdf" class="realce tipo-enlace inline-flex items-center justify-center rounded-xl bg-verde px-7 py-4 text-morado no-underline sm:col-start-2 lg:col-start-3">{{ 'about_documento_boton' | textoWeb }}</a>
+    </div>
+  </section>
+
+  <!--
+    ESTRATEGIAS. Antes eran `/estrategia/circulacion` y `/estrategia/investigacion`; sus anclas son
+    `#celebra-la-musica` y `#territorios-sonoros`. Los textos siguen en el panel, grupo Estrategias.
+  -->
+  <section id="estrategias" class="scroll-mt-28 bg-hueso py-16 md:py-20">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <p class="tipo-etiqueta text-morado">{{ 'about_estrategias_tag' | textoWeb }}</p>
+      <h2 class="tipo-seccion mt-4  text-titulo">{{ 'about_estrategias_titulo' | textoWeb }}</h2>
+      <!--
+        LAS DOS ESTRATEGIAS COMO EN «EXPLORA SIMUS»: foto grande a color con un velo violeta, el nombre y
+        su descripción abajo sobre un desenfoque progresivo y, al pasar el puntero, la foto crece y el
+        velo se aclara. Fotos del proyecto (no de stock). Solo antetítulo, nombre y descripción.
+      -->
+      <ul class="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2">
+        @for (estrategia of estrategias(); track estrategia.ancla; let i = $index) {
+          <li [id]="estrategia.ancla" class="scroll-mt-28" [appRevelar]="i * 120">
+            <article class="group relative flex h-full min-h-[17rem] flex-col justify-end lg:min-h-[19rem] overflow-hidden rounded-2xl bg-morado text-white focus-within:ring-4 focus-within:ring-verde" [class.cursor-pointer]="estrategia.ruta">
+              <img [src]="fotoDeEstrategia(i)" alt="" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
+              <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-velo/90 via-velo/45 to-velo/15 transition-opacity duration-500 group-hover:opacity-75"></div>
+              <div aria-hidden="true" class="desenfoque-progresivo absolute inset-x-0 bottom-0 h-3/5"></div>
+              <div class="relative p-6 lg:p-8">
+                <p class="tipo-etiqueta text-white/85">{{ estrategia.eyebrow }}</p>
+                <!--
+                  LA TARJETA ENTERA ES EL ENLACE: el nombre es el enlace y su `::after` cubre toda la tarjeta, así que
+                  se abre con un clic en cualquier parte y no hace falta un botón «Conocer la estrategia». Un solo
+                  enlace por tarjeta, con nombre accesible claro; el foco se ve como un anillo alrededor de toda la tarjeta.
+                -->
+                <h3 class="tipo-titulo-grande mt-2 text-balance">
+                  @if (estrategia.ruta) {
+                    <a [routerLink]="estrategia.ruta" class="text-white no-underline after:absolute after:inset-0 after:z-10 after:content-[''] focus-visible:outline-none">{{ estrategia.title }}</a>
+                  } @else {
+                    {{ estrategia.title }}
+                  }
+                </h3>
+                <p class="tipo-cuerpo mt-3 max-w-xl text-white/90">{{ estrategia.description }}</p>
+                @if (!estrategia.ruta) {
+                  <p class="tipo-etiqueta mt-5 inline-flex rounded-full bg-white/15 px-4 py-2 text-white" data-testid="estrategia-proximamente">{{ 'about_estrategias_proximamente' | textoWeb }}</p>
+                }
+              </div>
+            </article>
+          </li>
+        }
+      </ul>
+    </div>
+  </section>
+
+  <app-content-wrapper id="pnmc-actores" class="block scroll-mt-28">
+    <app-section-header [backgroundText]="getWebText('about_actors_bg')" [foregroundText]="getWebText('about_actors_title')" [compact]="true"></app-section-header>
+    
+    <div class="rounded-2xl border border-filete bg-white overflow-hidden ">
+      <div class="grid grid-cols-1 xl:grid-cols-[0.9fr_2.1fr]">
+        <div class="bg-niebla/70 p-8 md:p-10 border-b xl:border-b-0 xl:border-r border-filete">
+          <div class="sticky top-28 space-y-5">
+            <span class="inline-flex items-center rounded-full bg-morado px-4 py-2 tipo-etiqueta text-verde-claro">
+              {{ getWebText('about_actors_tag') }}
+            </span>
+            <h3 class="tipo-titulo-grande text-balance text-titulo">
+              {{ getWebText('about_actors_heading') }}
+            </h3>
+            <p class="tipo-pequeno text-tinta-media">
+              {{ getWebText('about_actors_desc') }}
+            </p>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 divide-y divide-filete lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+          <!-- Agentes Sectoriales -->
+          <div class="group flex flex-col p-8 md:p-10" [appRevelar]="0">
+            <div class="flex items-center gap-4 mb-6">
+              <div>
+                <h4 class="tipo-titulo min-h-[3.2rem] text-titulo">{{ getWebText('about_actors_sector_title') }}</h4>
+                
+              </div>
+            </div>
+            <ul class="relative my-auto ml-2 border-l border-filete">
+              @for (li of sectorActors(); track $index) {
+                <li class="group relative py-1.5 pl-6 font-nunito text-sm font-semibold leading-snug text-tinta-media transition-colors hover:text-morado">
+                  <!-- El punto va centrado sobre la línea (que es el borde izquierdo de la lista) y a la altura del primer renglón. -->
+                  <span aria-hidden="true" class="absolute left-0 top-[0.95rem] h-2 w-2 -translate-x-1/2 rounded-full border-[1.5px] border-tinta-suave bg-white transition-colors duration-300 group-hover:border-verde group-hover:bg-verde"></span>
+                  {{ li }}
+                </li>
+              }
+            </ul>
+          </div>
+
+          <!-- Agentes Institucionales -->
+          <div class="group flex flex-col p-8 md:p-10" [appRevelar]="140">
+            <div class="flex items-center gap-4 mb-6">
+              <div>
+                <h4 class="tipo-titulo min-h-[3.2rem] text-titulo">{{ getWebText('about_actors_institutional_title') }}</h4>
+                
+              </div>
+            </div>
+            <ul class="relative my-auto ml-2 border-l border-filete">
+              @for (li of institutionalActors(); track $index) {
+                <li class="group relative py-1.5 pl-6 font-nunito text-sm font-semibold leading-snug text-tinta-media transition-colors hover:text-morado">
+                  <!-- El punto va centrado sobre la línea (que es el borde izquierdo de la lista) y a la altura del primer renglón. -->
+                  <span aria-hidden="true" class="absolute left-0 top-[0.95rem] h-2 w-2 -translate-x-1/2 rounded-full border-[1.5px] border-tinta-suave bg-white transition-colors duration-300 group-hover:border-verde group-hover:bg-verde"></span>
+                  {{ li }}
+                </li>
+              }
+            </ul>
+          </div>
+
+          <!-- Sociedad Civil -->
+          <div class="group flex flex-col p-8 md:p-10" [appRevelar]="280">
+            <div class="flex items-center gap-4 mb-6">
+              <div>
+                <h4 class="tipo-titulo min-h-[3.2rem] text-titulo">{{ getWebText('about_actors_civil_title') }}</h4>
+                
+              </div>
+            </div>
+            <ul class="relative my-auto ml-2 border-l border-filete">
+              @for (li of civilActors(); track $index) {
+                <li class="group relative py-1.5 pl-6 font-nunito text-sm font-semibold leading-snug text-tinta-media transition-colors hover:text-morado">
+                  <!-- El punto va centrado sobre la línea (que es el borde izquierdo de la lista) y a la altura del primer renglón. -->
+                  <span aria-hidden="true" class="absolute left-0 top-[0.95rem] h-2 w-2 -translate-x-1/2 rounded-full border-[1.5px] border-tinta-suave bg-white transition-colors duration-300 group-hover:border-verde group-hover:bg-verde"></span>
+                  {{ li }}
+                </li>
+              }
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </app-content-wrapper>
+
+  <!-- HITOS TIMELINE -->
+  <app-content-wrapper className="bg-hueso" id="pnmc-hitos" class="block scroll-mt-28">
+    <div class="mb-8 lg:mb-12">
+      <app-section-header [backgroundText]="getWebText('about_timeline_bg')" [foregroundText]="getWebText('about_timeline_title')"></app-section-header>
+      <p class="max-w-3xl mt-2 text-base lg:text-[1.05rem] text-titulo leading-relaxed font-nunito">{{ getWebText('about_timeline_intro') }}</p>
+    </div>
+    
+    <div class="space-y-8">
+      <div class="flex flex-col lg:flex-row h-auto lg:h-[400px] gap-2.5 w-full"> 
+        @for (stage of timelineEvents(); track stage.id) {
+          @let isActive = activeStage() === stage.id;
+          
+          <div
+            (click)="activeStage.set(stage.id)"
+            (keydown.enter)="activeStage.set(stage.id)"
+            (keydown.space)="$event.preventDefault(); activeStage.set(stage.id)"
+            tabindex="0"
+            role="button"
+            [attr.aria-expanded]="isActive"
+            [class]="'relative overflow-hidden transition-all duration-700 cursor-pointer group rounded-2xl border min-h-[150px] lg:min-h-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-verde focus-visible:ring-offset-2 ' + (isActive ? 'flex-[6] bg-slate-900 border-transparent' : 'flex-1 bg-white border-[#E6DAE5] hover:border-verde/50 hover:bg-verde/5 ')"
+          >
+            <div [class]="'absolute inset-0 transition-all duration-1000 ' + (isActive ? 'opacity-100' : 'opacity-100')">
+              <img [src]="stage.img" class="w-full h-full object-cover" alt="" />
+              <div class="absolute inset-0 bg-velo/80"></div>
+            </div> 
+            
+            <!-- EN MOVIL EL TEXTO VA EN EL FLUJO: anclado con `absolute` en una tarjeta de
+                 150 px, un texto más alto sobresalía por arriba y `overflow-hidden` cortaba título y párrafo.
+                 Desde `lg` la tarjeta tiene alto fijo y la capa vuelve a superponerse. -->
+            <div [class]="'p-6 flex flex-col justify-end transition-all duration-700 ' + (isActive ? 'relative min-h-[150px] lg:absolute lg:inset-0 lg:min-h-0 opacity-100 translate-y-0' : 'absolute inset-0 opacity-0 translate-y-6 pointer-events-none')"> 
+              <span class="tipo-etiqueta mb-1 text-verde-claro">{{ stage.year }}</span> 
+              <h3 class="tipo-titulo mb-2 text-white">{{ stage.title }}</h3> 
+              <p class="tipo-pequeno max-w-xl text-white/90">{{ stage.desc }}</p> 
+            </div> 
+            
+            <div [class]="'absolute inset-0 flex items-center justify-center transition-opacity duration-500 ' + (isActive ? 'opacity-0' : 'opacity-100')">
+              <div class="rotate-[-90deg] flex items-center justify-center w-full translate-x-6 opacity-70">
+                <span class="font-alternate text-4xl font-bold text-white lg:text-5xl">
+                  {{ stage.year.split('-')[0] }}
+                </span>
+              </div>
+            </div> 
+          </div> 
+        } 
+      </div>
+    </div> 
+  </app-content-wrapper> 
+
+  <!-- MARCO NORMATIVO -->
+  <app-content-wrapper id="pnmc-marco" class="block scroll-mt-28">
+    <div class="mb-8 lg:mb-12">
+      <app-section-header [backgroundText]="getWebText('about_normative_bg')" [foregroundText]="getWebText('about_normative_title')"></app-section-header>
+      <p class="max-w-3xl mt-2 text-base lg:text-[1.05rem] text-titulo leading-relaxed font-nunito">{{ getWebText('about_normative_intro') }}</p>
+    </div>
+    
+    <div class="flex flex-col lg:flex-row h-auto lg:h-[400px] gap-2.5 w-full mt-6">
+      @for (stage of normativeStages(); track stage.id) {
+        @let isActive = activeNormativeStage() === stage.id;
+        
+        <div
+          (click)="activeNormativeStage.set(stage.id)"
+          (keydown.enter)="activeNormativeStage.set(stage.id)"
+          (keydown.space)="$event.preventDefault(); activeNormativeStage.set(stage.id)"
+          tabindex="0"
+          role="button"
+          [attr.aria-expanded]="isActive"
+          [class]="'relative overflow-hidden transition-all duration-700 cursor-pointer group rounded-2xl border min-h-[150px] lg:min-h-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-verde focus-visible:ring-offset-2 ' + (isActive ? 'flex-[6] bg-slate-900 border-transparent' : 'flex-1 bg-white border-[#E6DAE5] hover:border-verde/50 hover:bg-verde/5 ')"
+        >
+          <div [class]="'absolute inset-0 transition-all duration-1000 ' + (isActive ? 'opacity-100' : 'opacity-100')">
+            <img [src]="stage.img" class="w-full h-full object-cover" alt="" />
+            <div class="absolute inset-0 bg-velo/80"></div>
+          </div>
+          <div [class]="'p-6 flex flex-col justify-end transition-all duration-700 ' + (isActive ? 'relative min-h-[150px] lg:absolute lg:inset-0 lg:min-h-0 opacity-100 translate-y-0' : 'absolute inset-0 opacity-0 translate-y-6 pointer-events-none')">
+            <span class="tipo-etiqueta mb-1 text-verde-claro">{{ stage.year }}</span>
+            <h3 class="tipo-titulo mb-2 text-white">{{ stage.title }}</h3>
+            <p class="tipo-pequeno max-w-xl text-white/90">{{ stage.desc }}</p>
+          </div>
+          <div [class]="'absolute inset-0 flex items-center justify-center transition-opacity duration-500 ' + (isActive ? 'opacity-0' : 'opacity-100')">
+            <div class="rotate-[-90deg] flex items-center justify-center w-full translate-x-6 opacity-70">
+              <span class="font-alternate text-4xl font-bold text-white lg:text-5xl">
+                {{ stage.year.split('-')[0] }}
+              </span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </app-content-wrapper>
+
+  <!-- EQUIPO / CONTACTO -->
+  <app-content-wrapper className="bg-hueso" id="pnmc-equipo" class="block scroll-mt-28">
+    <div class="mb-8 lg:mb-12">
+      <app-section-header [backgroundText]="getWebText('about_team_bg')" [foregroundText]="getWebText('about_team_title')"></app-section-header>
+      <p class="max-w-3xl mt-2 text-base lg:text-[1.05rem] text-titulo leading-relaxed font-nunito">{{ getWebText('about_team_intro') }}</p>
+    </div>
+    
+    <!--
+      EL EQUIPO SIN SUBTÍTULOS. La coordinación del grupo de música va aparte, en su propia franja; el apoyo a
+      la coordinación y los liderazgos comparten la cuadrícula. El cargo y el componente van separados por un punto
+      y el componente enlaza a su página, como en los ejes.
+    -->
+    @for (member of coordinador(); track member.id) {
+      <div class="flex items-center gap-4 rounded-2xl border border-filete bg-morado-50 p-5 lg:p-6" appRevelar>
+        <div class="flex h-14 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-filete bg-white text-tinta-suave">
+          @if (member.photo) {
+            <img [src]="member.photo" [alt]="'Fotografía de ' + (member.name || getWebText('about_team_name_placeholder'))" class="h-full w-full object-cover object-center" />
+          } @else {
+            <svg lucideUserCircle2 size="24" strokeWidth="1.5"></svg>
+          }
+        </div>
+        <div class="min-w-0">
+          <p class="tipo-titulo-lista text-titulo">{{ member.name }}</p>
+          <p class="tipo-pequeno text-tinta-media">{{ member.role }}</p>
+          @if (member.email) { <p class="truncate font-nunito text-sm text-tinta-media">{{ member.email }}</p> }
+        </div>
+      </div>
+    }
+
+    <!-- El recuadro de arriba ya separa: el margen negativo recorta el filete de la primera fila. -->
+    <div class="mt-3 overflow-hidden">
+    <div class="-mt-px grid gap-x-10 sm:grid-cols-2 lg:grid-cols-3">
+      @for (member of equipo(); track member.id) {
+        <div class="flex items-center gap-4 border-t border-filete py-5">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-filete bg-white text-tinta-suave">
+            @if (member.photo) {
+              <img [src]="member.photo" [alt]="'Fotografía de ' + (member.name || getWebText('about_team_name_placeholder'))" class="h-full w-full object-cover object-center" />
+            } @else {
+              <svg lucideUserCircle2 size="24" strokeWidth="1.5"></svg>
+            }
+          </div>
+          <div class="min-w-0">
+            <p class="tipo-titulo-lista text-titulo">{{ member.name || getWebText('about_team_name_placeholder') }}</p>
+            @if (member.componente) {
+              <p class="tipo-pequeno text-tinta-media">
+                Líder de componente ·
+                @let ruta = rutaDeComponente(member.componente);
+                @if (ruta) {
+                  <a [routerLink]="ruta" [fragment]="ruta.length === 1 ? 'gobernanza' : undefined" class="enlace-revela font-bold text-titulo no-underline hover:text-morado">{{ member.componente }}</a>
+                } @else {
+                  <span class="font-bold text-titulo">{{ member.componente }}</span>
+                }
+              </p>
+            } @else {
+              <p class="tipo-pequeno text-tinta-media">{{ member.role }}</p>
+            }
+            <p class="truncate font-nunito text-sm text-tinta-media">{{ member.email || getWebText('about_team_email_placeholder') }}</p>
+          </div>
+        </div>
+      }
+    </div>
+    </div>
+  </app-content-wrapper>
+</div>

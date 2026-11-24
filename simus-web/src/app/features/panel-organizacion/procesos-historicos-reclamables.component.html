@@ -1,0 +1,124 @@
+<section id="historicos" aria-labelledby="historicos-titulo" class="scroll-mt-24 border-t border-slate-200 pt-7" data-testid="historicos-reclamables">
+  <div class="max-w-3xl">
+    <!-- LA EXPLICACIÓN VIVE EN LA PÁGINA DE LA HERRAMIENTA (decisión 74): aquí solo el título de la búsqueda. -->
+    <h3 id="historicos-titulo" class="text-morado">Buscar un proceso histórico</h3>
+    <p class="mt-1 text-sm leading-relaxed text-slate-600">
+      Si lo pides y se aprueba, conservas su historia y sus ediciones, y no hace falta registrarlo de nuevo.
+    </p>
+  </div>
+
+  <!-- LA BÚSQUEDA SE HACE SOLA AL ESCRIBIR O ELEGIR; los filtros viven en la URL. -->
+  <form class="mt-5 flex flex-wrap items-end gap-3" role="search" aria-label="Buscar procesos históricos" (submit)="$event.preventDefault()">
+    <label class="block min-w-[16rem] flex-1 text-sm font-bold text-slate-800" for="historicos-buscar">Nombre u organizador anterior
+      <app-buscador-de-lista ancho class="mt-1 block" tamano="comodo" [etiquetaVisible]="true" identificador="historicos-buscar"
+        etiqueta="Buscar por nombre u organizador anterior" marcador="Por ejemplo: Bambuco, Chirimía, Cuerdas"
+        [valor]="busqueda()" (cambiar)="cambiar({ buscar: $event })" />
+    </label>
+    <app-filtro-desplegable identificador="historicos-tipo" rotulo="Tipo" etiqueta="Tipo de proceso" tamano="comodo"
+      [opciones]="opcionesDeTipo" [elegida]="tipo()" (cambiar)="cambiar({ tipo: $event })" />
+    <app-filtro-de-sede idBase="historicos" tamano="comodo" [conPendientes]="false" [departamento]="departamento()" [municipio]="municipio()"
+      (cambiar)="cambiar({ departamento: $event.departamento, municipio: $event.municipio })" />
+    @if (hayCriterio()) {
+      <button type="button" (click)="limpiar()" data-testid="historicos-limpiar" class="rounded-lg px-3 py-2.5 text-sm font-bold text-slate-600 hover:text-morado">Limpiar filtros</button>
+    }
+  </form>
+
+  @if (aviso()) { <p role="status" class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">{{ aviso() }} <a [routerLink]="enPanel('solicitudes')" class="font-bold underline">Ir a Solicitudes</a></p> }
+  @if (error()) { <p role="alert" class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ error() }}</p> }
+
+  @if (!cargado() || (cargando() && !respuesta())) {
+    <app-esqueleto variante="fila" [cantidad]="2" etiqueta="Consultando los procesos históricos…" />
+  } @else {
+    <div aria-live="polite">
+      @if (respuesta()?.avisoDelTipo; as aviso) {
+        <p data-testid="historicos-tipo-no-aplica" class="mt-5 max-w-3xl rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm leading-relaxed text-slate-700">{{ aviso }}</p>
+      } @else if (hayBusqueda()) {
+        @if (cargando()) {
+          <app-esqueleto variante="fila" [cantidad]="2" etiqueta="Buscando…" />
+        } @else if (!resultados().length) {
+          <p class="mt-5 text-sm text-slate-600" data-testid="historicos-sin-resultados">
+            No hay procesos históricos sin organización que coincidan con tu búsqueda.
+            <button type="button" (click)="limpiar()" class="font-bold text-verde-texto hover:underline">Limpiar filtros</button>
+          </p>
+        } @else {
+          <p class="mt-5 text-sm text-slate-600" data-testid="historicos-cuenta">{{ resultados().length }} {{ resultados().length === 1 ? 'proceso' : 'procesos' }} sin organización.</p>
+          <ul class="mt-2 divide-y divide-slate-200 border-y border-slate-200" aria-label="Procesos históricos sin organización">
+            @for (proceso of resultados(); track clave(proceso)) {
+              <ng-container *ngTemplateOutlet="tarjeta; context: { $implicit: proceso }" />
+            }
+          </ul>
+        }
+      } @else if (sugeridos().length) {
+        <!-- SOLO COINCIDENCIAS FUERTES con la organización, decididas en el servidor y con su motivo. -->
+        <div class="mt-5" data-testid="historicos-sugeridos">
+          <h4 class="text-sm font-bold text-slate-900">Coinciden con tu organización</h4>
+          <p class="mt-1 text-sm text-slate-600">Estos procesos históricos coinciden con tu organización en varios datos. Si alguno es tuyo, puedes pedir su administración; si no, búscalo arriba.</p>
+          <ul class="mt-2 divide-y divide-slate-200 border-y border-slate-200" aria-label="Procesos históricos que coinciden con tu organización">
+            @for (proceso of sugeridos(); track clave(proceso)) {
+              <ng-container *ngTemplateOutlet="tarjeta; context: { $implicit: proceso }" />
+            }
+          </ul>
+        </div>
+      } @else {
+        <div class="mt-5 max-w-3xl rounded-lg border border-slate-200 bg-slate-50 px-4 py-4" data-testid="historicos-estado-inicial">
+          <p class="text-cuerpo leading-relaxed text-prosa">
+            Busca por nombre, organizador anterior, municipio, departamento o tipo para ver los procesos históricos que puedes pedir.
+          </p>
+          @if (tiposQueNoSeReclaman().length) {
+            <p class="mt-2 text-sm leading-relaxed text-slate-600" data-testid="historicos-tipos-no-aplican">
+              Se pueden pedir Festivales y Mercados musicales. {{ nombresDeLosQueNoSeReclaman() }} no tienen registros previos sin organización: siempre los registra una organización o una persona responsable.
+            </p>
+          }
+        </div>
+      }
+    </div>
+    @if (!esAdministradora() && (resultados().length || sugeridos().length)) {
+      <app-aviso-solo-administracion class="mt-4 block" texto="Pedir la administración de un proceso histórico lo hace quien administra la organización. Tu rol es editor." />
+    }
+  }
+</section>
+
+<ng-template #tarjeta let-proceso>
+  <li class="py-4" [attr.data-testid]="'historico-' + proceso.id" [attr.data-tipo]="proceso.modulo" [class.coincidencia-fuerte]="proceso.coincidenciaFuerte">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div class="min-w-0">
+        @if (proceso.coincidenciaFuerte) {
+          <p class="mb-2 inline-block rounded-md border border-emerald-300 bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-900" data-testid="coincidencia-fuerte">
+            Coincide con tu organización: {{ proceso.motivoDeCoincidencia }}
+          </p>
+        }
+        <h4 class="text-lectura font-semibold text-valor">{{ proceso.nombre }} <span class="ml-1 text-xs font-bold text-slate-600">· {{ proceso.tipoEtiqueta }}</span></h4>
+        <p class="mt-1 text-sm text-slate-600">
+          {{ lugar(proceso) }}{{ proceso.periodicidad ? ' · ' + etiquetaDePeriodicidad(proceso.periodicidad) : '' }}
+          · {{ proceso.aniosDeEdiciones.length ? 'Ediciones ' + proceso.aniosDeEdiciones.join(', ') : 'Sin ediciones registradas' }}
+        </p>
+        @if (proceso.organizadorAnterior) { <p class="mt-1 text-sm text-slate-600">Organizador anterior: {{ proceso.organizadorAnterior }}</p> }
+        @if (proceso.descripcion) { <p class="mt-1 max-w-3xl text-sm leading-relaxed text-prosa">{{ proceso.descripcion }}</p> }
+      </div>
+      <div class="flex shrink-0 flex-wrap items-center gap-3">
+        <a [routerLink]="fichaPublica(proceso)" target="_blank" rel="noopener" class="text-sm font-bold text-verde-texto hover:underline">Ver ficha pública</a>
+        @if (proceso.reclamacionPropiaId) {
+          <span class="text-sm font-bold text-morado">Ya lo pediste · <a [routerLink]="enPanel('solicitudes')" class="underline">ver en Solicitudes</a></span>
+        } @else if (proceso.reclamacionEnCurso) {
+          <span class="text-sm text-slate-600">Otra organización ya pidió administrarlo</span>
+        } @else if (esAdministradora() && abierto() !== clave(proceso)) {
+          <button type="button" (click)="abrir(proceso)" appBoton="principal">Es mío: pedir administración</button>
+        }
+      </div>
+    </div>
+    @if (abierto() === clave(proceso)) {
+      <div class="mt-4 max-w-3xl border border-violet-200 rounded-lg bg-violet-50/60 px-4 py-4">
+        <label [for]="'justificacion-historico-' + proceso.id" class="text-sm font-bold text-slate-800">¿Por qué es de tu organización? <span class="text-red-700">*</span></label>
+        <p class="mt-1 text-xs text-slate-600">Por ejemplo: desde qué año lo organizan y dónde se puede comprobar (actas, afiches, página web).</p>
+        <textarea [id]="'justificacion-historico-' + proceso.id" rows="3" maxlength="2400" [value]="justificacion()" (input)="justificacion.set($any($event.target).value)"
+          class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-morado focus:outline-none focus:ring-1 focus:ring-morado"></textarea>
+        <app-soportes-de-solicitud (cambio)="soportes.set($event)" />
+        <div class="mt-3 flex flex-wrap gap-3">
+          <button type="button" [disabled]="enviando() || !justificacion().trim()" (click)="enviar(proceso)" appBoton="principal">Enviar solicitud</button>
+          <button type="button" (click)="abierto.set(null)" class="rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:text-morado">Cancelar</button>
+        </div>
+        <p class="mt-3 text-xs text-slate-600">Revisamos la solicitud. Si se aprueba, tu organización pasa a administrar el proceso con sus ediciones.</p>
+      </div>
+    }
+  </li>
+</ng-template>

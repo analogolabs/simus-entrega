@@ -1,0 +1,273 @@
+<!--
+  EL RECORRIDO ES EL DEL PROYECTO, Y EL ORDEN, EL DE §5 BIS. Hasta este
+  asistente preguntaba el correo, el teléfono y las redes en el paso 2, entre «cada cuánto ocurre» y
+  «en qué municipio»: quien registraba saltaba de la periodicidad al Instagram y volvía después al
+  territorio. El criterio escrito dice qué es → cada cuánto → dónde → cómo se contacta → con qué se
+  relaciona, y es el mismo en las tres pantallas del proceso.
+-->
+<app-asistente-de-alta
+  antetitulo="Ecosistema musical"
+  titulo="Registrar Festival"
+  proposito="Lo incorpora el PNMC, pero la organización responsable sigue siendo quien lo organiza. Son dos cosas distintas y quedan guardadas por separado."
+  [pasos]="pasos"
+  [(paso)]="paso"
+  [error]="error()"
+  [loQueFalta]="loQueFalta()"
+  [guardando]="guardando()"
+  verbo="Registrar Festival"
+  identificador="registrar-festival"
+  (registrar)="registrar()"
+  (cancelar)="cancelado.emit()">
+
+  @if (paso() === 1) {
+    <div class="block"><app-campo-de-seleccion tamano="normal" etiqueta="Organización responsable" name="organizacion" [ngModel]="formulario().organizacionResponsableId" (ngModelChange)="campo('organizacionResponsableId', $event === null || $event === '' ? null : +$event)" comoNumero vacioComoNulo>
+        @if (esWebmaster()) {
+          <option value="">Ninguna: registro histórico sin organización</option>
+        } @else {
+          <option value="" disabled>Elige la organización responsable</option>
+        }
+        @for (organizacion of organizaciones(); track organizacion.id) {
+          <option [value]="+organizacion.id">{{ organizacion.nombre }}</option>
+        }
+      </app-campo-de-seleccion>
+      @for (mensaje of erroresDe('organizacionResponsableId'); track mensaje) {
+        <small class="mt-1 block text-dato text-amber-700" role="alert">{{ mensaje }}</small>
+      }
+    </div>
+
+    <div class="rounded-xl border border-slate-200 p-4">
+      <p class="text-dato leading-relaxed text-slate-600">
+        <b>Quién lo incorpora no es quién lo organiza.</b> Este registro quedará con procedencia
+        del Plan Nacional de Música para la Convivencia y con tu cuenta como autora de la acción.
+        La organización responsable es la que gestiona el Festival de verdad.
+      </p>
+      @if (esWebmaster()) {
+        <p class="mt-2 text-dato leading-relaxed text-slate-600" data-testid="alta-registro-historico">
+          <b>Registro histórico.</b> Si cargas un Festival histórico mapeado que todavía no tiene organización,
+          elige «Ninguna: registro histórico sin organización». Queda a cargo del PNMC hasta que una
+          organización lo reclame desde su panel, y <b>se publica al guardarlo</b> para que pueda encontrarlo desde el primer día.
+        </p>
+      } @else {
+        <p class="mt-2 text-dato leading-relaxed text-slate-600">
+          Los Festivales históricos sin organización los registra el administrador del sistema. Aquí
+          elige la organización que responde por el Festival.
+        </p>
+      }
+      <div class="mt-3"><app-boton importancia="secundaria" tamano="menudo" (accion)="abrirAltaDeOrganizacion()">La organización no está en la lista: crearla</app-boton></div>
+    </div>
+  }
+
+  @if (paso() === 2) {
+    <label class="block">
+      <span class="campo__rotulo">Nombre del Festival</span>
+      <input type="text" name="nombre" [ngModel]="formulario().nombre" (ngModelChange)="campo('nombre', $event)"
+        class="campo__control" />
+      @for (mensaje of erroresDe('nombre'); track mensaje) {
+        <small class="mt-1 block text-dato text-amber-700" role="alert">{{ mensaje }}</small>
+      }
+    </label>
+
+    @if (coincidencias().length > 0) {
+      <div class="rounded-xl border border-amber-200 bg-amber-50 p-4" role="status">
+        <p class="text-xs font-bold text-amber-900">Ya hay Festivales con un nombre parecido</p>
+        <ul class="mt-2 space-y-1">
+          @for (parecido of coincidencias(); track parecido.id) {
+            <li class="text-dato text-amber-900">
+              {{ parecido.nombre }}
+              @if (parecido.organizacionResponsable) { <span class="text-amber-700">· {{ parecido.organizacionResponsable }}</span> }
+            </li>
+          }
+        </ul>
+        <p class="mt-2 text-dato leading-relaxed text-amber-800">
+          Comprueba que no sea el mismo antes de crear otro registro.
+        </p>
+      </div>
+    }
+
+    <label class="block">
+      <span class="campo__rotulo">Descripción</span>
+      <textarea rows="4" name="descripcion" [ngModel]="formulario().descripcion" (ngModelChange)="campo('descripcion', $event)"
+        class="campo__control"></textarea>
+    </label>
+
+  }
+
+  @if (paso() === 3) {
+    <div class="grid gap-4 sm:grid-cols-2">
+      <label class="block">
+        <span class="campo__rotulo">Periodicidad</span>
+        <!--
+          «SIN DEFINIR» VA PRIMERO Y ES EL VALOR INICIAL. Sin esta opción el navegador
+          pintaba «Anual» —la primera de la lista— mientras el modelo seguía vacío: se veía un dato
+          que nunca se enviaba.
+        -->
+        <select name="periodicidad" [ngModel]="formulario().periodicidad" (ngModelChange)="campo('periodicidad', $event)"
+          class="campo__control">
+          <option value="">Sin definir</option>
+          @for (opcion of periodicidades; track opcion.codigo) {
+            <option [value]="opcion.codigo">{{ opcion.etiqueta }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    @if (pideDetalleDePeriodicidad()) {
+      <!-- «Otra» e «intermitente» no dicen nada por sí solas: el servidor exige la explicación. -->
+      <label class="block">
+        <span class="campo__rotulo">Explica la periodicidad</span>
+        <textarea rows="2" name="periodicidadDetalle" [ngModel]="formulario().periodicidadDetalle" (ngModelChange)="campo('periodicidadDetalle', $event)"
+          class="campo__control"></textarea>
+        @for (mensaje of erroresDe('periodicidadDetalle'); track mensaje) {
+          <small class="mt-1 block text-dato text-amber-700" role="alert">{{ mensaje }}</small>
+        }
+      </label>
+    }
+
+    <div class="block"><app-campo-de-seleccion tamano="normal" etiqueta="Nivel de cobertura" name="nivel" [ngModel]="formulario().nivelCobertura" (ngModelChange)="cambiarNivel($event)">
+        <option value="municipal">Municipal</option>
+        <option value="departamental">Departamental</option>
+        <option value="nacional">Nacional</option>
+      </app-campo-de-seleccion>
+      @for (mensaje of erroresDe('nivelCobertura'); track mensaje) {
+        <small class="mt-1 block text-dato text-amber-700" role="alert">{{ mensaje }}</small>
+      }
+    </div>
+
+    @if (formulario().nivelCobertura !== 'nacional') {
+      <!--
+        EL TERRITORIO SALE DE DIVIPOLA, la fuente confirmada del proyecto. Se guarda el código
+        y no el nombre: un nombre escrito a mano hace imposible agrupar por departamento.
+      -->
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="block">
+          <span class="campo__rotulo">Departamento</span>
+          <app-filtro-desplegable completo tamano="normal" etiqueta="Departamento" name="departamento" [ngModel]="formulario().codigoDepartamento" (ngModelChange)="cambiarDepartamento($event)" [opciones]="territorios() | opcionesDesde:'codigo':'nombre':'Sin especificar':true" />
+          @for (mensaje of erroresDe('codigoDepartamento'); track mensaje) {
+            <small class="mt-1 block text-dato text-amber-700" role="alert">{{ mensaje }}</small>
+          }
+        </div>
+
+        @if (formulario().nivelCobertura === 'municipal') {
+          <div class="block">
+            <span class="campo__rotulo">Municipio</span>
+            <app-filtro-desplegable completo tamano="normal" etiqueta="Municipio" name="municipio" [ngModel]="formulario().codigoMunicipio" (ngModelChange)="campo('codigoMunicipio', $event)" [deshabilitado]="municipiosDelDepartamento().length === 0" [opciones]="municipiosDelDepartamento() | opcionesDesde:'codigo':'nombre':'Sin especificar':true" />
+            @for (mensaje of erroresDe('codigoMunicipio'); track mensaje) {
+              <small class="mt-1 block text-dato text-amber-700" role="alert">{{ mensaje }}</small>
+            }
+          </div>
+        }
+      </div>
+    }
+    <div class="mt-4">
+      <span class="campo__rotulo">Sede principal</span>
+      <p class="text-dato text-slate-500">Dónde está el festival. Sirve para situarlo en el mapa, aunque su cobertura sea un departamento o todo el país.</p>
+      <app-selector-de-sede class="mt-2" idBase="alta" [ubicaciones]="ubicaciones()"
+        [departamento]="formulario().sedeCodigoDepartamento" [municipio]="formulario().sedeCodigoMunicipio"
+        [errorDepartamento]="erroresDe('sedeCodigoDepartamento')[0]" [errorMunicipio]="erroresDe('sedeCodigoMunicipio')[0]"
+        (cambiar)="elegirSede($event)" />
+    </div>
+
+  }
+
+  @if (paso() === 4) {
+    <div class="grid gap-4 sm:grid-cols-2">
+      <label class="block">
+        <span class="campo__rotulo">Correo de contacto</span>
+        <input type="email" name="correoContacto" [ngModel]="formulario().correoContacto" (ngModelChange)="campo('correoContacto', $event)"
+          class="campo__control" />
+        @for (mensaje of erroresDe('correoContacto'); track mensaje) {
+          <small class="mt-1 block text-dato text-amber-700" role="alert">{{ mensaje }}</small>
+        }
+      </label>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <label class="block">
+        <span class="campo__rotulo">Teléfono</span>
+        <input type="tel" name="telefono" [ngModel]="formulario().telefonoCelular" (ngModelChange)="campo('telefonoCelular', $event)"
+          class="campo__control" />
+      </label>
+      <label class="block">
+        <span class="campo__rotulo">Sitio web</span>
+        <input type="url" name="paginaWeb" [ngModel]="formulario().paginaWeb" (ngModelChange)="campo('paginaWeb', $event)"
+          class="campo__control" />
+      </label>
+      <label class="block">
+        <span class="campo__rotulo">Instagram</span>
+        <input type="url" name="instagram" [ngModel]="formulario().instagram" (ngModelChange)="campo('instagram', $event)"
+          class="campo__control" />
+      </label>
+      <label class="block">
+        <span class="campo__rotulo">Facebook</span>
+        <input type="url" name="facebook" [ngModel]="formulario().facebook" (ngModelChange)="campo('facebook', $event)"
+          class="campo__control" />
+      </label>
+    </div>
+    <label class="block">
+      <span class="campo__rotulo">Observaciones de contacto</span>
+      <textarea rows="2" name="observaciones" [ngModel]="formulario().observacionesContacto" (ngModelChange)="campo('observacionesContacto', $event)"
+        class="campo__control"></textarea>
+    </label>
+    <app-selector-de-clasificacion
+      [practicasElegidas]="formulario().practicasMusicalesIds"
+      [territoriosElegidos]="formulario().territoriosSonorosIds"
+      (practicasElegidasChange)="campo('practicasMusicalesIds', $event)"
+      (territoriosElegidosChange)="campo('territoriosSonorosIds', $event)"></app-selector-de-clasificacion>
+  }
+
+  @if (paso() === 5) {
+    <dl class="grid gap-3 rounded-xl border border-slate-200 p-4 text-xs">
+      <div class="flex flex-wrap gap-2">
+        <dt class="w-40 shrink-0 campo__rotulo">Festival</dt>
+        <dd class="flex-1 text-slate-800">{{ formulario().nombre || '—' }}</dd>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <dt class="w-40 shrink-0 campo__rotulo">Registrado por</dt>
+        <dd class="flex-1 text-slate-800">Plan Nacional de Música para la Convivencia</dd>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <dt class="w-40 shrink-0 campo__rotulo">Organización responsable</dt>
+        <dd class="flex-1 text-slate-800">{{ organizacionElegida()?.nombre || (esWebmaster() ? 'Ninguna: registro histórico' : 'Sin elegir') }}</dd>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <dt class="w-40 shrink-0 campo__rotulo">Periodicidad</dt>
+        <dd class="flex-1 text-slate-800" data-testid="resumen-periodicidad">{{ periodicidadEnPalabras() }}</dd>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <dt class="w-40 shrink-0 campo__rotulo">Cobertura</dt>
+        <dd class="flex-1 text-slate-800">{{ etiquetaDeCobertura(formulario().nivelCobertura) || 'Sin definir' }}</dd>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <dt class="w-40 shrink-0 campo__rotulo">Territorio</dt>
+        <dd class="flex-1 text-slate-800" data-testid="resumen-territorio">{{ territorioEnPalabras() }}</dd>
+      </div>
+    </dl>
+
+    <p class="text-dato leading-relaxed text-slate-500" data-testid="alta-estado-inicial">
+      <!-- (docs/referencia/20-decisiones-y-flujos-por-modulo.md §20.1, decisión 16): un histórico nace publicado para poder reclamarse. -->
+      @if (formulario().organizacionResponsableId === null && esWebmaster()) {
+        Se publicará al guardarlo como registro histórico sin organización: así las organizaciones lo encuentran y pueden pedir su administración. Si hace falta retirarlo, se despublica desde su ficha.
+      } @else {
+        Se creará como borrador. Publicarlo es una decisión aparte, desde el circuito de revisión.
+      }
+    </p>
+
+    @if (loQueFalta().length > 0) {
+      <p class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+        Falta {{ loQueFalta() | enumerar }}.
+      </p>
+    }
+  }
+
+</app-asistente-de-alta>
+
+@if (creandoOrganizacion()) {
+  <!--
+    SE CREA SIN SALIR DE AQUI. Obligar a abandonar el registro a medias para ir a otra pantalla es
+    como se pierden los datos que ya se habian escrito. Al volver, la organizacion nueva queda
+    elegida: es para lo que se abrio el formulario.
+  -->
+  <app-admin-alta-organizacion
+    (registrada)="organizacionCreada($event)"
+    (cancelado)="cerrarAltaDeOrganizacion()"></app-admin-alta-organizacion>
+}

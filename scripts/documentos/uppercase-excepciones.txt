@@ -1,0 +1,5 @@
+# Excepciones justificadas del chequeo scripts/documentos/comprobar-sin-uppercase.py (portal público, docs/usuario/23-guia-de-estilo-de-textos.md).
+# Formato: ruta-parcial: motivo. Una excepción sin motivo no vale.
+# Hoy no hay ninguna en las plantillas del portal: solo los títulos grandes (.tipo-seccion,
+# .tipo-titulo-grande, .tipo-titulo) y los nombres de países del mapa (.country-label-marker, por
+# convención cartográfica) conservan la mayúscula sostenida, y eso se declara en el propio script.

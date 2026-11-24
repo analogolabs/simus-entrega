@@ -1,0 +1,133 @@
+<!--
+  ACTUALIDAD. Una noticia principal grande y dos secundarias (fecha · categoría y título) y, al
+  lado, la agenda: los cinco eventos más próximos, todos de la misma altura, con fecha, categoría,
+  título y, si lo tienen, el lugar en su propia esquina. Tipografía: Oswald solo en rótulos y títulos
+  de sección; todos los titulares de noticias y eventos van en Nunito negrita (el principal, más
+  grande). Los enlaces de texto revelan una barrita de color al pasar el puntero.
+-->
+<!-- Actualidad: lo que está pasando ahora. -->
+<section class="bg-white py-20 lg:py-24">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <app-encabezado-de-seccion antetitulo="Noticias y agenda" [titulo]="'home_actualidad_titulo' | textoWeb" texto="Noticias del sector y próximos eventos de la agenda."></app-encabezado-de-seccion>
+  </div>
+  <div class="mx-auto mt-12 lg:mt-14 grid max-w-7xl grid-cols-1 gap-16 px-6 lg:grid-cols-12 lg:gap-8 lg:px-8">
+    <!-- ── Noticias ──────────────────────────────────────────────────────── -->
+    <div class="lg:col-span-7" aria-labelledby="inicio-noticias-titulo">
+      <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b border-filete pb-5">
+        <h3 id="inicio-noticias-titulo" class="tipo-titulo text-titulo">{{ 'home_actualidad_noticias' | textoWeb }}</h3>
+        <a routerLink="/noticias" style="--barra: var(--color-magenta)" class="enlace-revela tipo-enlace shrink-0 cursor-pointer rounded-sm p-0 text-morado no-underline hover:text-morado-vivo focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-4">
+          {{ 'home_actualidad_todas_noticias' | textoWeb }}
+        </a>
+      </div>
+
+      @if (cargando()) {
+        <app-esqueleto variante="tarjeta" [cantidad]="3" [etiqueta]="'home_actualidad_cargando' | textoWeb" />
+      } @else if (error()) {
+        <app-error-state [title]="'home_actualidad_error' | textoWeb" [description]="error()" (retry)="cargar()"></app-error-state>
+      } @else if (!noticiaPrincipal()) {
+        <app-empty-state [title]="'home_actualidad_sin_noticias' | textoWeb" [description]="'home_actualidad_sin_noticias_texto' | textoWeb"></app-empty-state>
+      } @else {
+        @if (noticiaPrincipal(); as principal) {
+          <!-- El control es el titular y se extiende a toda la pieza con `after:inset-0`. -->
+          <article class="group relative mt-8 grid grid-cols-1 gap-6 md:grid-cols-12 md:gap-8">
+            <div class="relative aspect-[4/3] overflow-hidden rounded-2xl md:col-span-7 bg-morado-100">
+              <img [src]="imagenDe(principal)" [alt]="principal.alt" width="720" height="540" class="foto-portada h-full w-full object-cover transition-transform duration-500 ease-[var(--ease-soft)] group-hover:scale-105" />
+            </div>
+            <div class="flex flex-col justify-center md:col-span-5">
+              <p class="tipo-etiqueta text-tinta-media">{{ principal.date }}@if (principal.category) { · {{ principal.category }} }</p>
+              <h4 class="tipo-titulo-lista tipo-titulo-lista--destacado mt-3 text-titulo transition-colors group-hover:text-morado">
+                <a [routerLink]="['/noticias', principal.slug]" class="cursor-pointer text-left no-underline text-inherit after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado">
+                  {{ principal.title }}
+                </a>
+              </h4>
+              <p class="tipo-cuerpo mt-3 line-clamp-3 text-tinta-media">{{ principal.desc }}</p>
+            </div>
+          </article>
+        }
+        <!--
+          H-3: CUATRO SECUNDARIAS EN DOS FILAS. Con dos, la columna de noticias quedaba ~180 px más corta
+          que «Próximamente» y dejaba un hueco abajo a la izquierda; con cuatro llega a ~36 px de ella
+          (medido a 1280 px). En pantallas estrechas se siguen viendo dos, como antes: la lista completa
+          está en «Todas las noticias».
+        -->
+        <div data-testid="noticias-secundarias-inicio" class="mt-10 grid grid-cols-1 gap-x-8 gap-y-7 border-t border-filete pt-8 md:grid-cols-2">
+          @for (noticia of noticiasSecundarias(); track noticia.slug) {
+            <article class="group relative flex gap-5" [class.max-md:hidden]="$index >= 2">
+              <div class="relative h-24 w-28 shrink-0 overflow-hidden rounded-xl bg-morado-100">
+                <img [src]="imagenDe(noticia)" [alt]="noticia.alt" width="224" height="192" class="foto-portada h-full w-full object-cover transition-transform duration-500 ease-[var(--ease-soft)] group-hover:scale-105" />
+              </div>
+              <!--
+                SIEMPRE EL MISMO ORDEN, sea largo o corto el titular: categoría, fecha y titular.
+                La noticia principal conserva «fecha · categoría» arriba.
+              -->
+              <div class="min-w-0">
+                @if (noticia.category) { <p class="tipo-etiqueta text-morado">{{ noticia.category }}</p> }
+                <p class="tipo-etiqueta text-tinta-media" [class.mt-1.5]="noticia.category">{{ noticia.date }}</p>
+                <h4 class="tipo-titulo-lista mt-2 line-clamp-3 text-titulo transition-colors group-hover:text-morado" [attr.title]="noticia.title">
+                  <a [routerLink]="['/noticias', noticia.slug]" class="cursor-pointer text-left no-underline text-inherit after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado">
+                    {{ noticia.title }}
+                  </a>
+                </h4>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- ── Agenda: una lista de fechas ───────────────────────────────────── -->
+    <!-- Una columna de aire entre noticias y agenda: son dos piezas, no una. -->
+    <aside class="lg:col-span-4 lg:col-start-9" aria-labelledby="inicio-agenda-titulo">
+      <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b border-filete pb-5">
+        <h3 id="inicio-agenda-titulo" class="tipo-titulo text-titulo">{{ 'home_actualidad_proximamente' | textoWeb }}</h3>
+        <a routerLink="/agenda" style="--barra: var(--color-verde)" class="enlace-revela tipo-enlace shrink-0 cursor-pointer rounded-sm p-0 text-morado no-underline hover:text-morado-vivo focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-4">
+          {{ 'home_actualidad_toda_agenda' | textoWeb }}
+        </a>
+      </div>
+      @if (cargando()) {
+        <app-esqueleto variante="fila" [cantidad]="3" [etiqueta]="'home_actualidad_cargando_agenda' | textoWeb" />
+      } @else if (error()) {
+        <app-error-state [title]="'home_actualidad_agenda_error' | textoWeb" [description]="error()" (retry)="cargar()"></app-error-state>
+      } @else if (eventos().length === 0) {
+        <app-empty-state [title]="'home_actualidad_sin_eventos' | textoWeb" [description]="'home_actualidad_sin_eventos_texto' | textoWeb"></app-empty-state>
+      } @else {
+        <!--
+          CINCO EVENTOS, TODOS DE LA MISMA ALTURA (`h-[7.5rem]`), con o sin lugar y con descripciones
+          largas o cortas. Fecha a la izquierda; a la derecha, arriba el título (hasta dos renglones)
+          y un renglón de la descripción, y abajo, pegado al borde, la categoría a la izquierda y el
+          lugar —municipio y departamento, completo y en letra pequeña— a la derecha. Filas
+          intercaladas con el morado muy suave de la marca.
+        -->
+        <ul>
+          @for (evento of eventos().slice(0, eventosVisibles); track evento.id) {
+            <li class="rounded-xl odd:bg-morado-50">
+              <!--
+                UN ENLACE A LA FICHA DEL EVENTO, no a la Agenda en general. Cada dato va en su
+                propio renglón con recorte por elipsis: la categoría, el título (hasta dos renglones), la
+                descripción y el lugar. Antes la categoría y el lugar compartían renglón y, con
+                «Convocatorias y oportunidades» o un municipio largo, se pintaban uno encima del otro.
+              -->
+              <a [routerLink]="['/agenda', evento.slug]" data-testid="portada-evento" class="group grid min-h-[7.5rem] w-full cursor-pointer grid-cols-[3.25rem_minmax(0,1fr)] items-start gap-4 rounded-xl px-4 py-3.5 text-left no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado">
+                <span class="flex flex-col">
+                  <span class="tipo-titulo-grande text-morado">{{ evento.d }}</span>
+                  <span class="tipo-etiqueta mt-1 text-tinta-media">{{ evento.m }}</span>
+                </span>
+                <span class="flex min-w-0 flex-col gap-1">
+                  @if (evento.cat) { <span class="tipo-etiqueta block truncate text-morado" [attr.title]="evento.cat">{{ evento.cat }}</span> }
+                  <span class="tipo-titulo-lista line-clamp-2 text-titulo transition-colors group-hover:text-morado" [attr.title]="evento.t">{{ evento.t }}</span>
+                  @if (evento.desc) { <span class="tipo-pequeno line-clamp-1 text-tinta-media">{{ evento.desc }}</span> }
+                  @if (evento.l) {
+                    <span class="flex min-w-0 items-center gap-1 font-nunito text-xs leading-tight text-tinta-media">
+                      <svg lucideMapPin [size]="12" aria-hidden="true" class="shrink-0 text-morado"></svg>
+                      <span class="truncate" [attr.title]="evento.l">{{ evento.l }}</span>
+                    </span>
+                  }
+                </span>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </aside>
+  </div>
+</section>

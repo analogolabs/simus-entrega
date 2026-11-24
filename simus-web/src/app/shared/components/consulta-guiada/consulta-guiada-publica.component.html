@@ -1,0 +1,198 @@
+<!--
+  EL ASISTENTE, COMO UN CHAT: arriba el historial (lo que se preguntó y lo que se respondió, con su tabla, su fuente y los enlaces a cada
+  ficha) y ABAJO, fijo, el campo de escribir con su botón de enviar. Con el chat vacío las preguntas frecuentes se ofrecen como
+  sugerencias; con historial quedan en un desplegable sobre el campo. Lo escrito se reconoce contra las preguntas frecuentes
+  (departamentos, municipios, tipos y meses) y, si el modelo del proyecto está disponible, cualquier otra pregunta la interpreta el
+  modelo; sin modelo se sugiere lo más cercano. Las cifras salen de los datos publicados, no del modelo. No aparecen los rótulos
+  «guiada», «asistida» ni «abierta».
+-->
+<ng-template #frecuentes>
+  <section aria-labelledby="preguntas-publicas-titulo">
+    <h3 id="preguntas-publicas-titulo" class="text-xs font-bold text-slate-800">
+      {{ !hayTexto() ? 'Preguntas frecuentes' : busqueda().coincidencias.length > 0 ? 'Preguntas frecuentes que coinciden' : 'No hay una pregunta frecuente con esas palabras' }}
+    </h3>
+    @if (noEntendido()) {
+      <p data-no-entendi role="status" class="mt-1 text-dato font-semibold text-slate-600">No pude entender esa pregunta con los datos del portal. Prueba con un departamento o un tipo («festivales en Nariño»), o elige una de estas:</p>
+    } @else if (hayTexto() && busqueda().coincidencias.length === 0) {
+      <p data-sin-coincidencia class="mt-1 text-dato text-slate-500">Estas son las más cercanas:</p>
+    }
+    <ul class="mt-2 flex flex-wrap gap-1.5">
+      @for (pregunta of listaVisible(); track pregunta.id) {
+        <li class="max-w-full">
+          <button type="button" data-pregunta-publica [attr.data-id]="pregunta.id"
+            (click)="elegir(pregunta)" [disabled]="consultando()"
+            [attr.title]="pregunta.descripcion"
+            class="min-h-control max-w-full cursor-pointer rounded-2xl border border-morado/30 bg-white px-3 py-1.5 text-left text-dato text-morado transition-colors hover:bg-morado-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-1">{{ pregunta.rotulo }}</button>
+        </li>
+      }
+    </ul>
+    @if (!hayTexto() && !verTodas() && (estado()?.preguntas?.length ?? 0) > visibles) {
+      <button type="button" data-ver-todas (click)="verTodas.set(true)"
+        class="mt-2 text-xs font-bold text-morado no-underline hover:text-morado-claro focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado-claro">Ver las {{ estado()?.preguntas?.length }} preguntas</button>
+    }
+  </section>
+</ng-template>
+
+<div class="flex min-h-0 flex-1 flex-col overflow-hidden">
+  <div data-historial aria-live="polite" [attr.aria-busy]="consultando()"
+       class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain bg-slate-50/60 p-4">
+    @if (cargandoEstado()) {
+      <app-esqueleto variante="fila" [cantidad]="4" etiqueta="Cargando las preguntas…" />
+    } @else if (errorEstado()) {
+      <p role="alert" class="text-xs text-red-700">{{ errorEstado() }}
+        <button type="button" (click)="cargarEstado()" class="font-bold text-morado hover:text-morado-claro">Reintentar</button></p>
+    } @else if (estado() && estado()!.preguntas.length === 0) {
+      <p data-sin-preguntas class="text-xs text-slate-600">Todavía no hay preguntas frecuentes disponibles.</p>
+    } @else if (estado() && turnos().length === 0 && !consultando()) {
+      <div data-bienvenida class="max-w-[96%] rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-4 py-3 text-sm leading-relaxed text-slate-700">
+        <p>Hola, soy el Asistente. Pregúntame por festivales, mercados y procesos publicados: respondo con una tabla, su fuente y enlaces a cada ficha.</p>
+        <div class="mt-3"><ng-container [ngTemplateOutlet]="frecuentes" /></div>
+      </div>
+    }
+
+    @for (turno of turnos(); track $index) {
+      <article data-respuesta-publica class="flex flex-col gap-2">
+        <p class="self-end max-w-[88%] rounded-2xl rounded-br-sm bg-morado px-4 py-3 text-sm leading-relaxed text-white">{{ turno.pregunta }}</p>
+        <div class="max-w-[96%] rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-4 py-3 text-sm leading-relaxed text-slate-700">
+          @if (turno.respuesta; as respuesta) {
+            <p class="whitespace-pre-wrap">{{ respuesta.respuesta }}</p>
+            @if (turno.abierta; as abierta) {
+              @defer (on immediate) {
+                <app-como-entendi-abierta [respuesta]="abierta" [ocupado]="consultando()" (editar)="corregir($event, turno.pregunta)" />
+              }
+            }
+            <p data-alcance-de-la-respuesta class="mt-3 text-dato font-semibold text-slate-500">Calculado sobre: {{ respuesta.contexto }}</p>
+            @if (respuesta.consulta; as consulta) {
+              <div class="mt-3 overflow-hidden rounded-lg border border-slate-200">
+                <div class="bg-slate-50 px-3 py-2.5">
+                  <h3 class="text-xs font-bold text-slate-800">{{ consulta.titulo }}</h3>
+                  <p class="mt-1 text-dato leading-relaxed text-slate-500"><b>Alcance:</b> {{ consulta.alcance }}</p>
+                  @if (consulta.filtrosAplicados?.length) {
+                    <p data-filtros-aplicados class="mt-1 text-dato leading-relaxed text-slate-500"><b>Filtros aplicados:</b> {{ consulta.filtrosAplicados!.join(' · ') }}</p>
+                  }
+                </div>
+                <div class="overflow-x-auto">
+                  <table class="w-full min-w-[20rem] text-left text-xs">
+                    <caption class="sr-only">{{ consulta.titulo }}. {{ consulta.alcance }}</caption>
+                    <thead class="border-y border-slate-200 bg-white text-dato text-slate-500">
+                      <tr>@for (columna of consulta.columnas; track columna) { <th scope="col" class="px-3 py-2 font-bold">{{ columna }}</th> }</tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                      @for (fila of consulta.filas; track $index; let i = $index) {
+                        <tr>
+                          @for (celda of fila; track $index; let j = $index) {
+                            <td class="px-3 py-2 text-slate-600">
+                              @if (j === (consulta.columnaDeEnlace ?? 0) && destinoDe(consulta, i); as destino) {
+                                <a [routerLink]="destino" data-enlace-de-fila (click)="navego.emit()"
+                                  class="inline-flex items-center gap-1 font-bold text-morado no-underline hover:text-morado-claro focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado-claro">{{ celda }}<svg lucideArrowUpRight [size]="12" aria-hidden="true" class="shrink-0"></svg></a>
+                              } @else { {{ celda }} }
+                            </td>
+                          }
+                        </tr>
+                      } @empty {
+                        <tr><td [attr.colspan]="consulta.columnas.length" class="px-3 py-3 text-slate-500">Todavía no hay datos publicados para esta consulta.</td></tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+                <p class="border-t border-slate-200 bg-slate-50 px-3 py-2 text-dato leading-relaxed text-slate-500"><b>Fuente:</b> {{ consulta.fuente }}</p>
+              </div>
+            }
+            <p class="mt-2 text-dato text-rotulo">{{ fecha(respuesta.generadoEn) }}</p>
+          } @else {
+            <p role="alert" class="text-red-700">{{ turno.error }}</p>
+            @if (turno.reintento; as reintento) {
+              <button type="button" data-reintentar (click)="reintento()" [disabled]="consultando()" appBoton="secundaria" tamano="comodo" class="mt-2">Reintentar</button>
+            }
+            @if (turno.sugerencias?.length) {
+              <ul class="mt-2 flex flex-col gap-1.5" aria-label="Preguntas frecuentes cercanas">
+                @for (sugerencia of turno.sugerencias; track sugerencia) {
+                  <li><button type="button" data-sugerencia (click)="usarSugerencia(sugerencia)" [disabled]="consultando()" appBoton="secundaria" tamano="comodo" class="w-full justify-start text-left">{{ sugerencia }}</button></li>
+                }
+              </ul>
+            }
+          }
+        </div>
+      </article>
+    }
+    @if (pendiente(); as p) {
+      <form data-pedir-parametros (submit)="$event.preventDefault(); confirmar()"
+        class="flex flex-col gap-3 border-l-4 border-morado-claro/50 pl-3" [attr.aria-label]="p.pregunta.rotulo">
+        <p class="text-xs font-bold text-slate-800">{{ p.pregunta.rotulo }}</p>
+        @if (p.entendido.length > 0) {
+          <p data-entendido class="text-dato text-slate-600">Entendí: {{ p.entendido.join(' · ') }}.</p>
+        }
+        @if (p.aviso) { <p class="text-dato text-slate-500">{{ p.aviso }}</p> }
+        @if (pideMunicipioSinDepartamento(p)) {
+          <div class="flex flex-col gap-1 text-dato font-semibold text-slate-600">Departamento
+            <app-filtro-desplegable [completo]="true" tamano="comodo" etiqueta="Departamento para buscar el municipio" identificador="parametro-departamento-auxiliar"
+              [opciones]="opcionesConVacio(catalogos().departamentos, 'Elige un departamento')" [elegida]="departamentoAuxiliar()"
+              (cambiar)="ponerDepartamentoAuxiliar($event)" />
+          </div>
+        }
+        @for (parametro of p.pregunta.parametros; track parametro.nombre) {
+          <div class="flex flex-col gap-1 text-dato font-semibold text-slate-600">{{ parametro.rotulo }}{{ parametro.obligatorio ? '' : ' (opcional)' }}
+            <app-filtro-desplegable [completo]="true" tamano="comodo" [etiqueta]="parametro.rotulo" [identificador]="'parametro-' + parametro.nombre"
+              [opciones]="opcionesDe(parametro)" [elegida]="p.valores[parametro.nombre] || ''"
+              [deshabilitado]="parametro.nombre === 'municipio' && municipiosOfrecidos().length === 0"
+              (cambiar)="poner(parametro.nombre, $event)" />
+          </div>
+        }
+        <div class="flex gap-2">
+          <button type="submit" data-consultar-parametros [disabled]="!completa(p) || consultando()" appBoton="principal" tamano="comodo">Consultar</button>
+          <button type="button" (click)="pendiente.set(null)" appBoton="secundaria" tamano="comodo">Cancelar</button>
+        </div>
+      </form>
+    }
+
+    @if (consultando()) {
+      @if (enCurso()) {
+        <p data-pregunta-en-curso class="max-w-[88%] self-end rounded-2xl rounded-br-sm bg-morado px-4 py-3 text-sm leading-relaxed text-white">{{ enCurso() }}</p>
+      }
+      <div data-pensando class="flex items-center gap-3">
+        <div class="min-w-0 flex-1">
+          <p role="status" class="mb-2 text-dato font-semibold text-slate-600">{{ esperaLarga() ? 'Está tardando más de lo normal: el modelo se está preparando. Puede tardar hasta un minuto la primera vez.' : abierto() ? 'Pensando tu pregunta…' : 'Consultando los datos…' }}</p>
+          <app-esqueleto variante="fila" [cantidad]="2" etiqueta="Pensando tu pregunta…" />
+        </div>
+        <button type="button" data-cancelar-consulta (click)="cancelar()" appBoton="secundaria" tamano="comodo">Cancelar</button>
+      </div>
+    }
+  </div>
+
+  <div class="shrink-0 border-t border-slate-200 bg-white px-3 pt-2">
+    @if (estado() && turnos().length > 0) {
+      <details data-frecuentes-desplegable class="mb-2 rounded-xl border border-slate-200 bg-slate-50/60" [open]="hayTexto() || null">
+        <summary class="flex min-h-control cursor-pointer items-center gap-2 px-3 text-xs font-bold text-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado">
+          <svg lucideChevronUp [size]="14" aria-hidden="true"></svg>Preguntas frecuentes
+        </summary>
+        <div class="max-h-[40dvh] overflow-y-auto px-3 pb-3"><ng-container [ngTemplateOutlet]="frecuentes" /></div>
+      </details>
+    }
+    @if (!errorEstado()) {
+      <div class="flex items-center gap-2">
+        <label class="block min-w-0 flex-1">
+          <span class="sr-only">Escribe tu pregunta</span>
+          <input type="text" data-buscar-pregunta autocomplete="off" enterkeyhint="send" [attr.maxlength]="maximoDePregunta()"
+            [value]="texto()" (input)="texto.set($any($event.target).value); noEntendido.set(false)"
+            (keydown.enter)="enviarTexto()"
+            placeholder="Escribe tu pregunta…"
+            class="block min-h-control w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-morado-claro focus:ring-2 focus:ring-morado-claro/20" />
+        </label>
+        <button type="button" data-enviar-pregunta (click)="enviarTexto()" [disabled]="!hayTexto() || consultando()"
+          aria-label="Enviar pregunta" appBoton="principal" tamano="comodo">
+          <svg lucideSend [size]="16" aria-hidden="true"></svg>
+        </button>
+      </div>
+      @if (sabeDelModelo() && !abierto()) {
+        <p data-sin-modelo role="status" class="mt-1.5 text-dato text-slate-600">Ahora mismo respondo con las preguntas frecuentes; si lo que escribes no coincide, te sugiero la más cercana.</p>
+      } @else {
+        <p class="mt-1.5 text-dato text-rotulo">{{ abierto() ? 'Pregunta con tus palabras y verás cómo se entendió.' : 'Pulsa Enter para preguntar.' }}</p>
+      }
+    }
+  </div>
+
+  <footer class="flex shrink-0 items-center gap-2 bg-white px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 text-dato text-rotulo">
+    <svg lucideLock [size]="13" aria-hidden="true" class="shrink-0"></svg>
+    <p>Solo lectura, sobre datos ya publicados. Las cifras salen de los datos, no del modelo.</p>
+  </footer>
+</div>

@@ -1,0 +1,79 @@
+<section class="min-h-[100dvh] bg-slate-50 px-4 pb-16 pt-28 font-nunito text-slate-700">
+  <div class="mx-auto max-w-xl p-6 sm:p-8">
+    <h1 class="font-alternate text-2xl font-bold uppercase tracking-wide text-morado">Invitación a una organización</h1>
+
+    @if (cargando()) { <p role="status" class="mt-4 text-sm text-slate-500">Comprobando la invitación…</p> }
+
+    @if (invitacion(); as datos) {
+      <p class="mt-4 text-base leading-relaxed">
+        Te invitan a <strong>{{ datos.organizacion }}</strong> como <strong>{{ etiquetaDeRol(datos.rol) }}</strong>.
+      </p>
+      <p class="mt-1 text-sm text-slate-500">Invitación enviada a {{ datos.correoInvitado }}.</p>
+
+      @if (!vigente()) {
+        <p role="alert" data-testid="invitacion-no-vigente" class="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          @switch (datos.estado) {
+            @case ('aceptada') { Esta invitación ya se usó. Si la aceptaste tú, la organización ya aparece en tus organizaciones. }
+            @case ('revocada') { Esta invitación fue revocada. Pide a la organización que te envíe otra. }
+            @case ('vencida') { Esta invitación venció. Pide a la organización que te envíe otra. }
+            @default { La invitación no está disponible. }
+          }
+        </p>
+      } @else if (sesion() && !esLaCuentaInvitada()) {
+        <!--
+          OTRA CUENTA NO ACEPTA (docs/desarrollo/19-cuentas-y-organizaciones.md §19.4 v1.1). Un enlace reenviado daba acceso a la
+          organización a otra persona sin que el administrador lo notara. Se dice a qué correo se
+          envió —enmascarado— y cómo entrar con esa cuenta o crearla.
+        -->
+        <div role="alert" data-testid="invitacion-otra-cuenta" class="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-relaxed text-amber-900">
+          <p>
+            Esta invitación se envió a <strong>{{ datos.correoInvitado }}</strong> y solo puede aceptarla la cuenta con ese correo.
+            Ahora estás con <strong>{{ sesion()?.email }}</strong>.
+          </p>
+          <p class="mt-2">Cierra la sesión y entra con la cuenta de ese correo. Si todavía no la tienes, créala con ese correo: al terminar volverás aquí para aceptar la invitación.</p>
+        </div>
+        <div class="mt-4 flex flex-wrap gap-3">
+          <button type="button" (click)="cambiarDeCuenta('/ingresar')" [disabled]="saliendo()" data-testid="invitacion-cambiar-de-cuenta"
+                  appBoton="principal" tamano="comodo">
+            Cerrar sesión y entrar con esa cuenta
+          </button>
+          <button type="button" (click)="cambiarDeCuenta('/registro')" [disabled]="saliendo()"
+                  appBoton="secundaria" tamano="comodo">
+            Crear la cuenta de ese correo
+          </button>
+        </div>
+      } @else if (sesion()) {
+        <p class="mt-5 text-sm">Aceptarás con tu cuenta <strong>{{ sesion()?.email }}</strong>.</p>
+        <button type="button" (click)="aceptar()" [disabled]="aceptando()" data-testid="aceptar-invitacion"
+                appBoton="principal" tamano="comodo" class="mt-4">
+          {{ aceptando() ? 'Aceptando…' : 'Aceptar invitación' }}
+        </button>
+      } @else {
+        <p class="mt-5 text-sm">Para aceptarla, entra con la cuenta de SIMUS de <strong>{{ datos.correoInvitado }}</strong>: solo esa cuenta puede aceptarla. Si aún no la tienes, créala con ese correo: al terminar volverás aquí para aceptar la invitación.</p>
+        <div class="mt-4 flex flex-wrap gap-3">
+          <a routerLink="/ingresar" (click)="recordar()" data-testid="invitacion-ingresar"
+             class="inline-flex min-h-11 items-center rounded-lg bg-morado px-5 font-alternate text-xs font-bold text-white hover:bg-morado/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-2">Iniciar sesión</a>
+          <a routerLink="/registro" (click)="recordar()"
+             class="inline-flex min-h-11 items-center rounded-lg border border-slate-300 bg-white px-5 font-alternate text-xs font-bold text-slate-700 hover:border-morado hover:text-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado">Crear cuenta</a>
+        </div>
+      }
+    }
+
+    @if (error()) { <p role="alert" data-testid="invitacion-error" class="mt-5 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ error() }}</p> }
+
+    @if (sinSalida()) {
+      <!-- UNA INVITACIÓN QUE YA NO SIRVE SIEMPRE OFRECE A DÓNDE IR. -->
+      <div class="mt-5 flex flex-wrap gap-3" data-testid="invitacion-salidas">
+        @if (sesion()) {
+          <a routerLink="/gestion/cuenta/organizaciones" data-testid="invitacion-ir-a-mis-organizaciones"
+             class="inline-flex min-h-11 items-center rounded-lg bg-morado px-5 font-alternate text-xs font-bold text-white no-underline hover:bg-morado/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-2">Ir a mis organizaciones</a>
+        } @else {
+          <a routerLink="/ingresar" data-testid="invitacion-ir-a-ingresar"
+             class="inline-flex min-h-11 items-center rounded-lg bg-morado px-5 font-alternate text-xs font-bold text-white no-underline hover:bg-morado/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-2">Ingresar</a>
+        }
+        <a routerLink="/" data-testid="invitacion-ir-al-inicio"
+           class="inline-flex min-h-11 items-center rounded-lg border border-slate-300 bg-white px-5 font-alternate text-xs font-bold text-slate-700 no-underline hover:border-morado hover:text-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado">Ir al inicio</a>
+      </div>
+    }
+  </div>
+</section>

@@ -1,0 +1,589 @@
+<!-- VISTA 1: Lector de Artículos Ultra-Premium (Detalle de Noticia) -->
+@if (localSelectedArticle()) {
+  <div class="bg-white min-h-screen text-left relative">
+    
+    <!-- Barra de progreso de lectura -->
+    <div
+      class="fixed top-0 left-0 right-0 h-1.5 bg-verde z-(--z-dialogo-sobre-dialogo) origin-left transition-transform duration-100 ease-out"
+      [style.transform]="'scaleX(' + (readingProgress() / 100) + ')'"
+    ></div>
+
+    <app-page-hero
+      [tag]="localSelectedArticle()!.category"
+      [title]="selectedArticleHeroCopy().title"
+      [titleAccent]="selectedArticleHeroCopy().titleAccent"
+      [description]="localSelectedArticle()!.desc"
+      [bgImage]="imagenDe(localSelectedArticle()!)"
+      backLabel="Noticias"
+      (onBack)="handleSelectArticle(null)"
+      [compactNews]="true"
+      [backOnly]="true"
+    ></app-page-hero>
+
+    <div class="max-w-[96rem] mx-auto px-6 lg:px-12 py-16">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-16">
+        
+        <!-- Lector Principal Editorial -->
+        <div class="col-span-12 lg:col-span-8 space-y-10">
+          <div class="space-y-4 pb-8 border-b border-filete">
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-2 tipo-etiqueta text-tinta-media">
+              <span class="text-morado">{{ localSelectedArticle()!.category }}</span>
+              <span class="h-1.5 w-1.5 rounded-full bg-tinta-suave"></span>
+              <span>Publicado: {{ localSelectedArticle()!.date }} 2026</span>
+              <span class="h-1.5 w-1.5 rounded-full bg-tinta-suave"></span>
+              <span class="flex items-center gap-1.5 text-morado">
+                <svg lucideClock [size]="13"></svg>
+                {{ calculateReadingTime(localSelectedArticle()!.content || localSelectedArticle()!.desc) }} min de lectura
+              </span>
+            </div>
+            <h1 class="tipo-seccion max-w-5xl text-titulo">
+              {{ selectedArticleHeroCopy().title }}
+              @if (selectedArticleHeroCopy().titleAccent) {
+                <span class="text-morado"> {{ selectedArticleHeroCopy().titleAccent }}</span>
+              }
+            </h1>
+            <p class="text-xl sm:text-2xl text-titulo font-semibold leading-relaxed max-w-4xl pt-2">
+              {{ localSelectedArticle()!.desc }}
+            </p>
+          </div>
+
+          <!-- Contenido Editorial con Drop Cap -->
+          <div class="max-w-4xl">
+            <div class="prose prose-slate max-w-none text-titulo font-nunito text-[1.0625rem] font-normal leading-relaxed space-y-6 first-letter:text-6xl first-letter:font-bold first-letter:text-morado first-letter:float-left first-letter:mr-3 first-letter:mt-1 first-letter:font-alternate">
+              @if (localSelectedArticle()!.content) {
+                <div [innerHTML]="selectedArticleSafeContent()"></div>
+              } @else {
+                <p>
+                  A lo largo de los territorios colombianos, el sonido de los vientos, cuerdas y percusiones dibuja
+                  historias profundas que van más allá del arte sonoro. El Programa Nacional de Música para la Convivencia
+                  (PNMC) ha impulsado en este ciclo una serie de transformaciones estructurales con el fin de robustecer
+                  a las comunidades musicales. Esta crónica documenta la vibración social que acontece en las regiones,
+                  donde las escuelas, lutieres y festivales tejen una red indestructible de paz y resistencia artística.
+                </p>
+                <p>
+                  La descentralización cultural permite que procesos locales antes invisibilizados escalen hacia escenarios
+                  de impacto nacional. El acceso a recursos y la consolidación de redes de apoyo mutuo actúan como
+                  catalizadores que redefinen las prácticas musicales heredadas, aportando técnicas contemporáneas sin
+                  comprometer la memoria e identidad tradicional que late en el origen de cada acorde.
+                </p>
+                <div class="py-6 my-4">
+                  <img width="640" height="360" loading="lazy" decoding="async"
+                    [src]="imagenDe(localSelectedArticle()!)"
+                    class="w-full max-h-[500px] object-cover rounded-2xl border border-filete"
+                    alt=""
+                  />
+                  <span class="text-xs text-tinta-media italic mt-3 block text-center">
+                    Fotografía Editorial — Archivo de Memoria del PNMC 2026
+                  </span>
+                </div>
+                <blockquote class="pl-8 py-6 my-8 italic text-xl sm:text-2xl text-titulo bg-niebla rounded-r-2xl leading-snug font-medium">
+                  "La música no solo es expresión estética, es un vehículo indestructible de memoria histórica y
+                  reparación social en los rincones más lejanos de nuestra geografía."
+                </blockquote>
+                <p>
+                  A medida que avanzamos en la consolidación del mapa ecosistémico, se hace evidente que cada escuela y
+                  festival se constituye en un faro pedagógico. La lutería de tradición y la documentación rigurosa
+                  salvaguardan técnicas ancestrales de afinación y construcción de instrumentos, preservando un saber
+                  organológico invaluable para las siguientes generaciones de músicos colombianos.
+                </p>
+              }
+            </div>
+          </div>
+
+          <!-- Botón de retorno y compartir -->
+          <div class="pt-10 border-t border-filete flex flex-col sm:flex-row justify-between items-center gap-6">
+            <button type="button"
+              (click)="handleSelectArticle(null)"
+              class="flex items-center gap-2.5 text-xs font-bold text-morado font-alternate transition-colors hover:text-morado-vivo cursor-pointer border-0 bg-transparent"
+            >
+              <svg lucideArrowLeft [size]="16" class="text-morado"></svg>
+              Volver a noticias
+            </button>
+            <div class="flex items-center gap-4">
+              <span class="tipo-etiqueta text-tinta-media">Compartir artículo:</span>
+              <button type="button" class="w-11 h-11 rounded-full border border-filete flex items-center justify-center text-tinta-media hover:bg-morado hover:text-white transition-[color,background-color,transform] duration-150 hover:scale-105 active:scale-95 cursor-pointer">
+                <svg lucideShare2 [size]="16"></svg>
+              </button>
+              <button type="button" class="w-11 h-11 rounded-full border border-filete flex items-center justify-center text-tinta-media hover:bg-morado hover:text-white transition-[color,background-color,transform] duration-150 hover:scale-105 active:scale-95 cursor-pointer">
+                <svg lucideBookmark [size]="16"></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar Lateral de Noticias Relacionadas -->
+        <aside class="col-span-12 lg:col-span-4">
+          <div class="sticky top-28 rounded-2xl border border-filete bg-niebla p-8 space-y-8">
+            <div class="space-y-2 pb-5 border-b border-filete">
+              <span class="tipo-etiqueta inline-flex items-center rounded-full bg-white px-3 py-1 text-morado border border-filete">
+                LECTURAS RECOMENDADAS
+              </span>
+              <h4 class="tipo-titulo text-titulo">Historias relacionadas</h4>
+              <p class="tipo-pequeno text-tinta-media">
+                Crónicas y crónicas complementarias elegidas para expandir tu navegación editorial.
+              </p>
+            </div>
+            
+            <div class="space-y-6">
+              @for (item of newsData() | slice:0:5; track item.id) {
+                @if (item.id !== localSelectedArticle()!.id) {
+                  <article
+                    class="relative group cursor-pointer flex gap-4 items-center transition-transform duration-200 hover:-translate-y-0.5">
+                    <div class="w-20 h-16 rounded-2xl overflow-hidden bg-niebla shrink-0 relative">
+                      @if (imagenDe(item)) {
+                        <img width="640" height="360" loading="lazy" decoding="async" [src]="imagenDe(item)" class="w-full h-full object-cover transition-transform duration-500 ease-[var(--ease-soft)] group-hover:scale-105" alt="" />
+                      }
+                      <div class="absolute inset-0 bg-velo/0 transition-colors duration-300 group-hover:bg-velo/20"></div>
+                    </div>
+                    <div class="min-w-0 space-y-1">
+                      <span class="tipo-etiqueta block text-morado">
+                        {{ item.category }} · {{ item.date }}
+                      </span>
+                      <h5 class="tipo-titulo-lista text-titulo group-hover:text-morado transition-colors line-clamp-3">
+                        <a [routerLink]="['/noticias', item.slug]" class="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado no-underline text-inherit">{{ item.title }}</a>
+                      </h5>
+                    </div>
+                  </article>
+                }
+              }
+            </div>
+            
+            <div class="pt-4 border-t border-filete">
+              <button
+                type="button"
+                (click)="handleSelectArticle(null)"
+                class="w-full py-3.5 text-xs font-bold rounded-2xl bg-transparent border border-morado text-morado hover:bg-morado hover:text-white transition-colors cursor-pointer"
+              >
+                Explorar todo el archivo
+              </button>
+            </div>
+          </div>
+        </aside>
+        
+      </div>
+    </div>
+  </div>
+} @else {
+  <!-- VISTA 2: Portal de Noticias Premium (Mosaico & Buscador) -->
+  <div class="bg-white min-h-screen text-left overflow-x-hidden relative pt-(--alto-barra-superior)">
+    <!-- El listado no tiene un título visible que pueda ser el de la página. -->
+    <h1 class="sr-only">{{ 'noticias_titulo' | textoWeb }}</h1>
+    <div class="max-w-[96rem] mx-auto px-6 lg:px-12 py-10 space-y-12">
+      
+      <!-- Cargadores de Estado: la forma de la página ya está ahí (decisión 117), nunca un vacío. -->
+      @if (isLoading() || isRefreshing()) {
+        <div data-noticias-cargando>
+          <app-esqueleto variante="noticias" [etiqueta]="'noticias_cargando' | textoWeb" />
+        </div>
+      } @else if (isError()) {
+        <div class="py-20 bg-white rounded-2xl border border-filete">
+          <app-error-state
+            [title]="'noticias_error' | textoWeb"
+            [description]="error()?.message || 'Revisa tu conexión o vuelve a intentar en unos instantes.'"
+            (retry)="retry()"
+          ></app-error-state>
+        </div>
+      } @else if (newsData().length === 0) {
+        <div class="py-20 bg-white rounded-2xl border border-filete">
+          <app-empty-state
+            [title]="'noticias_vacio_titulo' | textoWeb"
+            [description]="'noticias_vacio_texto' | textoWeb"
+          ></app-empty-state>
+        </div>
+      } @else {
+        <!--
+          SECCIÓN 1: LO DESTACADO Y EL BOLETÍN. Tres columnas: la noticia principal (foto con un velo
+          plano), dos secundarias (fichas blancas con filete) y el boletín (morado liso, sin
+          difuminados ni destellos). Antetítulo en morado y títulos en la tinta oscura; ningún texto
+          baja de 12 px y los de lectura, de 14.
+        -->
+        @if (proyectoActivo()) {
+          <!-- Vista de una etiqueta: solo resultados, sin las destacadas ni el boletín (están en la página sin filtro). -->
+          <section class="aparece text-left" data-testid="noticias-de-la-etiqueta">
+            <p class="tipo-etiqueta text-morado">{{ 'noticias_filtro_etiqueta' | textoWeb }}</p>
+            <h2 class="tipo-seccion mt-3 text-titulo">{{ nombreDeLaEtiqueta() }}</h2>
+            <p class="tipo-pequeno mt-3 max-w-3xl text-tinta-media">{{ 'noticias_filtro_etiqueta_texto' | textoWeb }}</p>
+          </section>
+        } @else {
+        <section class="aparece space-y-8 text-left">
+          <div class="pb-3">
+            <p class="tipo-etiqueta text-morado">{{ 'noticias_foco' | textoWeb }}</p>
+            <h2 class="tipo-seccion mt-3 text-titulo">{{ 'noticias_destacadas' | textoWeb }}</h2>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+
+            <!-- Noticia Principal Destacada (Izquierda - 5 cols) -->
+            @if (featuredPrimary()) {
+              <div class="lg:col-span-5 h-full">
+                <article
+                  class="group relative flex flex-col justify-end h-full min-h-[400px] rounded-2xl overflow-hidden bg-morado cursor-pointer">
+                  @if (imagenDe(featuredPrimary())) {
+                  <img width="640" height="360" loading="lazy" decoding="async"
+                    [src]="imagenDe(featuredPrimary())"
+                    class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-[var(--ease-soft)]"
+                    [alt]="featuredPrimary().alt || ''"
+                  />
+                  }
+
+                  <!-- Sin difuminados: foto a color y un velo plano del violeta para que el texto se lea. -->
+                  <div class="absolute inset-0 bg-velo/65"></div>
+                  <div class="relative z-10 p-6 lg:p-8 space-y-4">
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                      <span class="tipo-etiqueta inline-flex items-center rounded-full bg-verde px-3 py-1 text-morado-vivo">
+                        {{ featuredPrimary().category }}
+                      </span>
+                      <span class="tipo-etiqueta text-white/85">
+                        {{ featuredPrimary().date }}
+                      </span>
+                      <span class="tipo-etiqueta flex items-center gap-1 text-white/85">
+                        <svg lucideClock [size]="12"></svg>
+                        {{ calculateReadingTime(featuredPrimary().content || featuredPrimary().desc) }} min
+                      </span>
+                    </div>
+                    <h3 class="tipo-titulo-lista tipo-titulo-lista--destacado max-w-2xl text-white">
+                      <a [routerLink]="['/noticias', featuredPrimary().slug]" class="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado no-underline text-inherit">{{ featuredPrimary().title }}</a>
+                    </h3>
+                    <p class="tipo-cuerpo max-w-xl text-white/90 line-clamp-2">
+                      {{ featuredPrimary().desc }}
+                    </p>
+                    <div class="pt-1">
+                      <span class="enlace-revela enlace-revela--sobre-oscuro tipo-enlace inline-block text-white">{{ 'noticias_leer_completa' | textoWeb }}</span>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            }
+
+            <!-- Noticias Secundarias Destacadas (Centro - 4 cols) -->
+            <!-- Dos filas iguales: cada ficha mide lo que la más alta necesite y ninguna recorta su relleno inferior. -->
+            <div class="lg:col-span-4 grid grid-rows-2 gap-5 h-full">
+              @for (item of featuredSecondary(); track item.id) {
+                <article
+                  class="group relative flex flex-col justify-between bg-white rounded-2xl p-6 border border-filete hover:border-morado/40 transition-colors cursor-pointer overflow-hidden min-h-[190px]">
+                  <!-- Tres bandas repartidas en la altura de la ficha: fecha arriba, titular y descripción en el
+                       centro y, abajo, categoría y tiempo. Sin fotos: así los huecos se reparten parejos. -->
+                  <p class="tipo-etiqueta text-tinta-media">{{ item.date }}</p>
+                  <div class="space-y-2.5 py-4">
+                    <h4 class="tipo-titulo-lista tipo-titulo-lista--medio text-titulo transition-colors group-hover:text-morado line-clamp-3">
+                      <a [routerLink]="['/noticias', item.slug]" class="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado no-underline text-inherit">{{ item.title }}</a>
+                    </h4>
+                    <p class="tipo-pequeno text-tinta-media line-clamp-2">
+                      {{ item.desc }}
+                    </p>
+                  </div>
+                  <div class="flex justify-between items-center pt-4 border-t border-filete">
+                    @if (categoriaFiltrable(item.category)) {
+                      <button type="button" data-filtrar-categoria
+                        (click)="filtrarPorCategoria(item.category, $event)"
+                        [attr.aria-pressed]="categoriaActiva(item.category)"
+                        [attr.aria-label]="rotuloDeCategoria(item.category)"
+                        [class]="'relative z-10 ' + 'tipo-etiqueta border-0 bg-transparent p-0 cursor-pointer transition ' + (categoriaActiva(item.category) ? 'text-morado underline decoration-verde decoration-2 underline-offset-4' : 'text-morado hover:underline decoration-verde decoration-2 underline-offset-4')"
+                      >{{ item.category }}</button>
+                    } @else {
+                      <span class="tipo-etiqueta text-morado">{{ item.category }}</span>
+                    }
+                    <span class="tipo-etiqueta flex items-center gap-1 text-tinta-media">
+                      <svg lucideClock [size]="12"></svg>
+                      {{ calculateReadingTime(item.content || item.desc) }} min
+                    </span>
+                  </div>
+                </article>
+              }
+            </div>
+
+            <!-- Boletín (Derecha - 3 cols): morado liso, sin degradados ni destellos. -->
+            <div class="lg:col-span-3 h-full">
+              <div class="rounded-2xl bg-morado p-6 text-white h-full flex flex-col justify-between min-h-[350px]">
+                <div class="space-y-4 flex-1 flex flex-col justify-between h-full">
+                  <div class="space-y-3">
+                    <p class="tipo-etiqueta text-white/80">{{ 'noticias_boletin_etiqueta' | textoWeb }}</p>
+                    <h3 class="tipo-titulo text-white">
+                      {{ 'noticias_boletin_titulo' | textoWeb }}
+                    </h3>
+                    <p class="tipo-pequeno text-white/85">
+                      {{ 'noticias_boletin_texto' | textoWeb }}
+                    </p>
+                  </div>
+
+                  <div class="space-y-4 pt-4 border-t border-white/20 mt-auto">
+                    @if (isSubscribed) {
+                      <div class="text-center space-y-2 py-2">
+                        <div class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-verde text-morado mx-auto">
+                          <svg lucideCheckCircle2 [size]="18"></svg>
+                        </div>
+                        <h4 class="tipo-titulo text-white">
+                          {{ 'noticias_boletin_ok_titulo' | textoWeb }}
+                        </h4>
+                        <p class="tipo-pequeno text-white/85 max-w-[220px] mx-auto">
+                          {{ 'noticias_boletin_ok_texto' | textoWeb }}
+                        </p>
+                      </div>
+                    } @else {
+                      <form (submit)="handleSubscribeSubmit($event)" class="space-y-3 text-left">
+                        <div class="space-y-2">
+                          <input
+                            type="email"
+                            aria-label="Tu correo para suscribirte al boletín"
+                            required
+                            [value]="subscriberEmail"
+                            (input)="onEmailChange($event)"
+                            [placeholder]="'noticias_boletin_marcador' | textoWeb"
+                            class="tipo-pequeno w-full bg-white/10 border border-white/30 rounded-xl py-3 px-4 text-white placeholder-white/60 outline-none transition-colors focus:border-verde focus:bg-white/15"
+                          />
+                          <button
+                            type="submit"
+                            class="tipo-enlace w-full bg-verde hover:bg-verde-claro text-morado-vivo rounded-xl py-3.5 transition-colors cursor-pointer border-0"
+                          >
+                            {{ 'noticias_boletin_boton' | textoWeb }}
+                          </button>
+                        </div>
+                        @if (subscriptionError) {
+                          <p class="tipo-pequeno text-red-200 font-semibold">
+                            {{ subscriptionError }}
+                          </p>
+                        }
+                        <p class="text-xs leading-relaxed text-white/75 text-center">
+                          {{ 'noticias_boletin_privacidad' | textoWeb }}
+                        </p>
+                      </form>
+                    }
+
+                    <!-- Redes Sociales del Plan Nacional de Música -->
+                    <div class="pt-3 border-t border-white/20 space-y-2">
+                      <span class="tipo-etiqueta block text-white/80 text-center">
+                        {{ 'noticias_redes_titulo' | textoWeb }}
+                      </span>
+                      <div class="flex items-center justify-center gap-3">
+                        <a
+                          [href]="urlDeRed('instagram')"
+                          target="_blank"
+                          rel="noreferrer"
+                          class="w-8 h-8 rounded-xl bg-white/10 border border-white/30 flex items-center justify-center text-white hover:bg-verde hover:text-morado transition-colors"
+                          title="Instagram"
+                        >
+                          <svg class="w-[13px] h-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                            <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+                          </svg>
+                        </a>
+                        <a
+                          [href]="urlDeRed('facebook')"
+                          target="_blank"
+                          rel="noreferrer"
+                          class="w-8 h-8 rounded-xl bg-white/10 border border-white/30 flex items-center justify-center text-white hover:bg-verde hover:text-morado transition-colors"
+                          title="Facebook"
+                        >
+                          <svg class="w-[13px] h-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                          </svg>
+                        </a>
+                        <a
+                          [href]="urlDeRed('youtube')"
+                          target="_blank"
+                          rel="noreferrer"
+                          class="w-8 h-8 rounded-xl bg-white/10 border border-white/30 flex items-center justify-center text-white hover:bg-verde hover:text-morado transition-colors"
+                          title="YouTube"
+                        >
+                          <svg class="w-[13px] h-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17z"/>
+                            <polygon points="10 15 15 12 10 9"/>
+                          </svg>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+        }
+
+        <!-- Única Barra de control: categorías, buscador, ordenación y diseño -->
+        <div id="news-feed-section" class="flex flex-col xl:flex-row items-start xl:items-center justify-between border-b border-filete pb-6 mb-10 gap-6 w-full scroll-mt-28">
+          
+          <!-- Lado izquierdo: la categoría, en un desplegable con buscador y conteo (G6). Antes eran
+               pastillas en fila: cada categoría nueva ensanchaba la barra y la deformaba. -->
+          <div class="flex flex-wrap items-center gap-3 pl-1 pr-1 w-full xl:w-auto xl:min-w-0 xl:flex-1" data-testid="categorias-de-noticias">
+            <app-filtro-desplegable
+              rotulo="Categoría"
+              [etiqueta]="'noticias_filtrar_categoria' | textoWeb"
+              identificador="categoria-de-noticias"
+              [opciones]="opcionesDeCategoria()"
+              [elegida]="newsCategoryFilter()"
+              (cambiar)="setCategoryFilter($event)" />
+            <!-- Las etiquetas, como palabras que filtran (enlaces rastreables), no como selector. -->
+            <app-etiquetas-de-contenido class="basis-full" ruta="/noticias" nombre="Etiquetas de las noticias"
+              [etiquetas]="etiquetasDeNoticias()" [activa]="newsProjectFilter() === 'all' ? '' : newsProjectFilter()"
+              [interceptar]="true" [conConteo]="true" (elegida)="setProjectFilter($event)" />
+          </div>
+
+          <!-- Lado Derecho: Buscador, Ordenar por y Conmutador de Diseño -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between xl:justify-end gap-5 shrink-0 w-full xl:w-auto pt-4 xl:pt-0 border-t border-filete xl:border-none">
+            
+            <!-- Buscador común: filtra al escribir, «X» para limpiar. El filtrado es en memoria, así que no espera (espera 0). -->
+            <app-buscador-de-lista
+              class="w-full sm:w-64"
+              identificador="buscar-noticias"
+              [etiqueta]="'noticias_buscar_etiqueta' | textoWeb"
+              [marcador]="'noticias_buscar_marcador' | textoWeb"
+              tamano="comodo"
+              [espera]="0"
+              [valor]="newsSearchTerm()"
+              (cambiar)="buscar($event)" />
+
+            <div class="hidden sm:block w-px h-5 bg-filete shrink-0"></div>
+
+            <app-filtro-desplegable
+              rotulo="Ordenar"
+              [etiqueta]="'noticias_ordenar' | textoWeb"
+              identificador="orden-de-noticias"
+              [opciones]="opcionesDeOrden"
+              [elegida]="newsSortOrder()"
+              (cambiar)="setSortOrder($event)" />
+
+            <div class="w-px h-6 bg-filete"></div>
+
+            <app-selector-segmentado
+              [opciones]="opcionesDeVista"
+              [elegida]="viewLayout()"
+              [soloIconos]="true"
+              etiquetaDelGrupo="Vista del listado de noticias"
+              (elegir)="setViewLayout($event)" />
+          </div>
+        </div>
+
+        <!-- Los filtros puestos, como chips con «X», junto a la barra y no al fondo de la página (A-1). -->
+        <app-filtros-activos class="-mt-6 mb-6" [filtros]="filtrosActivos()" (quitar)="quitarFiltro($event)" (limpiar)="resetAllFilters()" />
+
+        <!-- SECCIÓN 4: Rejilla o Lista de Muro de Noticias (Feed) -->
+        <section class="space-y-12">
+          @if (filteredListNews().length === 0) {
+            <!-- Vacío real: solo se llega aquí con la carga terminada (esqueleto, error y «archivo vacío» van antes). -->
+            <app-estado-de-lista
+              class="aparece mx-auto block max-w-lg rounded-2xl border border-filete"
+              [titulo]="'noticias_sin_resultados_titulo' | textoWeb"
+              [detalle]="'noticias_sin_resultados_texto' | textoWeb">
+              <app-boton importancia="secundaria" (accion)="resetAllFilters()">{{ 'noticias_limpiar_filtros' | textoWeb }}</app-boton>
+            </app-estado-de-lista>
+          } @else if (viewLayout() === 'grid') {
+            @for (clave of [claveDeLaLista()]; track clave) {
+            <div class="aparece grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              @for (item of paginatedNews(); track item.id) {
+                <article
+                  [appRevelar]="($index % 6) * 70"
+                  class="relative group bg-transparent overflow-hidden  cursor-pointer flex flex-col justify-between">
+                  <div class="space-y-4">
+                    <div class="h-56 overflow-hidden bg-niebla relative rounded-2xl ">
+                      @if (imagenDe(item)) {
+                      <img width="640" height="360" loading="lazy" decoding="async"
+                        [src]="imagenDe(item)"
+                        class="w-full h-full object-cover transition-transform duration-500 ease-[var(--ease-soft)] group-hover:scale-105"
+                        alt=""
+                      />
+                      }
+                      <div class="absolute inset-0 bg-velo/0 transition-colors duration-300 group-hover:bg-velo/20"></div>
+                    </div>
+                    <div class="px-6 space-y-3">
+                      <div class="flex items-center justify-between gap-3 tipo-etiqueta text-tinta-media">
+                        @if (categoriaFiltrable(item.category)) {
+                          <button type="button" data-filtrar-categoria
+                            (click)="filtrarPorCategoria(item.category, $event)"
+                            [attr.aria-pressed]="categoriaActiva(item.category)"
+                            [attr.aria-label]="rotuloDeCategoria(item.category)"
+                            [class]="'relative z-10 ' + 'transition ' + (categoriaActiva(item.category) ? 'text-morado underline decoration-verde decoration-2 underline-offset-4' : 'text-morado hover:underline decoration-verde decoration-2 underline-offset-4')"
+                          >{{ item.category }}</button>
+                        } @else {
+                          <span class="text-morado">{{ item.category }}</span>
+                        }
+                        <span class="text-tinta-media">{{ item.date }}</span>
+                      </div>
+                      <h3 class="tipo-titulo-lista tipo-titulo-lista--medio text-titulo group-hover:text-morado transition-colors line-clamp-3">
+                        <a [routerLink]="['/noticias', item.slug]" class="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado no-underline text-inherit">{{ item.title }}</a>
+                      </h3>
+                      <p class="tipo-pequeno text-tinta-media line-clamp-3">
+                        {{ item.desc }}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="px-6 pb-2 pt-4 flex justify-between items-center mt-4 border-t border-filete">
+                    <span class="flex items-center gap-1.5 text-tinta-media font-semibold text-xs">
+                      <svg lucideClock [size]="11"></svg>
+                      {{ calculateReadingTime(item.content || item.desc) }} min de lectura
+                    </span>
+                    <span class="enlace-revela tipo-enlace text-morado">{{ 'noticias_leer_mas' | textoWeb }}</span>
+                  </div>
+                </article>
+              }
+            </div>
+            }
+          } @else {
+            @for (clave of [claveDeLaLista()]; track clave) {
+            <div class="aparece flex flex-col gap-6">
+              @for (item of paginatedNews(); track item.id) {
+                <article
+                  [appRevelar]="($index % 6) * 70"
+                  class="relative group bg-transparent overflow-hidden  cursor-pointer flex flex-col md:flex-row items-stretch gap-8">
+                  <div class="md:w-1/3 min-h-[200px] md:min-h-auto relative overflow-hidden bg-niebla shrink-0 rounded-2xl ">
+                    @if (imagenDe(item)) {
+                    <img width="640" height="360" loading="lazy" decoding="async"
+                      [src]="imagenDe(item)"
+                      class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-[var(--ease-soft)] group-hover:scale-105"
+                      alt=""
+                    />
+                    }
+                    <div class="absolute inset-0 bg-velo/0 transition-colors duration-300 group-hover:bg-velo/20"></div>
+                  </div>
+                  <div class="flex-1 p-8 flex flex-col justify-between space-y-4">
+                    <div class="space-y-3">
+                      <div class="flex items-center gap-3 tipo-etiqueta text-tinta-media">
+                        @if (categoriaFiltrable(item.category)) {
+                          <button type="button" data-filtrar-categoria
+                            (click)="filtrarPorCategoria(item.category, $event)"
+                            [attr.aria-pressed]="categoriaActiva(item.category)"
+                            [attr.aria-label]="rotuloDeCategoria(item.category)"
+                            [class]="'relative z-10 ' + 'transition ' + (categoriaActiva(item.category) ? 'text-morado underline decoration-verde decoration-2 underline-offset-4' : 'text-morado hover:underline decoration-verde decoration-2 underline-offset-4')"
+                          >{{ item.category }}</button>
+                        } @else {
+                          <span class="text-morado">{{ item.category }}</span>
+                        }
+                        <span class="h-1 w-1 rounded-full bg-tinta-suave"></span>
+                        <span class="text-tinta-media">{{ item.date }}</span>
+                        <span class="h-1 w-1 rounded-full bg-tinta-suave"></span>
+                        <span class="flex items-center gap-1">
+                          <svg lucideClock [size]="11"></svg>
+                          {{ calculateReadingTime(item.content || item.desc) }} min de lectura
+                        </span>
+                      </div>
+                      <h3 class="tipo-titulo-lista tipo-titulo-lista--medio text-titulo group-hover:text-morado transition-colors line-clamp-3">
+                        <a [routerLink]="['/noticias', item.slug]" class="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado no-underline text-inherit">{{ item.title }}</a>
+                      </h3>
+                      <p class="tipo-pequeno text-tinta-media line-clamp-3">
+                        {{ item.desc }}
+                      </p>
+                    </div>
+                    <div class="pt-2 flex justify-between items-center border-t border-filete">
+                      <span class="enlace-revela tipo-enlace text-morado">{{ 'noticias_leer_completa' | textoWeb }}</span>
+                    </div>
+                  </div>
+                </article>
+              }
+            </div>
+            }
+          }
+        </section>
+
+        <!-- Paginación común, con el selector de cuántas noticias por página (`?por=`). Se queda aunque haya una sola página. -->
+        @if (filteredListNews().length > cantidadesPorPagina[0] || totalPages() > 1) {
+          <app-paginacion-de-lista class="mt-12 block" nombre="las noticias" identificador="noticias-paginacion"
+            [pagina]="currentPage()" [totalPaginas]="totalPages()" [porPagina]="porPagina()" [cantidades]="cantidadesPorPagina"
+            (paginaCambiada)="setCurrentPage($event)" (porPaginaCambiado)="cambiarPorPagina($event)" />
+        }
+
+      }
+    </div>
+  </div>
+}

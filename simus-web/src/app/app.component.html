@@ -1,0 +1,57 @@
+<!--
+  ENLACE DE SALTO AL CONTENIDO.
+
+  No existía ninguno en toda la aplicación (verificado: cero coincidencias de
+  `skip`, `saltar`, `#main` o `#content` en `src/`). Con 17 botones en la
+  cabecera —y hasta ~25 con el desplegable de Ejes abierto— quien navega con
+  teclado tenía que recorrerlos TODOS en cada carga de página antes de llegar
+  al contenido.
+
+  Va oculto hasta recibir el foco: es el patrón estándar, invisible para quien
+  usa el ratón y lo primero que encuentra quien usa el tabulador.
+-->
+<a
+  href="#contenido-principal"
+  class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-(--z-salto) focus:rounded-xl focus:bg-verde focus:px-5 focus:py-3 focus:font-alternate focus:text-[0.72rem] focus:font-bold focus:uppercase focus:tracking-widest focus:text-morado focus:outline-none focus:ring-2 focus:ring-white"
+>
+  Saltar al contenido principal
+</a>
+
+@if (showNavigation()) {
+  <app-navigation
+    [class.tema-pnmc]="esPnmc()"
+    [scrolled]="scrolled()"
+    [forceSolid]="isSolidNavigation()"
+  ></app-navigation>
+}
+
+<!--
+  ANUNCIO DEL CAMBIO DE RUTA.
+
+  En una aplicación de página única el navegador no anuncia nada al cambiar de
+  vista: el documento no se recarga. Sin esta región, quien usa lector de
+  pantalla pulsaba un enlace del menú y no recibía ninguna señal de haber
+  llegado a otro sitio. La medición dio **cero** `aria-live` en todo el
+  frontend público.
+
+  `polite` y no `assertive`: no interrumpe lo que el lector esté leyendo.
+-->
+<p class="sr-only" aria-live="polite" aria-atomic="true">{{ anuncioDeRuta() }}</p>
+
+<!--
+  EL <main> YA NO ESTÁ AQUÍ (UI-G). Cada armazón declara el suyo: el portal en `PortalLayoutComponent`;
+  la consola, el panel de la organización, Mi espacio y el acceso, en sus propias plantillas, porque
+  traen su cabecera y su navegación y estas no deben quedar dentro del contenido principal.
+-->
+<router-outlet></router-outlet>
+
+@if (showFloatingButton()) {
+  <app-floating-button></app-floating-button>
+}
+
+@if (showGlobalFooter()) {
+  <app-footer [class.tema-pnmc]="esPnmc()" class="block"></app-footer>
+}
+
+<!-- EL DIÁLOGO DE CONFIRMACIÓN COMÚN (L6): una sola vez, para todas las pantallas. -->
+<app-confirmacion-global />

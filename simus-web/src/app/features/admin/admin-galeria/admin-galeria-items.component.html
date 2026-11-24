@@ -1,0 +1,203 @@
+<div [attr.data-testid]="prefijo()">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <p class="text-cuerpo text-slate-600" [attr.data-testid]="prefijo() + '-conteo'">
+      @if (items().length === 0) { Todavía no hay ítems. }
+      @else { {{ items().length }} {{ items().length === 1 ? 'ítem' : 'ítems' }}: {{ cuentaDeFotos() }} {{ cuentaDeFotos() === 1 ? 'foto' : 'fotos' }} y {{ cuentaDeVideos() }} {{ cuentaDeVideos() === 1 ? 'video' : 'videos' }}. }
+    </p>
+    <div class="flex flex-wrap items-center gap-2">
+      @if (admiteFotos()) {
+        <app-boton importancia="secundaria" [identificador]="prefijo() + '-anadir-fotos'" (accion)="abrir('fotos')">Añadir fotos</app-boton>
+      }
+      @if (admiteVideos()) {
+        <app-boton importancia="secundaria" [identificador]="prefijo() + '-anadir-video'" (accion)="abrir('video')">Añadir un video</app-boton>
+        <app-boton importancia="terciaria" [identificador]="prefijo() + '-anadir-varios'" (accion)="abrir('varios')">Pegar varios enlaces</app-boton>
+      }
+    </div>
+  </div>
+
+  @if (items().length === 0) {
+    <app-estado-de-lista class="mt-4" [denso]="true" titulo="Este álbum no tiene ítems"
+      detalle="Añade fotos del Banco de archivos o subidas desde tu equipo, o enlaces de videos de YouTube." />
+  } @else {
+    <ul class="mt-4 space-y-3" [attr.data-testid]="prefijo() + '-lista'">
+      @for (fila of visibles(); track fila.item.clave) {
+        @let it = fila.item;
+        @let n = fila.indice;
+        @let problemas = problemasPorClave().get(it.clave);
+        <li class="rounded-xl border bg-white p-3" [class.border-amber-500]="problemas" [class.border-filete]="!problemas"
+          [attr.data-item-clave]="it.clave" [attr.data-item-tipo]="it.tipoItem">
+          <div class="flex flex-wrap items-start gap-3">
+            <div class="relative h-24 w-32 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+              @if (it.imagenUrl) {
+                <img [src]="it.imagenUrl" [alt]="it.tipoItem === 'foto' ? (it.textoAlternativo || 'Foto sin texto alternativo') : 'Miniatura del video'" width="128" height="96" loading="lazy" class="h-full w-full object-cover" />
+              } @else {
+                <span class="flex h-full w-full items-center justify-center text-slate-400"><svg lucidePlay [size]="26" aria-hidden="true"></svg></span>
+              }
+              <span class="absolute left-1 top-1 inline-flex items-center gap-1 rounded bg-white/90 px-1.5 py-0.5 text-dato font-bold text-morado">
+                @if (it.tipoItem === 'video') { <svg lucidePlay [size]="12" aria-hidden="true"></svg> Video } @else { <svg lucideImage [size]="12" aria-hidden="true"></svg> Foto }
+              </span>
+            </div>
+
+            <div class="grid min-w-0 flex-1 gap-3 sm:grid-cols-2">
+              <label class="block"><span class="campo__rotulo">Título{{ it.tipoItem === 'video' ? '' : ' (opcional)' }}</span>
+                <input [name]="prefijo() + '-titulo-' + it.clave" class="campo__control" [maxlength]="LARGOS.titulo" [ngModel]="it.titulo" (ngModelChange)="editar(it.clave, { titulo: $event })" [attr.data-campo]="'titulo'" /></label>
+              @if (it.tipoItem === 'foto') {
+                <label class="block"><span class="campo__rotulo">Texto alternativo (obligatorio)</span>
+                  <input [name]="prefijo() + '-alt-' + it.clave" class="campo__control" [maxlength]="LARGOS.alternativo" [ngModel]="it.textoAlternativo" (ngModelChange)="editar(it.clave, { textoAlternativo: $event })" [attr.data-campo]="'alternativo'"
+                    [attr.aria-invalid]="!it.textoAlternativo.trim() ? 'true' : null" />
+                  <span class="campo__ayuda">Describe lo que se ve, para quien no puede verlo.</span></label>
+              } @else {
+                <label class="block"><span class="campo__rotulo">Enlace de YouTube</span>
+                  <input [name]="prefijo() + '-enlace-' + it.clave" class="campo__control" inputmode="url" [ngModel]="enlaceYoutube(it.videoId)" (ngModelChange)="alCambiarEnlace(it.clave, $event)" [attr.data-campo]="'enlace'" />
+                  <span class="campo__ayuda">Identificador: <span class="font-mono">{{ it.videoId || '—' }}</span>. Se pide a YouTube solo al pulsar «Reproducir».</span></label>
+              }
+              <label class="block"><span class="campo__rotulo">Crédito (autoría)</span>
+                <input [name]="prefijo() + '-credito-' + it.clave" class="campo__control" [maxlength]="LARGOS.credito" [ngModel]="it.credito" (ngModelChange)="editar(it.clave, { credito: $event })" /></label>
+              <label class="block"><span class="campo__rotulo">Fecha</span>
+                <input [name]="prefijo() + '-fecha-' + it.clave" type="date" class="campo__control" [ngModel]="it.fecha" (ngModelChange)="editar(it.clave, { fecha: $event })" /></label>
+            </div>
+
+            <span class="flex items-center gap-1">
+              <app-boton importancia="terciaria" tamano="menudo" [deshabilitado]="n === 0" etiqueta="Mover antes" (accion)="moverItem(n, -1)"><svg lucideArrowUp [size]="16" aria-hidden="true"></svg></app-boton>
+              <app-boton importancia="terciaria" tamano="menudo" [deshabilitado]="n === items().length - 1" etiqueta="Mover después" (accion)="moverItem(n, 1)"><svg lucideArrowDown [size]="16" aria-hidden="true"></svg></app-boton>
+              <app-boton importancia="destructiva" tamano="menudo" etiqueta="Quitar del álbum" (accion)="quitar(it.clave)"><svg lucideTrash2 [size]="16" aria-hidden="true"></svg></app-boton>
+            </span>
+          </div>
+
+          <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+            <span class="text-dato text-slate-500">Posición {{ n + 1 }}</span>
+            @if (it.tipoItem === 'foto' && !conPublicado()) {
+              @if (esPortada(it)) { <span class="text-dato font-bold text-verde-texto">Es la portada del álbum</span> }
+              @else { <app-boton importancia="terciaria" tamano="menudo" (accion)="comoPortada(it)">Usar como portada</app-boton> }
+            }
+            @if (it.tipoItem === 'video') {
+              <app-boton importancia="terciaria" tamano="menudo" (accion)="abrirMiniatura(it.clave)">{{ it.miniaturaArchivoId ? 'Cambiar la miniatura' : 'Elegir miniatura del Banco' }}</app-boton>
+              @if (it.miniaturaArchivoId) { <app-boton importancia="terciaria" tamano="menudo" (accion)="quitarMiniatura(it.clave)">Quitar la miniatura</app-boton> }
+            }
+            @if (conPublicado()) {
+              <label class="flex items-center gap-2 text-dato">
+                <input type="checkbox" class="accent-morado" [name]="prefijo() + '-publicado-' + it.clave" [ngModel]="it.publicado" (ngModelChange)="editar(it.clave, { publicado: $event })" />
+                <span>Visible en el portal</span>
+              </label>
+            }
+          </div>
+
+          <details class="mt-2">
+            <summary class="foco-simus tipo-enlace cursor-pointer text-morado">Más datos{{ it.tipoItem === 'video' ? ' (descripción, duración)' : ' (descripción)' }}</summary>
+            <div class="mt-3 grid gap-3 sm:grid-cols-2">
+              <label class="block sm:col-span-2"><span class="campo__rotulo">Descripción</span>
+                <textarea [name]="prefijo() + '-descripcion-' + it.clave" rows="3" class="campo__control" [maxlength]="LARGOS.descripcion" [ngModel]="it.descripcion" (ngModelChange)="editar(it.clave, { descripcion: $event })"></textarea>
+                <span class="campo__ayuda">{{ cuenta(it.descripcion, LARGOS.descripcion) }}. Un resumen de una a tres frases.</span></label>
+              <label class="block sm:col-span-2"><span class="campo__rotulo">Texto completo (opcional)</span>
+                <textarea [name]="prefijo() + '-detalle-' + it.clave" rows="4" class="campo__control" [maxlength]="LARGOS.detalle" [ngModel]="it.detalle" (ngModelChange)="editar(it.clave, { detalle: $event })"></textarea>
+                <span class="campo__ayuda">Se muestra aparte, en el visor. {{ cuenta(it.detalle, LARGOS.detalle) }}.</span></label>
+              @if (it.tipoItem === 'video') {
+                <label class="block"><span class="campo__rotulo">Duración (minutos:segundos)</span>
+                  <input [name]="prefijo() + '-duracion-' + it.clave" class="campo__control" inputmode="numeric" placeholder="6:17" [ngModel]="it.duracion" (ngModelChange)="editar(it.clave, { duracion: $event })" /></label>
+              }
+            </div>
+          </details>
+
+          @if (problemas) {
+            <ul class="mt-2 list-disc space-y-0.5 pl-5 text-dato font-semibold text-amber-900" [attr.data-testid]="prefijo() + '-problemas-del-item'">
+              @for (p of problemas; track p) { <li>{{ p }}</li> }
+            </ul>
+          }
+        </li>
+      }
+    </ul>
+    @if (items().length > cantidades[0]) {
+      <app-paginacion-de-lista class="mt-6 block" nombre="los ítems del álbum" [identificador]="prefijo() + '-paginacion'" [pagina]="pagina()" [totalPaginas]="totalDePaginas()"
+        [porPagina]="porPagina()" [cantidades]="cantidades" rotuloPorPagina="Ítems por página"
+        (paginaCambiada)="pagina.set($event)" (porPaginaCambiado)="cambiarPorPagina($event)" />
+    }
+  }
+
+  <!-- ───────── Diálogos ───────── -->
+  @if (dialogo() === 'fotos') {
+    <app-dialogo-de-formulario titulo="Añadir fotos" verbo="Añadir las elegidas" [puedeGuardar]="elegidas().size > 0" [error]="errorDelDialogo()"
+      [identificador]="prefijo() + '-confirmar-fotos'"
+      proposito="Elige imágenes del Banco de archivos o sube una nueva. Cada foto necesita su texto alternativo; el crédito es la autoría."
+      (guardar)="anadirElegidas()" (cerrar)="cerrar()">
+      <fieldset class="m-0 min-w-0 border-0 p-0">
+        <legend class="campo__rotulo">Del Banco de archivos ({{ elegidas().size }} {{ elegidas().size === 1 ? 'elegida' : 'elegidas' }})</legend>
+        @if (cargandoBanco()) { <app-estado-de-lista tipo="cargando" titulo="Consultando el Banco…" [denso]="true" /> }
+        @else if (errorDelBanco()) {
+          <p class="text-cuerpo font-semibold text-rose-700" role="alert">{{ errorDelBanco() }}</p>
+          <app-boton importancia="secundaria" tamano="menudo" (accion)="cargarBanco()">Reintentar</app-boton>
+        } @else if (archivosDelBanco().length === 0) { <app-estado-de-lista titulo="El Banco no tiene imágenes" [denso]="true" /> }
+        @else {
+          <ul class="mt-2 grid max-h-[40vh] grid-cols-2 gap-3 overflow-y-auto sm:grid-cols-3" [attr.data-testid]="prefijo() + '-banco'">
+            @for (a of archivosDelBanco(); track a.id) {
+              <li>
+                <button type="button" class="foco-simus block w-full cursor-pointer rounded-lg border-2 p-1 text-left hover:border-morado disabled:cursor-not-allowed disabled:opacity-50"
+                  [class.border-morado]="elegidas().has(a.id)" [class.border-slate-200]="!elegidas().has(a.id)"
+                  [disabled]="yaEstaEnLaLista(a.id)" [attr.aria-pressed]="elegidas().has(a.id)" (click)="alternarElegida(a)">
+                  <img [src]="a.url" [alt]="a.alt || a.nombre" width="160" height="100" loading="lazy" class="h-24 w-full rounded object-cover" />
+                  <span class="mt-1 block truncate text-dato text-slate-600">{{ yaEstaEnLaLista(a.id) ? 'Ya está en el álbum' : a.nombre }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </fieldset>
+
+      <fieldset class="m-0 min-w-0 border-0 border-t border-filete p-0 pt-4">
+        <legend class="campo__rotulo">O sube una imagen nueva (WebP, PNG o JPEG, hasta 2 MB)</legend>
+        <input type="file" class="campo__control" accept="image/png,image/jpeg,image/webp" aria-label="Elegir la imagen que se va a subir" [attr.data-testid]="prefijo() + '-archivo'" (change)="alElegirArchivo($event)" />
+        <label class="mt-3 block"><span class="campo__rotulo">Texto alternativo (obligatorio)</span>
+          <input name="altParaSubir" class="campo__control" [maxlength]="LARGOS.alternativo" [ngModel]="altParaSubir()" (ngModelChange)="altParaSubir.set($event)" [attr.data-testid]="prefijo() + '-alt-subida'" /></label>
+        <label class="mt-3 block"><span class="campo__rotulo">Crédito (autoría)</span>
+          <input name="creditoParaSubir" class="campo__control" [maxlength]="LARGOS.credito" [ngModel]="creditoParaSubir()" (ngModelChange)="creditoParaSubir.set($event)" /></label>
+        <div class="mt-3"><app-boton importancia="secundaria" [ocupado]="subiendo()" [deshabilitado]="subiendo()" [identificador]="prefijo() + '-subir'" (accion)="subirYAnadir()">Subir y añadir</app-boton></div>
+      </fieldset>
+    </app-dialogo-de-formulario>
+  }
+
+  @if (dialogo() === 'miniatura') {
+    <app-dialogo-de-formulario titulo="Elegir la miniatura del video" verbo="Cerrar" tono="principal" [guardando]="false" [identificador]="prefijo() + '-miniatura-cerrar'"
+      proposito="Pulsa una imagen del Banco de archivos. Es la que se ve antes de «Reproducir»: el portal no pide nada a YouTube hasta entonces."
+      (guardar)="cerrar()" (cerrar)="cerrar()">
+      @if (cargandoBanco()) { <app-estado-de-lista tipo="cargando" titulo="Consultando el Banco…" [denso]="true" /> }
+      @else if (errorDelBanco()) { <p class="text-cuerpo font-semibold text-rose-700" role="alert">{{ errorDelBanco() }}</p> }
+      @else if (archivosDelBanco().length === 0) { <app-estado-de-lista titulo="El Banco no tiene imágenes" [denso]="true" /> }
+      @else {
+        <ul class="grid max-h-[50vh] grid-cols-2 gap-3 overflow-y-auto sm:grid-cols-3" [attr.data-testid]="prefijo() + '-banco-miniatura'">
+          @for (a of archivosDelBanco(); track a.id) {
+            <li>
+              <button type="button" class="foco-simus block w-full cursor-pointer rounded-lg border border-slate-200 p-1 text-left hover:border-morado" (click)="alternarElegida(a)">
+                <img [src]="a.url" [alt]="a.alt || a.nombre" width="160" height="100" loading="lazy" class="h-24 w-full rounded object-cover" />
+                <span class="mt-1 block truncate text-dato text-slate-600">{{ a.nombre }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </app-dialogo-de-formulario>
+  }
+
+  @if (dialogo() === 'video') {
+    <app-dialogo-de-formulario titulo="Añadir un video" verbo="Añadir el video" [error]="errorDelDialogo()" [identificador]="prefijo() + '-confirmar-video'"
+      proposito="Pega la dirección del video en YouTube. Solo se guarda su identificador; la incrustación sin cookies se carga cuando alguien pulsa «Reproducir»."
+      (guardar)="anadirVideo()" (cerrar)="cerrar()">
+      <label class="block"><span class="campo__rotulo">Enlace de YouTube</span>
+        <input name="enlaceNuevo" class="campo__control" inputmode="url" placeholder="https://www.youtube.com/watch?v=…" [ngModel]="enlaceNuevo()" (ngModelChange)="enlaceNuevo.set($event)" [attr.data-testid]="prefijo() + '-enlace-nuevo'" /></label>
+      @if (lectura(); as l) {
+        @if (l.tipo === 'video') { <p class="text-dato font-semibold text-verde-texto" role="status">Video reconocido: <span class="font-mono">{{ l.videoId }}</span>.</p> }
+        @else if (l.tipo === 'lista') { <p class="text-dato font-semibold text-amber-900" role="status">Es una lista de reproducción: usa «Pegar varios enlaces».</p> }
+        @else { <p class="text-dato font-semibold text-amber-900" role="status">{{ l.motivo }}</p> }
+      }
+      <label class="block"><span class="campo__rotulo">Título del video</span>
+        <input name="tituloNuevo" class="campo__control" [maxlength]="LARGOS.titulo" [ngModel]="tituloNuevo()" (ngModelChange)="tituloNuevo.set($event)" [attr.data-testid]="prefijo() + '-titulo-nuevo'" /></label>
+    </app-dialogo-de-formulario>
+  }
+
+  @if (dialogo() === 'varios') {
+    <app-dialogo-de-formulario titulo="Pegar varios enlaces" verbo="Añadir los videos" [error]="errorDelDialogo()" [identificador]="prefijo() + '-confirmar-varios'"
+      proposito="Un enlace de YouTube por línea, por ejemplo los de una lista de reproducción. Después escribes el título de cada uno. Si pegas el enlace de la lista, queda como «Ver la lista en YouTube»."
+      (guardar)="anadirVarios()" (cerrar)="cerrar()">
+      <label class="block"><span class="campo__rotulo">Enlaces (uno por línea)</span>
+        <textarea name="textoDeVarios" rows="8" class="campo__control font-mono" [ngModel]="textoDeVarios()" (ngModelChange)="textoDeVarios.set($event)" [attr.data-testid]="prefijo() + '-varios'"></textarea></label>
+    </app-dialogo-de-formulario>
+  }
+</div>

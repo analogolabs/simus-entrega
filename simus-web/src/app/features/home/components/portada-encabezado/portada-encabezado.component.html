@@ -1,0 +1,45 @@
+<header class="relative flex min-h-[640px] h-[100svh] items-center overflow-hidden bg-morado pt-28 pb-24 text-white">
+  <!-- La Órbita SIMUS en grande: el único elemento gráfico del encabezado, parcialmente fuera. -->
+  <app-orbita variante="heroe" class="pointer-events-none absolute left-1/2 top-1/2 aspect-square h-[88%] -translate-x-1/2 -translate-y-1/2 opacity-30 sm:h-[104%] sm:blur-[1.5px] lg:left-auto lg:right-[-26%] lg:h-[118%] lg:translate-x-0 lg:opacity-100 lg:blur-none xl:right-[-20%]"></app-orbita>
+
+  <div class="relative z-10 mx-auto w-full max-w-7xl px-6 lg:px-8">
+    <!-- En móvil y tableta todo va centrado y la Órbita queda detrás, tenue y suave; desde 1024 px, a la izquierda y con la Órbita a la derecha. -->
+    <div class="mx-auto max-w-2xl text-center lg:mx-0 lg:text-left">
+      <!--
+        EL LOGOTIPO OFICIAL DE SIMUS (PNG), en su versión para fondo oscuro: los trazos morados
+        pasan a blanco y los tres semicírculos conservan su magenta, amarillo y cian. Su ancho
+        coincide con el renglón más largo del lema, que se parte en dos renglones parejos.
+      -->
+      <h1>
+        <img [src]="imagen('marca_simus_blanco')" [alt]="'SIMUS — ' + texto('home_title')" width="380" height="135" class="mx-auto h-auto w-[15.5rem] sm:w-[21rem] lg:mx-0 lg:w-[28rem]" />
+      </h1>
+      <p class="tipo-frase mx-auto mt-8 max-w-3xl text-balance lg:mx-0 sm:text-[2.02rem] lg:text-[2.7rem] lg:leading-[1.14]">{{ texto('home_hero_lema') }}</p>
+      <p class="tipo-cuerpo mx-auto mt-4 max-w-md text-white/80 sm:max-w-[28rem] lg:mx-0">{{ texto('home_description') }}</p>
+      <div class="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 lg:justify-start">
+        <a
+          href="/ecosistema"
+          (click)="ir($event, 'ecosistema')"
+          class="realce tipo-enlace inline-flex cursor-pointer items-center rounded-xl bg-white px-7 py-4 text-morado no-underline transition-colors hover:bg-morado-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-morado"
+        >
+          {{ 'home_boton_ecosistema' | textoWeb }}
+        </a>
+        <a
+          href="/pnmc"
+          (click)="ir($event, 'pnmc')"
+          class="enlace-revela enlace-revela--sobre-oscuro tipo-enlace cursor-pointer rounded-sm p-0 text-white no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-morado"
+        >
+          {{ 'home_boton_pnmc' | textoWeb }}
+        </a>
+      </div>
+    </div>
+  </div>
+  <!-- La flecha invita a bajar y lleva a «Qué es SIMUS» con un desplazamiento suave. -->
+  <button
+    type="button"
+    (click)="bajar()"
+    aria-label="Ir a la siguiente sección"
+    class="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 cursor-pointer rounded-full border-0 bg-transparent p-2 text-white/80 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+  >
+    <svg lucideChevronDown [size]="32" aria-hidden="true" class="animate-bounce"></svg>
+  </button>
+</header>

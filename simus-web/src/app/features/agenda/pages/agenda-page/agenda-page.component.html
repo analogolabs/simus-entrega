@@ -1,0 +1,491 @@
+<div class="bg-white min-h-screen text-left pt-(--alto-barra-superior)">
+  <div id="agenda-explorador" class="max-w-[100rem] mx-auto scroll-mt-28">
+    <div class="grid grid-cols-1 lg:grid-cols-[21rem_minmax(0,1fr)] gap-0">
+      
+      <!--
+        LA BARRA DE FILTROS, EN EL MISMO LENGUAJE QUE LA DEL CATALOGO EDITORIAL.
+
+        Tenía tres carencias que la dirección de producto señaló:
+
+          · NO HABIA BUSQUEDA ESCRITA. La Agenda solo se acotaba por listas —departamento,
+            municipio, tipo y fecha—, así que quien recuerda «marimba» o el nombre de un festival
+            no tenía por dónde entrar. El Catálogo Editorial sí tiene buscador.
+          · EL TIEMPO SOLO SE PODIA ACOTAR A UN DIA O A UN MES. Ninguna de las dos responde «qué
+            hay entre el 20 de septiembre y el 5 de octubre», que es como se planea un viaje.
+          · LOS TIPOS DE ACTIVIDAD ERAN BOTONES DE RADIO CON TEXTO, mientras que las categorías del
+            Editorial llevan su icono y su recuento.
+
+        Se adopta la estructura del Editorial: un buscador arriba, los rótulos de sección con el
+        mismo peso y espaciado, y las categorías como botones con icono, nombre y cuántos hay.
+      -->
+      <aside id="agenda-filtros" class="z-(--z-barra-de-filtros) bg-niebla border-r border-filete p-5 lg:p-8 space-y-6 lg:space-y-8 lg:sticky lg:top-(--alto-barra-superior) lg:h-[calc(100dvh-var(--alto-barra-superior))] overflow-y-auto self-start custom-scrollbar">
+        <div class="w-full grid items-start gap-10 md:grid-cols-2 md:gap-x-8 lg:grid-cols-1">
+
+          <!-- ── Buscador ──────────────────────────────────────────────────── -->
+          <div class="space-y-3">
+            <h2 class="font-alternate text-xs font-bold text-tinta-media mb-4">
+              {{ getWebText('agenda_filter_search_title', 'Buscador') }}
+            </h2>
+            <!-- B-1/B-2: el buscador común —pausa de 300 ms y «X» propia—, no un campo suelto. -->
+            <app-buscador-de-lista
+              identificador="busqueda-de-agenda"
+              [etiqueta]="getWebText('agenda_filter_search_label', 'Buscar en la agenda')"
+              [marcador]="getWebText('agenda_filter_search_placeholder', 'Nombre, lugar u organizador…')"
+              tamano="comodo"
+              [valor]="busqueda()"
+              (cambiar)="alBuscar($event)" />
+          </div>
+
+          <!-- ── Cuándo ────────────────────────────────────────────────────── -->
+          <div class="space-y-4">
+            <h2 class="font-alternate text-xs font-bold text-tinta-media border-b border-filete pb-3">
+              {{ getWebText('agenda_filter_when_title', 'Cuándo') }}
+            </h2>
+
+            <!-- SIN «Próximos / Pasados / Todos» (G6): por omisión se ve lo que viene, y al elegir un
+                 día, un mes, un año o un tramo se mira todo el calendario. Tres maneras de acotar la
+                 fecha en un selector segmentado común, no en tres botones sueltos. -->
+            <app-selector-segmentado
+              [opciones]="modosDeFecha()"
+              [elegida]="dateMode()"
+              etiquetaDelGrupo="Cómo acotar la fecha"
+              forma="segmentado"
+              (elegir)="setDateMode($event)" />
+
+            @if (dateMode() === 'exact') {
+              <label class="block space-y-1.5">
+                <span class="text-sm font-bold text-tinta-media px-1">
+                  {{ getWebText('agenda_filter_day_label', 'Seleccionar día') }}
+                </span>
+                <input
+                  type="date"
+                  [value]="selectedExactDate()"
+                  (change)="setSelectedExactDate($event)"
+                  class="w-full min-h-[var(--spacing-control)] rounded-[0.7rem] border border-filete bg-white px-3 text-sm font-nunito text-morado outline-none transition-colors focus:border-morado focus:ring-2 focus:ring-morado/10"
+                />
+              </label>
+            } @else if (dateMode() === 'month') {
+              <!-- Año y mes por separado, el mes solo con su nombre («enero», «febrero»): nada de
+                   «NOVIEMBRE 2026». Solo aparecen los meses que de verdad tienen eventos. -->
+              <div class="space-y-3">
+                <div class="space-y-1.5">
+                  <span class="text-sm font-bold text-tinta-media px-1">{{ getWebText('agenda_filter_year_label', 'Año') }}</span>
+                  <app-filtro-desplegable
+                    [completo]="true"
+                    etiqueta="Filtrar la agenda por año"
+                    identificador="anio-de-agenda"
+                    [opciones]="opcionesDeAnio()"
+                    [elegida]="anioElegido()"
+                    (cambiar)="setAnio($event)" />
+                </div>
+                <div class="space-y-1.5">
+                  <span class="text-sm font-bold text-tinta-media px-1">{{ getWebText('agenda_filter_month_label', 'Mes') }}</span>
+                  <app-filtro-desplegable
+                    [completo]="true"
+                    etiqueta="Filtrar la agenda por mes"
+                    identificador="mes-de-agenda"
+                    [opciones]="opcionesDeMes()"
+                    [elegida]="mesElegido()"
+                    (cambiar)="setMes($event)" />
+                </div>
+              </div>
+            } @else {
+              <div class="space-y-3">
+                <label class="block space-y-1.5">
+                  <span class="text-sm font-bold text-tinta-media px-1">
+                    {{ getWebText('agenda_filter_from_label', 'Desde') }}
+                  </span>
+                  <input
+                    type="date"
+                    [value]="fechaDesde()"
+                    [attr.max]="fechaHasta() || null"
+                    (change)="cambiarFechaDesde($event)"
+                    class="w-full min-h-[var(--spacing-control)] rounded-[0.7rem] border border-filete bg-white px-3 text-sm font-nunito text-morado outline-none transition-colors focus:border-morado focus:ring-2 focus:ring-morado/10"
+                  />
+                </label>
+                <label class="block space-y-1.5">
+                  <span class="text-sm font-bold text-tinta-media px-1">
+                    {{ getWebText('agenda_filter_to_label', 'Hasta') }}
+                  </span>
+                  <!-- `min`/`max` cruzados: el propio control impide componer un tramo al revés. -->
+                  <input
+                    type="date"
+                    [value]="fechaHasta()"
+                    [attr.min]="fechaDesde() || null"
+                    (change)="cambiarFechaHasta($event)"
+                    class="w-full min-h-[var(--spacing-control)] rounded-[0.7rem] border border-filete bg-white px-3 text-sm font-nunito text-morado outline-none transition-colors focus:border-morado focus:ring-2 focus:ring-morado/10"
+                  />
+                </label>
+                <p class="px-1 text-sm leading-relaxed text-tinta-media">
+                  {{ getWebText('agenda_filter_range_hint', 'Se muestran los eventos que ocurren durante el tramo, aunque empiecen antes.') }}
+                </p>
+              </div>
+            }
+          </div>
+
+          <!-- ── Tipo de actividad ─────────────────────────────────────────── -->
+          <div class="space-y-4">
+            <h2 class="font-alternate text-xs font-bold text-tinta-media border-b border-filete pb-3">
+              {{ getWebText('agenda_filter_activity_type', 'Tipo de actividad') }}
+            </h2>
+            <nav class="space-y-1.5">
+              @for (cat of activityCategories(); track cat) {
+                <button
+                  type="button"
+                  (click)="setSelectedCategory(cat)"
+                  [attr.aria-pressed]="selectedCategory() === cat"
+                  [class]="'w-full flex items-center justify-between px-4 min-h-[var(--spacing-control-comodo)] rounded-[0.7rem] transition-all group cursor-pointer ' + (selectedCategory() === cat ? 'bg-white text-morado border border-filete' : 'text-tinta-media hover:bg-slate-100 border border-transparent')"
+                >
+                  <span class="flex items-center gap-4">
+                    <span [class]="'transition-colors ' + (selectedCategory() === cat ? 'text-verde-texto' : 'text-tinta-media group-hover:text-tinta-media')">
+                      @switch (iconoDeCategoria(cat)) {
+                        @case ('todos') { <svg lucideSparkles [size]="18"></svg> }
+                        @case ('festival') { <svg lucidePartyPopper [size]="18"></svg> }
+                        @case ('formacion') { <svg lucideGraduationCap [size]="18"></svg> }
+                        @case ('encuentro') { <svg lucideUsers2 [size]="18"></svg> }
+                        @case ('concierto') { <svg lucideMusic2 [size]="18"></svg> }
+                        @case ('convocatoria') { <svg lucideMegaphone [size]="18"></svg> }
+                        @default { <svg lucideCalendar [size]="18" aria-hidden="true"></svg> }
+                      }
+                    </span>
+                    <span class="font-alternate text-sm font-bold text-left">{{ cat }}</span>
+                  </span>
+                  <span [class]="'text-xs font-bold tabular-nums px-2 py-1 rounded-md ' + (selectedCategory() === cat ? 'bg-niebla text-verde-texto' : 'bg-slate-100 text-tinta-media')">
+                    {{ cuantosEnCategoria(cat) }}
+                  </span>
+                </button>
+              }
+            </nav>
+          </div>
+
+          <!-- ── Dónde ─────────────────────────────────────────────────────── -->
+          <div class="space-y-4">
+            <h2 class="font-alternate text-xs font-bold text-tinta-media border-b border-filete pb-3">
+              {{ getWebText('agenda_filter_where_title', 'Dónde') }}
+            </h2>
+            <!-- Los dos, en el filtro común y a todo el ancho: antes eran dos `select` nativos de
+                 tamaños distintos, en mayúsculas, y con 32 departamentos el panel del sistema ocupaba
+                 media pantalla. Con buscador, y el municipio apagado hasta elegir departamento. -->
+            <div class="space-y-1.5">
+              <span class="text-sm font-bold text-tinta-media px-1">{{ getWebText('agenda_filter_department_label', 'Departamento') }}</span>
+              <app-filtro-desplegable
+                [completo]="true"
+                etiqueta="Filtrar la agenda por departamento"
+                identificador="departamento-de-agenda"
+                [opciones]="opcionesDeDepartamento()"
+                [elegida]="selectedDept()"
+                (cambiar)="setSelectedDept($event)" />
+            </div>
+
+            <div class="space-y-1.5">
+              <span class="text-sm font-bold text-tinta-media px-1">{{ getWebText('agenda_filter_city_label', 'Ciudad o municipio') }}</span>
+              <app-filtro-desplegable
+                [completo]="true"
+                etiqueta="Filtrar la agenda por municipio"
+                identificador="municipio-de-agenda"
+                [opciones]="opcionesDeMunicipio()"
+                [elegida]="selectedMunicipality()"
+                [deshabilitado]="!selectedDept() || cities().length === 0"
+                (cambiar)="setSelectedMunicipality($event)" />
+            </div>
+          </div>
+
+          <!-- ── Etiquetas ─────────────────────────────────────────────────
+               Las etiquetas que tienen eventos, como palabras que filtran (y enlaces rastreables). -->
+          @if (etiquetasDeLaAgenda().length > 0) {
+            <div class="space-y-4">
+              <h2 class="font-alternate text-xs font-bold text-tinta-media border-b border-filete pb-3">
+                {{ getWebText('agenda_filter_project_title', 'Etiquetas') }}
+              </h2>
+              <app-etiquetas-de-contenido ruta="/agenda" nombre="Etiquetas de la agenda" [etiquetas]="etiquetasDeLaAgenda()"
+                [activa]="proyectoElegido()" [interceptar]="true" [conConteo]="true" (elegida)="setProyecto($event)" />
+            </div>
+          }
+
+        </div>
+      </aside>
+
+      <!-- Lista / Grid de Eventos -->
+      <div class="min-w-0 p-5 sm:p-6 lg:p-8">
+        <!-- `flex-wrap` y `min-w-0`: a 1024 px el encabezado y el interruptor de vista no caben en una
+             fila y el interruptor se salia 77 px de la ventana. Es un defecto de maquetacion, no una
+             decision de diseno: en los anchos donde si caben, nada cambia. -->
+        <!-- A-4: el selector de vista va a la DERECHA, en la línea del título. `min-w-0` en el título: el texto
+             decorativo de fondo del encabezado medía 303 px y a 320 px se salía de la ventana. En 390 px, si no
+             caben en una fila, el selector baja bajo el título y conserva su alineación a la derecha. -->
+        <div id="agenda-lista-eventos" class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 mb-6 scroll-mt-32 min-w-0">
+          <app-section-header
+            class="block min-w-0 flex-1 basis-56 overflow-hidden"
+            nivel="h1"
+            backgroundText="PROGRAMA"
+            [foregroundText]="getWebText('agenda_events_title', 'Eventos')"
+            [compact]="true"
+          ></app-section-header>
+
+          <app-selector-segmentado
+            class="ml-auto"
+            [soloIconos]="true"
+            [comodo]="true"
+            [opciones]="modosDeVista"
+            [elegida]="viewMode()"
+            etiquetaDelGrupo="Cómo ver los eventos"
+            (elegir)="setViewMode($event === 'calendar' ? 'calendar' : 'list')" />
+        </div>
+
+        <!-- A-1: cada filtro puesto, con su «X» y «Limpiar filtros» a la vista, justo encima de los resultados. -->
+        @if (filtrosActivos().length > 0) {
+          <div class="mb-6 flex flex-wrap items-start justify-between gap-x-6 gap-y-3" data-testid="agenda-filtros-aplicados">
+            <app-filtros-activos class="min-w-0 flex-1" [filtros]="filtrosActivos()" (quitar)="quitarFiltro($event)" (limpiar)="limpiarTodosLosFiltros()" />
+            @if (!isLoading && !isError) {
+              <p class="shrink-0 text-cuerpo text-tinta-media" role="status" data-testid="agenda-total">
+                {{ totalFiltrados() === 1 ? '1 evento' : totalFiltrados() + ' eventos' }}
+              </p>
+            }
+          </div>
+        }
+
+        <div class="space-y-0 border-t border-filete min-h-[calc(100vh-20rem)]">
+          @if (isLoading || isRefreshing) {
+            <app-esqueleto [variante]="viewMode() === 'list' ? 'fila' : 'tarjeta'" [cantidad]="viewMode() === 'list' ? 4 : 6"
+              [etiqueta]="getWebText('agenda_loading_title', 'Cargando agenda…')" />
+          } @else if (isError) {
+            <app-estado-de-lista tipo="error" [titulo]="'agenda_error' | textoWeb"
+              [detalle]="error?.message || 'Intenta nuevamente en unos segundos.'">
+              <app-boton importancia="secundaria" identificador="agenda-reintentar" (accion)="retry()">{{ 'agenda_reintentar' | textoWeb }}</app-boton>
+            </app-estado-de-lista>
+          } @else if (filteredAgendaItems().length === 0) {
+            <app-estado-de-lista tipo="vacio"
+              [titulo]="getWebText('agenda_empty_title', 'No hay eventos programados para este filtro')"
+              [detalle]="hayFechaPuesta()
+                ? getWebText('agenda_empty_desc', 'Prueba con otro criterio o vuelve más tarde.')
+                : getWebText('agenda_empty_desc_proximos', 'No hay eventos próximos con estos filtros. Elige un mes, un año o un tramo de fechas para ver los ya realizados.')">
+              @if (filtrosPuestos() > 0) {
+                <app-boton importancia="secundaria" identificador="agenda-vacio-limpiar" (accion)="limpiarTodosLosFiltros()">{{ 'agenda_limpiar_filtros' | textoWeb }}</app-boton>
+              }
+            </app-estado-de-lista>
+          } @else if (viewMode() === 'list') {
+            <!-- LIST VIEW -->
+            @for (item of paginatedAgendaItems(); track item.id) {
+              <div 
+                [appRevelar]="($index % 6) * 70"
+                [id]="'agenda-item-' + item.id" 
+                [class]="'border-b border-filete transition-all duration-700 overflow-hidden ' + (openIndex() === $index ? 'bg-niebla' : 'bg-transparent')"
+              >
+                <button 
+                  type="button"
+                  (click)="toggleOpenIndex($index)"
+                  [attr.aria-expanded]="openIndex() === $index"
+                  [attr.aria-controls]="'agenda-detalle-' + item.id"
+                  class="w-full grid grid-cols-12 gap-x-4 gap-y-4 md:gap-6 px-5 py-5 items-center text-left group border-0 bg-transparent cursor-pointer"
+                >
+                  <div class="col-span-5 md:col-span-4 h-28 md:h-32 rounded-xl overflow-hidden relative">
+                    <!-- El @if es lo unico que se añade al diseño. En el diseño aprobado del portal siempre habia imagen porque el
+                         mapeador asignaba una ALEATORIA cuando faltaba; con datos reales, un evento sin
+                         imagen dibujaba el icono de imagen rota. -->
+                    @if (item.img) {
+                      <img width="640" height="360" [src]="item.img" class="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110" alt=""/>
+                    }
+                    <div class="absolute inset-0 bg-morado/0 transition-all duration-700 group-hover:bg-morado/32"></div>
+                    @if (item.cat) {
+                    <div class="absolute top-2 left-2 right-2 md:top-2.5 md:left-2.5 md:right-auto flex flex-col items-start gap-1.5">
+                      @if (item.cat) {
+                      <span class="tipo-etiqueta inline-block max-w-full break-words px-2.5 py-1 rounded-md bg-verde text-morado-vivo leading-tight">
+                        {{ item.cat }}
+                      </span>
+                      }
+                    </div>
+                    }
+                    @if (item.cancelado) {
+                    <!-- UN EVENTO CANCELADO SIGUE EN LA LISTA, MARCADO (D3-13): no desaparece en silencio. -->
+                    <div class="absolute bottom-2.5 left-2.5 max-w-[calc(100%-1.25rem)] sm:top-2.5 sm:right-2.5 sm:bottom-auto sm:left-auto">
+                      <span class="tipo-etiqueta inline-block px-2.5 py-1 rounded-md bg-red-700 text-white" data-testid="evento-cancelado-marca">{{ 'agenda_cancelado' | textoWeb }}</span>
+                    </div>
+                    }
+                  </div>
+                  
+                  <div class="col-span-7 md:col-span-5 min-w-0">
+                    <h2 class="tipo-titulo-lista tipo-titulo-lista--medio mb-2 text-titulo group-hover:text-morado transition-colors">
+                      {{ item.t }}
+                    </h2>
+                    <p class="tipo-pequeno text-tinta-media line-clamp-2 max-w-md">
+                      {{ item.desc }}
+                    </p>
+                    @if (item.l) {
+                    <div class="tipo-etiqueta mt-3 flex items-center gap-2 text-tinta-media">
+                      <svg lucideMapPin [size]="13" class="text-morado"></svg> {{ item.l }}
+                    </div>
+                    }
+                  </div>
+
+                  <div class="col-span-12 md:col-span-3 flex items-center justify-between md:justify-end border-t md:border-t-0 md:border-l border-filete pt-3 md:pt-0 md:pl-6 group-hover:border-verde transition-colors">
+                    <div class="flex flex-col items-end mr-4">
+                      <span class="tipo-etiqueta mb-1 text-tinta-media">Año {{ item.y }}</span>
+                      <span class="tipo-etiqueta text-morado">{{ item.time }}</span>
+                    </div>
+                    <div class="flex flex-col items-center justify-center bg-niebla group-hover:bg-verde rounded-xl w-20 h-24 transition-colors">
+                      <span class="tipo-etiqueta text-tinta-media group-hover:text-morado-vivo">
+                        {{ mesCorto(item.dateObj, 'Mes ' + item.m) }}
+                      </span>
+                      <span class="font-alternate text-4xl lg:text-5xl text-morado font-bold leading-[1.1] mt-0.5 -mb-0.5 text-balance">
+                        {{ padDay(item.d) }}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+
+                <!-- Expanded panel -->
+                <div 
+                  [id]="'agenda-detalle-' + item.id"
+                  [attr.inert]="openIndex() === $index ? null : ''"
+                  [class]="'transition-all duration-1000 ease-in-out overflow-hidden ' + (openIndex() === $index ? 'max-h-[1600px] opacity-100' : 'max-h-0 opacity-0 pointer-events-none')"
+                >
+                  <div class="px-5 md:px-8 pb-10 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
+                    <div class="md:col-span-4 flex flex-col gap-3 pt-6">
+                      <!-- Lleva a la ficha del evento, que tiene dirección propia. -->
+                      <a
+                        [routerLink]="['/agenda', item.slug]"
+                        data-testid="agenda-mas-informacion"
+                        (click)="recordarFiltros()"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl px-10 py-4 tipo-enlace no-underline transition-all duration-300 group bg-morado text-white hover:bg-morado-vivo active:scale-95 cursor-pointer"
+                      >
+                        <span>{{ 'agenda_mas_informacion' | textoWeb }}</span>
+                      </a>
+                      <app-anadir-al-calendario [evento]="item" identificador="agenda-anadir-calendario" />
+                    </div>
+                    
+                    <div class="md:col-span-8 min-w-0 flex flex-col lg:flex-row justify-between items-start gap-10 pt-6 border-t border-filete">
+                      <div class="space-y-5 flex-1">
+                        <div class="flex flex-col">
+                          <span class="tipo-etiqueta mb-1.5 text-tinta-media">{{ 'agenda_detalles' | textoWeb }}</span>
+                          <p class="tipo-cuerpo text-tinta-media">
+                            {{ item.desc }}
+                          </p>
+                        </div>
+                        <!-- Lugar, organización y, debajo, el proceso al que está ligado (decisión 130): la misma pieza que la ficha. -->
+                        <dl class="grid gap-5">
+                          <app-origen-del-evento [lugar]="item.exactLocation || item.l" [territorio]="item.exactLocation ? item.l : ''"
+                            [organizador]="item.organizer" [proceso]="item.proceso" />
+                        </dl>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          } @else {
+            <!-- GRID/CARD VIEW -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 pt-8">
+              @for (item of paginatedAgendaItems(); track item.id) {
+                @let isCardOpen = openIndex() === $index;
+                
+                <div
+                  [appRevelar]="($index % 6) * 70"
+                  (click)="toggleOpenIndex($index)"
+                  [class]="'relative flex flex-col h-full bg-white rounded-2xl border border-filete overflow-hidden group  transition-all duration-500 cursor-pointer ' + (isCardOpen ? 'border-verde-claro' : '')"
+                
+                  role="button"
+                  tabindex="0"
+                  [attr.aria-expanded]="isCardOpen"
+                  (keydown.enter)="toggleOpenIndex($index)"
+                  (keydown.space)="toggleOpenIndex($index)">
+                  <div class="h-48 relative overflow-hidden">
+                    @if (item.img) {
+                      <img width="640" height="360" [src]="item.img" class="w-full h-full object-cover transition-all duration-700" alt=""/>
+                    }
+                    <div [class]="'absolute inset-0 transition-all duration-500 ' + (isCardOpen ? 'bg-morado/12' : 'bg-morado/0 group-hover:bg-morado/32')"></div>
+                    @if (item.cat) {
+                    <div class="absolute top-4 left-4 flex flex-col items-start gap-1.5">
+                      @if (item.cat) {
+                      <span class="tipo-etiqueta inline-block px-3 py-1.5 rounded-lg bg-verde text-morado-vivo">
+                        {{ item.cat }}
+                      </span>
+                      }
+                    </div>
+                    }
+                    @if (item.cancelado) {
+                    <div class="absolute top-4 right-4">
+                      <span class="tipo-etiqueta inline-block px-3 py-1.5 rounded-lg bg-red-700 text-white" data-testid="evento-cancelado-marca">{{ 'agenda_cancelado' | textoWeb }}</span>
+                    </div>
+                    }
+                    <div class="absolute bottom-4 right-4 bg-white px-4 py-3 rounded-2xl flex flex-col items-center border border-filete">
+                      <span class="tipo-etiqueta text-morado">
+                        {{ mesCorto(item.dateObj, '' + item.m) }}
+                      </span>
+                      <span class="font-alternate text-4xl text-morado font-bold leading-[1.1] mt-1 -mb-1 text-balance">
+                        {{ padDay(item.d) }}
+                      </span>
+                      <span class="tipo-etiqueta mt-1.5 text-tinta-media">{{ item.y }}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="relative p-8">
+                    <div [class]="'space-y-4 transition-opacity duration-500 ' + (isCardOpen ? 'opacity-0 pointer-events-none' : 'opacity-100')">
+                      <h2 class="tipo-titulo-lista tipo-titulo-lista--medio text-titulo line-clamp-2">{{ item.t }}</h2>
+                      @if (item.l) {
+                      <div class="tipo-etiqueta flex items-center gap-2 text-tinta-media">
+                        <svg lucideMapPin [size]="13" class="text-morado"></svg> {{ item.l }}
+                      </div>
+                      }
+                      <p class="tipo-pequeno text-tinta-media line-clamp-3">
+                        {{ item.desc }}
+                      </p>
+                      <div class="pt-4 border-t border-filete flex items-center justify-between">
+                        <span class="tipo-etiqueta text-morado">{{ item.time }}</span>
+                        <span class="enlace-revela tipo-enlace text-morado">{{ 'agenda_ver_mas' | textoWeb }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Details view overlay -->
+                  <div [attr.inert]="isCardOpen ? null : ''" [class]="'absolute inset-0 z-20 bg-white p-8 transition-all duration-500 flex flex-col ' + (isCardOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none')">
+                    <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 mb-4 space-y-4">
+                      <div class="flex items-start justify-between gap-4">
+                        <h2 class="tipo-titulo-lista tipo-titulo-lista--medio text-titulo">{{ item.t }}</h2>
+                        <div class="flex flex-col items-center shrink-0 border border-filete bg-niebla rounded-xl px-3 py-1.5">
+                          <span class="tipo-etiqueta text-morado">
+                            {{ mesCorto(item.dateObj, '' + item.m) }}
+                          </span>
+                          <span class="font-alternate text-2xl text-morado font-bold leading-none my-0.5">
+                            {{ padDay(item.d) }}
+                          </span>
+                        </div>
+                      </div>
+                      <div class="tipo-etiqueta flex flex-wrap items-center gap-x-4 gap-y-2 text-tinta-media">
+                        <span class="flex items-center gap-1.5"><svg lucideMapPin [size]="13" class="text-morado"></svg> {{ item.l }}</span>
+                        <span class="flex items-center gap-1.5"><svg lucideClock [size]="13" class="text-morado"></svg> {{ item.time }}</span>
+                      </div>
+                      <p class="tipo-cuerpo mt-2 text-tinta-media">
+                        {{ item.desc }}
+                      </p>
+                      <dl class="grid gap-4">
+                        <app-origen-del-evento [organizador]="item.organizer" [proceso]="item.proceso" />
+                      </dl>
+                    </div>
+                    <div class="flex flex-col gap-2 shrink-0 pt-4 border-t border-filete">
+                      <a
+                        [routerLink]="['/agenda', item.slug]"
+                        (click)="$event.stopPropagation(); recordarFiltros()"
+                        data-testid="agenda-mas-informacion"
+                        class="w-full inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 tipo-enlace no-underline transition-all duration-300 group bg-morado text-white hover:bg-morado-vivo active:scale-95 cursor-pointer"
+                      >
+                        <span>{{ 'agenda_mas_informacion' | textoWeb }}</span>
+                      </a>
+                      <app-anadir-al-calendario [evento]="item" identificador="agenda-anadir-calendario-tarjeta" />
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Paginación común, con el selector de cuántos eventos por página (`?por=`). Se queda aunque haya una sola página. -->
+        @if (filteredAgendaItems().length > cantidadesPorPagina[0] || totalPages() > 1) {
+          <app-paginacion-de-lista class="mt-12 block" nombre="la agenda" identificador="agenda-paginacion"
+            [pagina]="currentPage()" [totalPaginas]="totalPages()" [porPagina]="porPagina()" [cantidades]="cantidadesPorPagina"
+            (paginaCambiada)="setCurrentPage($event)" (porPaginaCambiado)="cambiarPorPagina($event)" />
+        }
+      </div>
+    </div>
+  </div>
+</div>

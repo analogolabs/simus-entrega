@@ -1,0 +1,63 @@
+<div class="pb-8 space-y-5">
+  <app-encabezado-de-pantalla idDelTitulo="mercados-gestion-titulo" titulo="Mercados musicales" descripcion="Consulta y gestiona los mercados registrados por tu organización." [contador]="mercados().length ? mercados().length + ' ' + (mercados().length === 1 ? 'registro' : 'registros') + ' · ' + pendientes() + ' pendientes · ' + borradores() + ' en borrador' : null">
+    <a data-testid="abrir-crear-mercado" routerLink="nuevo" appBoton="principal">Registrar Mercado</a>
+  </app-encabezado-de-pantalla>
+
+  @if (organizacionId(); as id) { <app-registro-sin-terminar [organizacionId]="id" modulo="mercados" class="block space-y-3" /> }
+
+
+
+  <section aria-label="Listado de mercados musicales">
+    @if (errorDeAccion()) { <p role="alert" class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ errorDeAccion() }}</p> }
+    <p role="status" data-testid="aviso-mercados" [class.hidden]="!mensaje()" class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{{ mensaje() }}</p>
+    @if (cargando()) {
+      <app-esqueleto variante="fila" [cantidad]="2" etiqueta="Consultando los mercados de la organización…" />
+    } @else if (error()) {
+      <app-estado-de-lista tipo="error" titulo="No fue posible consultar los mercados." [detalle]="error()" />
+    } @else if (!mercados().length) {
+      <app-estado-de-lista titulo="Todavía no has registrado ningún mercado." detalle="Un mercado musical puede ser independiente o realizarse en el marco de uno de tus festivales." />
+    } @else {
+      <app-herramientas-de-lista>
+        <app-buscador-de-lista identificador="mercados-buscar" etiqueta="Buscar mercados"
+          marcador="Nombre, descripción o territorio" [valor]="busqueda()" [espera]="0" (cambiar)="busqueda.set($event)" />
+        <app-filtro-desplegable rotulo="Estado" etiqueta="Filtrar los mercados por estado" identificador="mercados-estado"
+          [opciones]="opcionesDeEstado()" [elegida]="estadoFiltro()" (cambiar)="estadoFiltro.set($event)" />
+      </app-herramientas-de-lista>
+      @if (!mercadosVisibles().length) {
+        <app-estado-de-lista titulo="No hay mercados que coincidan." detalle="Cambia la búsqueda o el estado elegidos." />
+      } @else {
+        <!--
+          LA MISMA FILA QUE FESTIVALES (referencia de la dirección de producto): nombre con su estado, organización y
+          territorio, ediciones y fecha, descripción, y «Ver ficha» a la derecha.
+        -->
+        <ul class="divide-y divide-slate-200">
+          @for (mercado of mercadosVisibles(); track mercado.id) {
+            <li class="py-5" data-testid="fila-de-mercado">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h2>{{ mercado.nombre }}</h2>
+                    <app-indicador-de-estado [etiqueta]="etiquetaEstado(mercado.estadoRegistro)" [tono]="tonoDelEstado(mercado.estadoRegistro)" [matiz]="matizDelEstado(mercado.estadoRegistro)" [conTexto]="true"></app-indicador-de-estado>
+                  </div>
+                  <p class="t-texto mt-2">
+                    @if (mercado.seRealizaEnElMarcoDeUnFestival && mercado.festivalNombre) { En el marco de {{ mercado.festivalNombre }} · }{{ territorio(mercado) | nombrePropio }}
+                  </p>
+                  <div class="t-ayuda mt-2 flex flex-wrap gap-x-3 gap-y-1">
+                    <span>{{ mercado.numeroDeEdiciones }} {{ mercado.numeroDeEdiciones === 1 ? 'edición registrada' : 'ediciones registradas' }}</span>
+                    @if (mercado.fechaActualizacion) { <span>Actualizado {{ mercado.fechaActualizacion | fecha }}</span> }
+                  </div>
+                  @if (mercado.descripcion) { <p class="t-texto mt-3 line-clamp-2">{{ mercado.descripcion }}</p> }
+                </div>
+                <div data-testid="acciones-mercado" class="flex items-center gap-2 lg:shrink-0">
+                  <a [routerLink]="[mercado.id]" appBoton="secundaria" [attr.aria-label]="'Ver ficha: ' + mercado.nombre">Ver ficha</a>
+                  <!-- EL MISMO MENÚ «…» DE FESTIVALES, con el mismo modelo de acciones por estado. -->
+                  <app-menu-de-acciones [acciones]="accionesDe(mercado)" [descripcion]="mercado.nombre" etiqueta="Acciones" (elegida)="elegir(mercado, $event)" />
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    }
+  </section>
+</div>

@@ -1,0 +1,588 @@
+<div class="bg-white min-h-screen text-left pt-(--alto-barra-superior)">
+  <div class="w-full">
+    <div class="grid grid-cols-1 lg:grid-cols-[21rem_minmax(0,1fr)] gap-0">
+      
+      <!-- Aside Filtros -->
+      <aside id="editorial-filtros" class="z-(--z-barra-de-filtros) bg-niebla border-r border-filete p-5 lg:p-8 space-y-6 lg:space-y-8 lg:sticky lg:top-(--alto-barra-superior) lg:h-[calc(100dvh-var(--alto-barra-superior))] overflow-y-auto self-start">
+        
+        <!-- Buscador: con pausa de 300 ms y «X», como todos los de la lista (B-1, B-2) -->
+        <div class="space-y-3">
+          <label for="catalogo-buscar" class="block font-alternate text-xs font-bold text-tinta-media">{{ 'editorial_busqueda_avanzada' | textoWeb }}</label>
+          <app-buscador-de-lista ancho tamano="comodo" [etiquetaVisible]="true" identificador="catalogo-buscar"
+            [etiqueta]="'editorial_buscar_etiqueta' | textoWeb" [marcador]="'editorial_buscar_marcador' | textoWeb"
+            [valor]="searchTerm()" [espera]="300" (cambiar)="cambiarBusqueda($event)" />
+          <button type="button" (click)="toggleAdvancedSearch()" [attr.aria-expanded]="showAdvancedSearch()" aria-controls="catalogo-busqueda-avanzada"
+            class="inline-flex items-center gap-2 text-sm font-bold text-morado hover:underline cursor-pointer foco-simus rounded-md">
+            <svg lucideList size="14" aria-hidden="true"></svg>
+            {{ showAdvancedSearch() ? 'Ocultar búsqueda avanzada' : 'Búsqueda avanzada' }}
+          </button>
+
+          @if (showAdvancedSearch()) {
+            <div id="catalogo-busqueda-avanzada" class="border-t border-filete pt-5 mt-2 space-y-4">
+              <div class="space-y-3.5">
+                <div class="space-y-1.5">
+                  <label for="catalogo-titulo" class="text-sm font-bold text-tinta-media">{{ 'editorial_campo_titulo' | textoWeb }}</label>
+                  <app-buscador-de-lista ancho tamano="comodo" [etiquetaVisible]="true" identificador="catalogo-titulo"
+                    etiqueta="Buscar por título" marcador="Ej. Memorias"
+                    [valor]="advancedTitleSearch()" [espera]="300" (cambiar)="cambiarCampoAvanzado(advancedTitleSearch, $event)" />
+                </div>
+                <div class="space-y-1.5">
+                  <label for="catalogo-autoria" class="text-sm font-bold text-tinta-media">{{ 'editorial_campo_autoria' | textoWeb }}</label>
+                  <app-buscador-de-lista ancho tamano="comodo" [etiquetaVisible]="true" identificador="catalogo-autoria"
+                    etiqueta="Buscar por autoría" marcador="Ej. Lucho Bermúdez"
+                    [valor]="advancedAuthorSearch()" [espera]="300" (cambiar)="cambiarCampoAvanzado(advancedAuthorSearch, $event)" />
+                </div>
+                <div class="space-y-1.5">
+                  <label for="catalogo-clave" class="text-sm font-bold text-tinta-media">{{ 'editorial_campo_palabra' | textoWeb }}</label>
+                  <app-buscador-de-lista ancho tamano="comodo" [etiquetaVisible]="true" identificador="catalogo-clave"
+                    etiqueta="Buscar por palabra clave" marcador="Ej. Tradición"
+                    [valor]="advancedKeywordSearch()" [espera]="300" (cambiar)="cambiarCampoAvanzado(advancedKeywordSearch, $event)" />
+                </div>
+              </div>
+              @if (advancedTitleSearch() || advancedAuthorSearch() || advancedKeywordSearch()) {
+                <div class="flex justify-end">
+                  <button type="button" (click)="limpiarAvanzada()" appBoton="terciaria" tamano="normal">{{ 'editorial_limpiar_busqueda' | textoWeb }}</button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Categorías editoriales -->
+        <div class="space-y-6">
+          <h2 class="font-alternate text-xs font-bold text-tinta-media border-b border-filete pb-4">{{ 'editorial_categorias' | textoWeb }}</h2>
+          <nav aria-label="Categorías del catálogo" class="flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-1 lg:overflow-visible lg:pb-0">
+            @for (category of categories(); track category.id) {
+              <button
+                type="button"
+                (click)="setActiveTab(category.id)"
+                [attr.aria-current]="activeTab() === category.id ? 'true' : null"
+                [class]="'shrink-0 lg:w-full flex items-center justify-between gap-3 px-4 py-2.5 lg:py-3 rounded-2xl transition-all group cursor-pointer ' + (activeTab() === category.id ? 'bg-white text-morado border border-filete' : 'text-tinta-media hover:bg-niebla border border-transparent')"
+              >
+                <div class="flex items-center gap-4">
+                  <div [class]="'transition-colors ' + (activeTab() === category.id ? 'text-morado' : 'text-tinta-media group-hover:text-tinta-media')">
+                    @switch (category.iconName) {
+                      @case ('book-open') { <svg lucideBookOpen [size]="18"></svg> }
+                      @case ('disc') { <svg lucideDisc [size]="18"></svg> }
+                      @case ('search') { <svg lucideSearch [size]="18"></svg> }
+                      @case ('music') { <svg lucideMusic2 [size]="18"></svg> }
+                      @case ('boxes') { <svg lucideBoxes [size]="18"></svg> }
+                      @case ('file-video') { <svg lucideFileVideo [size]="18"></svg> }
+                      @case ('building') { <svg lucideBuilding2 [size]="18"></svg> }
+                      @case ('info') { <svg lucideInfo [size]="18"></svg> }
+                      @case ('landmark') { <svg lucideLandmark [size]="18"></svg> }
+                      @default { <svg lucideLibrary [size]="18"></svg> }
+                    }
+                  </div>
+                  <span class="font-alternate text-sm font-bold text-left">{{ category.label }}</span>
+                </div>
+                @if (facetas()) {
+                  <span [class]="'text-xs font-bold tabular-nums px-2 py-1 rounded-md ' + (activeTab() === category.id ? 'bg-niebla text-morado' : 'bg-niebla text-tinta-media')">
+                    {{ getCategoryCount(category.id) }}
+                  </span>
+                }
+              </button>
+            }
+          </nav>
+        </div>
+
+        <!--
+          LOS FILTROS DEL CATÁLOGO, EN EL MISMO COMPONENTE Y AL MISMO ANCHO (G6). Eran `select`
+          nativos con rótulos en mayúsculas sostenidas y tamaños distintos entre sí. «Tipo de material»
+          reemplaza a «Tipo de contenido»: los cuatro términos de la norma RDA 336 («texto», «música
+          notada», «imagen en movimiento bidimensional»…) se cambian por los siete tipos que usa quien
+          busca —libro, partitura, audio, video…—, deducidos de la ficha (ver `tipo-de-material.ts`).
+        -->
+        <div class="space-y-5">
+          @if (activeTab() !== 'all' && availableSubcategories().length > 0) {
+            <div class="space-y-1.5">
+              <span class="text-sm font-bold text-tinta-media px-1">{{ 'editorial_subcategoria' | textoWeb }}</span>
+              <app-filtro-desplegable
+                [completo]="true"
+                etiqueta="Filtrar el catálogo por subcategoría"
+                identificador="subcategoria-del-catalogo"
+                [opciones]="opcionesDeSubcategoria()"
+                [elegida]="selectedSubcategory()"
+                (cambiar)="setSelectedSubcategory($event)" />
+            </div>
+          }
+
+          <div class="space-y-1.5">
+            <span class="text-sm font-bold text-tinta-media px-1">{{ 'editorial_tipo_material' | textoWeb }}</span>
+            <app-filtro-desplegable
+              [completo]="true"
+              etiqueta="Filtrar el catálogo por tipo de material"
+              identificador="material-del-catalogo"
+              [opciones]="opcionesDeMaterial()"
+              [elegida]="selectedMaterial()"
+              (cambiar)="setMaterial($event)" />
+          </div>
+
+          <div class="space-y-1.5">
+            <span class="text-sm font-bold text-tinta-media px-1">{{ 'editorial_soporte' | textoWeb }}</span>
+            <app-filtro-desplegable
+              [completo]="true"
+              etiqueta="Filtrar el catálogo por soporte"
+              identificador="soporte-del-catalogo"
+              [opciones]="opcionesDeSoporte()"
+              [elegida]="selectedCarrier()"
+              (cambiar)="setSoporte($event)" />
+          </div>
+        </div>
+
+        <!-- En móvil y tableta, año y temas quedan tras «Más filtros» para que las fichas aparezcan pronto. -->
+        <button type="button" (click)="masFiltros.set(!masFiltros())" [attr.aria-expanded]="masFiltros()"
+          appBoton="secundaria" tamano="comodo" class="w-full lg:hidden">
+          {{ masFiltros() ? 'Menos filtros' : 'Más filtros: año y temas' }}
+        </button>
+
+        <!-- Año de Publicación -->
+        @if ((facetas()?.anios?.length ?? 0) > 0) {
+          <div [class]="'space-y-4 lg:block ' + (masFiltros() ? 'block' : 'hidden')">
+            <h2 class="font-alternate text-xs font-bold text-tinta-media border-b border-filete pb-4">{{ 'editorial_anio' | textoWeb }}</h2>
+            <app-filtro-desplegable
+              [completo]="true"
+              etiqueta="Filtrar el catálogo por año"
+              identificador="anio-del-catalogo"
+              [opciones]="opcionesDeAnio()"
+              [elegida]="selectedYearFilter()"
+              (cambiar)="setSelectedYearFilter($event)" />
+          </div>
+        }
+
+        <!-- Temas (E-2): los diez más usados como etiquetas y, en el desplegable con buscador, solo los demás (sin repetir). -->
+        @if (temasALaVista().length > 0) {
+          <div [class]="'space-y-4 lg:block ' + (masFiltros() ? 'block' : 'hidden')">
+            <h2 class="font-alternate text-xs font-bold text-tinta-media border-b border-filete pb-4">{{ 'editorial_tematico' | textoWeb }}</h2>
+            <div class="flex flex-wrap gap-2">
+              @for (tema of temasALaVista(); track tema.valor) {
+                @let esTemaActivo = selectedKeyword() === tema.valor;
+                <button
+                  type="button"
+                  (click)="setSelectedKeyword(tema.valor)"
+                  [attr.aria-pressed]="esTemaActivo"
+                  [title]="tema.total + (tema.total === 1 ? ' ficha' : ' fichas')"
+                  [class]="'px-3 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer foco-simus ' + (esTemaActivo ? 'bg-morado text-white' : 'bg-white border border-filete text-tinta-media hover:border-verde hover:text-morado')"
+                >
+                  #{{ tema.valor }} <span class="tabular-nums font-normal">{{ tema.total }}</span>
+                </button>
+              }
+            </div>
+            @if (otrosTemas().length > 0) {
+              <app-filtro-desplegable
+                [completo]="true"
+                [rotulo]="'Más temas (' + otrosTemas().length + ')'"
+                etiqueta="Filtrar el catálogo por otro tema"
+                identificador="tema-del-catalogo"
+                [opciones]="opcionesDeOtrosTemas()"
+                [elegida]="otroTemaElegido()"
+                (cambiar)="setSelectedKeyword($event)" />
+            }
+          </div>
+        }
+      </aside>
+
+      <!-- Panel Catálogo -->
+      <div id="editorial-catalogo" class="min-w-0 p-5 sm:p-6 lg:p-8 scroll-mt-28 bg-white/50">
+        <div class="mb-8">
+          <app-section-header nivel="h1" backgroundText="CATÁLOGO" [foregroundText]="currentCategoryLabel()" [compact]="true"></app-section-header>
+          <p class="text-tinta-media font-nunito text-cuerpo max-w-3xl mt-2 leading-relaxed">
+            {{ primeraCarga()
+              ? 'Cargando el catálogo editorial...'
+              : 'Explora la base de datos bibliográfica del PNMC. La vista detallada muestra la ficha catalográfica, clasificación institucional, disponibilidad física o digital y metadatos asociados.' }}
+          </p>
+        </div>
+
+        <!-- E-4: en la lista, la barra de resultados queda pegada a los encabezados de columna (sin el hueco de antes). -->
+        <div [class]="'flex flex-col md:flex-row items-end justify-between border-b border-filete pb-5 gap-4 ' + (viewMode() === 'table' ? 'mb-0' : 'mb-8')">
+          <div class="flex items-center gap-3 text-tinta-media font-nunito text-sm" role="status" aria-live="polite">
+            <span class="font-alternate text-[1.6rem] font-bold text-morado leading-none">{{ primeraCarga() ? '–' : total() }}</span>
+            <span class="text-cuerpo font-bold text-tinta-media mt-1">{{ total() === 1 ? 'resultado encontrado' : 'resultados encontrados' }}</span>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <app-filtro-desplegable
+              rotulo="Ordenar"
+              etiqueta="Ordenar el catálogo"
+              identificador="orden-del-catalogo"
+              [opciones]="opcionesDeOrden"
+              [elegida]="ordenElegido()"
+              (cambiar)="setOrdenElegido($event)" />
+
+            <div class="w-px h-6 bg-slate-200"></div>
+
+            <!-- Switch View Mode -->
+            <div class="flex gap-1 bg-niebla p-1 rounded-xl">
+              <button
+                type="button"
+                (click)="setViewMode('mosaic')"
+                [attr.aria-pressed]="viewMode() === 'mosaic'"
+                [class]="'w-9 h-8 flex items-center justify-center rounded-lg transition-all cursor-pointer ' + (viewMode() === 'mosaic' ? 'bg-morado text-white' : 'text-tinta-media hover:text-morado hover:bg-white')"
+                aria-label="Vista mosaico" title="Vista mosaico"
+              >
+                <svg lucideLayoutGrid size="15" aria-hidden="true"></svg>
+              </button>
+              <button
+                type="button"
+                (click)="setViewMode('table')"
+                [attr.aria-pressed]="viewMode() === 'table'"
+                [class]="'w-9 h-8 flex items-center justify-center rounded-lg transition-all cursor-pointer ' + (viewMode() === 'table' ? 'bg-morado text-white' : 'text-tinta-media hover:text-morado hover:bg-white')"
+                aria-label="Vista lista" title="Vista lista"
+              >
+                <svg lucideList size="15" aria-hidden="true"></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filtros aplicados, con «X» para quitar cada uno y «Limpiar filtros» a la vista (A-1): pieza común de L2. -->
+        <app-filtros-activos class="pt-4 pb-5" data-testid="filtros-aplicados" [filtros]="filtrosAplicados()"
+          (quitar)="quitarFiltro($event)" (limpiar)="limpiarFiltrosAplicados()" />
+
+        @if (obraInexistente(); as codigo) {
+          <div role="status" data-testid="obra-inexistente" class="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-filete bg-niebla px-5 py-4">
+            <p class="text-sm leading-relaxed text-titulo"><strong>La obra {{ codigo }} no existe</strong> o ya no está en el catálogo. Mientras tanto, puedes explorar las demás.</p>
+            <a routerLink="/editorial" queryParamsHandling="preserve" class="tipo-enlace shrink-0 text-morado hover:underline">Cerrar aviso</a>
+          </div>
+        }
+
+        @if (error(); as motivo) {
+          <app-estado-de-lista tipo="error" [titulo]="'editorial_error' | textoWeb" [detalle]="motivo">
+            <button type="button" (click)="loadCatalog()" appBoton="secundaria" tamano="comodo">{{ 'editorial_reintentar' | textoWeb }}</button>
+          </app-estado-de-lista>
+        } @else if (primeraCarga()) {
+          <!-- CARGAR ES MOSTRAR LA FORMA DE LO QUE VIENE (decisión 117): el esqueleto reserva la medida de las tarjetas o de las filas. -->
+          <app-esqueleto [variante]="viewMode() === 'table' ? 'fila' : 'tarjeta'" [cantidad]="viewMode() === 'table' ? 8 : 6" [etiqueta]="'editorial_cargando' | textoWeb" />
+        } @else if (total() === 0) {
+          <app-estado-de-lista tipo="vacio" [titulo]="'editorial_sin_resultados_titulo' | textoWeb"
+            [detalle]="'editorial_sin_resultados_texto' | textoWeb">
+            <button type="button" (click)="limpiarTodo()" appBoton="principal" tamano="comodo">{{ 'editorial_limpiar_filtros' | textoWeb }}</button>
+          </app-estado-de-lista>
+        } @else if (viewMode() === 'mosaic') {
+          <!-- MOSAIC VIEW -->
+          <div>
+            <div class="grid auto-rows-fr grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6">
+              @for (item of paginatedResources(); track item.id) {
+                <!--
+                  UI-F: la tarjeta ya no es `role="button"` con `tabindex`: llevaba dentro el enlace «Ver detalle» (un control
+                  dentro de otro, `nested-interactive`) y por teclado se llega al detalle por ese enlace. El clic sobre la
+                  tarjeta sigue siendo un atajo para quien usa ratón.
+                -->
+                <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+                <div
+                  [appRevelar]="($index % 6) * 70"
+                  (mouseenter)="hoveredId.set(item.id)"
+                  (mouseleave)="hoveredId.set(null)"
+                  (click)="setSelectedMosaicItem(item)"
+                  class="group relative flex flex-col h-full cursor-pointer overflow-hidden bg-white rounded-2xl border border-filete transition-colors duration-300 hover:border-morado/40"
+>
+                  <div class="relative h-44 shrink-0 overflow-hidden bg-niebla">
+                    <div class="absolute inset-0 bg-niebla flex items-center justify-center">
+                      <svg lucideLibrary class="text-tinta-suave" size="48"></svg>
+                    </div>
+                    @if (item.thumbnail) {
+                      <img width="640" height="360" loading="lazy" decoding="async"
+                        [src]="item.thumbnail"
+                        class="absolute inset-0 w-full h-full object-cover object-top transition-all duration-1000 group-hover:scale-105 z-10 bg-transparent"
+                        [alt]="item.title"
+                        (error)="$any($event.target).style.opacity = '0';"
+                      />
+                    }
+                    
+                    <div [class]="'absolute inset-0 transition-all duration-500 ' + (hoveredId() === item.id ? 'bg-morado' : 'bg-morado/0')"></div>
+
+                    <!--
+                      LA ETIQUETA SE ACOTA A DOS LINEAS, Y LO COMPLETO VA EN EL `title`. El diseño
+                      supuso una etiqueta corta —«DVD», «Libro y CD»— y el acervo real trae tipos que
+                      la fuente escribió como frase: el mas largo mide 144 caracteres —«Estuche
+                      incluye 4 impresos, partitura general cada una identificada en la portada con
+                      un color…»— y tapaba la portada entera, que en un catálogo ES el dato. No se
+                      cambia el diseño: se le impide a un valor desbordarlo.
+                    -->
+                    <div class="absolute top-5 right-5 left-12 flex justify-end z-30">
+                      <span [title]="item.publicationType || etiquetaDeMaterial(item)"
+                            class="block truncate font-alternate text-xs font-bold leading-tight bg-verde-claro text-morado-vivo px-3 py-1.5 rounded-xl text-right max-w-full">
+                        {{ etiquetaDeMaterial(item) }}
+                      </span>
+                    </div>
+
+                    <div [class]="'absolute inset-0 p-5 flex flex-col justify-center items-center text-center bg-morado transition-all duration-500 ' + (hoveredId() === item.id ? 'opacity-100' : 'opacity-0')">
+                      <p class="tipo-pequeno text-white line-clamp-7 break-words">
+                        {{ item.summary || item.coverText || 'Consulta la ficha detallada para ver los metadatos de este recurso recurso.' }}
+                      </p>
+                    </div>
+
+                    <div [class]="'absolute bottom-6 left-8 right-8 flex justify-end items-center text-white/85 gap-4 transition-opacity duration-300 ' + (hoveredId() === item.id ? 'opacity-0' : 'opacity-100')">
+                      <span class="text-xs font-bold tracking-[0.08em] shrink-0">{{ item.year || 'Sin fecha' }}</span>
+                    </div>
+                  </div>
+
+                  <div class="relative flex flex-col flex-1 bg-white p-6">
+                    <div class="space-y-3 mb-4">
+                      <span class="tipo-etiqueta inline-block text-morado">{{ item.section || 'Acervo' }}</span>
+                      <h2 class="tipo-titulo-lista tipo-titulo-lista--medio text-titulo text-balance group-hover:text-morado transition-colors line-clamp-3" [attr.title]="item.title">{{ item.title }}</h2>
+                      <!--
+                        EL SUBTITULO EN LA TARJETA, Y NO SOLO EN LA FICHA. Lo pidió el dueño del
+                        proyecto: «Acento dice solo Acento, y es Acento, arreglos para banda-escuela,
+                        volumen I». Con nueve series en el acervo hay tarjetas literalmente
+                        idénticas —PNMC-ED-012 y PNMC-ED-013 se llaman las dos «Acento»—, y el
+                        subtítulo es lo único que las distingue antes de abrirlas.
+                      -->
+                      @if (item.subtitle || item.volume) {
+                        <p class="tipo-cuerpo text-tinta-media line-clamp-2">
+                          {{ item.subtitle }}@if (item.subtitle && item.volume) {<span> · </span>}{{ item.volume }}
+                        </p>
+                      }
+                      <div class="flex items-start gap-2 pt-1">
+                        <svg lucideUserCircle2 size="18" class="text-tinta-suave shrink-0 mt-1" aria-hidden="true"></svg>
+                        <p class="tipo-cuerpo font-bold text-titulo line-clamp-2">
+                          <!--
+                            «SIN AUTORIA REGISTRADA» Y NO UN HUECO. Cuarenta y cuatro de cada cien
+                            fichas del acervo traen créditos sin ninguno marcado como principal, y
+                            el adaptador ahora cae hacia los que hay; si aun así no hubiera ninguno,
+                            un icono de persona seguido de nada se lee como un fallo de carga.
+                          -->
+                          {{ item.displayAuthor || 'Sin autoría registrada' }}
+                        </p>
+                      </div>
+                      <!--
+                        UNA DESCRIPCION BREVE, TAMBIEN PEDIDA. El resumen solo se veía al pasar el
+                        ratón por encima de la portada, que en una pantalla táctil no ocurre nunca.
+                      -->
+                      @if (item.summary || item.coverText) {
+                        <p class="tipo-cuerpo text-tinta-media line-clamp-4">
+                          {{ item.summary || item.coverText }}
+                        </p>
+                      }
+                    </div>
+                    <div class="mt-auto pt-4 border-t border-filete flex items-center justify-between gap-4">
+                      <div class="flex min-w-0 flex-1 gap-2 overflow-hidden whitespace-nowrap">
+                        @for (keyword of (item.keywords || []).slice(0, 2); track keyword) {
+                          <span class="truncate tipo-pequeno font-semibold text-tinta-media" [attr.title]="'#' + keyword">#{{ keyword }}</span>
+                        }
+                      </div>
+                      <!-- Un enlace de verdad: la ficha tiene dirección y se puede abrir en otra pestaña. -->
+                      <a
+                        [routerLink]="['/editorial', item.id]"
+                        queryParamsHandling="preserve"
+                        (click)="$event.stopPropagation()"
+                        class="enlace-revela tipo-enlace shrink-0 text-morado no-underline cursor-pointer"
+                      >
+                        {{ 'editorial_ver_detalle' | textoWeb }}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        } @else {
+          <!-- LISTA (E-4, E-5): los encabezados quedan pegados a la barra de resultados y se pulsan para ordenar. -->
+          <div class="overflow-x-auto" [attr.aria-busy]="cargando()">
+            <table class="w-full text-left border-collapse">
+              <caption class="sr-only">Catálogo editorial: {{ total() }} resultados. Pulsa un encabezado para ordenar.</caption>
+              <thead>
+                <tr class="border-b border-filete text-tinta-media text-cuerpo font-bold">
+                  @for (columna of columnas; track columna.campo) {
+                    <th scope="col" [attr.aria-sort]="ariaSort(columna.campo)"
+                      [class]="'px-4 py-3 ' + columna.clase + (columna.campo === 'titulo' ? '' : ' text-center')">
+                      <button type="button" (click)="ordenarPor(columna)"
+                        [attr.data-ordenar]="columna.campo"
+                        [title]="'Ordenar por ' + columna.etiqueta.toLowerCase()"
+                        [class]="'inline-flex items-center gap-1.5 rounded-md px-1 -mx-1 py-1 font-bold cursor-pointer foco-simus hover:text-morado ' + (ariaSort(columna.campo) !== 'none' ? 'text-morado' : '')">
+                        {{ columna.etiqueta }}
+                        @switch (ariaSort(columna.campo)) {
+                          @case ('ascending') { <svg lucideArrowUp size="14" aria-hidden="true"></svg> }
+                          @case ('descending') { <svg lucideArrowDown size="14" aria-hidden="true"></svg> }
+                          @default { <svg lucideArrowUpDown size="14" class="text-tinta-suave" aria-hidden="true"></svg> }
+                        }
+                      </button>
+                    </th>
+                  }
+                  <th scope="col" class="px-3 py-3 w-14"><span class="sr-only">{{ 'editorial_ver_ficha' | textoWeb }}</span></th>
+                </tr>
+              </thead>
+              <tbody [class]="cargando() ? 'opacity-60 transition-opacity' : 'transition-opacity'">
+                @for (item of paginatedResources(); track item.id) {
+                  @let isExpanded = expandedId() === item.id;
+                  @let categoryLabel = item.category || item.section;
+
+                  <tr
+                    [id]="'resource-row-' + item.id"
+                    (click)="toggleExpandedId(item.id)"
+                    [class]="'group cursor-pointer transition-colors duration-300 border-b border-filete ' + (isExpanded ? 'bg-niebla' : 'bg-white hover:bg-niebla')"
+                  >
+                    <td class="px-4 py-4">
+                      <div class="flex items-center gap-5">
+                        <div class="w-12 h-16 rounded-md overflow-hidden bg-niebla flex-shrink-0 relative border border-filete">
+                          <div class="absolute inset-0 bg-niebla flex items-center justify-center">
+                            <svg lucideLibrary size="18" class="text-tinta-suave"></svg>
+                          </div>
+                          @if (item.thumbnail) {
+                            <img width="640" height="360" loading="lazy" decoding="async"
+                              [src]="item.thumbnail"
+                              class="absolute inset-0 w-full h-full object-cover z-10 bg-transparent"
+                              alt=""
+                              (error)="$any($event.target).style.opacity = '0';"
+                            />
+                          }
+                        </div>
+                        <!--
+                          EL SUBTITULO TAMBIEN EN LA FILA, que es donde mas falta hacía. La tarjeta
+                          al menos trae portada; aquí, dos publicaciones tituladas «Acento» son dos
+                          filas idénticas, con la misma miniatura pequeña y la misma categoría. El
+                          subtítulo y el volumen son lo único que las separa sin abrirlas.
+                        -->
+                        <span class="min-w-0 space-y-1">
+                          <span [class]="'block font-nunito text-lectura font-semibold leading-snug transition-colors line-clamp-2 ' + (isExpanded ? 'text-morado' : 'text-titulo group-hover:text-morado')">{{ item.title }}</span>
+                          @if (item.subtitle || item.volume) {
+                            <span class="block font-nunito text-cuerpo text-tinta-media leading-snug line-clamp-1">
+                              {{ item.subtitle }}@if (item.subtitle && item.volume) {<span> · </span>}{{ item.volume }}
+                            </span>
+                          }
+                          <!-- El tipo de recurso filtra por sí mismo (E-5). -->
+                          <button type="button" data-filtrar="material" (click)="$event.stopPropagation(); setMaterial(idDeMaterial(item))"
+                            [title]="'Ver solo: ' + etiquetaDeMaterial(item)"
+                            class="inline-flex items-center rounded-md border border-filete px-2 py-0.5 text-dato font-bold text-tinta-media cursor-pointer foco-simus hover:border-verde hover:text-morado">
+                            {{ etiquetaDeMaterial(item) }}
+                          </button>
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-center">
+                      @if (categoryLabel) {
+                        <button type="button" data-filtrar="categoria" (click)="$event.stopPropagation(); filtrarPorCategoria(categoryLabel)"
+                          [title]="'Ver solo la categoría ' + categoryLabel"
+                          class="inline-flex max-w-[14rem] items-center justify-center rounded-lg bg-niebla px-3 py-1.5 text-center font-nunito text-cuerpo font-semibold leading-tight text-morado break-words cursor-pointer foco-simus hover:bg-filete">{{ categoryLabel }}</button>
+                      } @else {
+                        <span class="text-cuerpo text-tinta-media">{{ 'editorial_sin_categoria' | textoWeb }}</span>
+                      }
+                    </td>
+                    <td class="px-4 py-4 text-center">
+                      @let autoria = nombresDeAutoria(item);
+                      @if (autoria.nombres.length === 0) {
+                        <span class="text-cuerpo text-tinta-media">{{ 'editorial_sin_autoria' | textoWeb }}</span>
+                      } @else {
+                        <span class="flex flex-col items-center gap-0.5">
+                          @for (nombre of autoria.nombres; track nombre) {
+                            <button type="button" data-filtrar="autor" (click)="$event.stopPropagation(); filtrarPorAutor(nombre)"
+                              [title]="'Ver las obras de ' + nombre"
+                              class="text-cuerpo text-tinta-media font-medium text-center rounded-md cursor-pointer foco-simus hover:text-morado hover:underline">{{ nombre }}</button>
+                          }
+                          @if (autoria.resto) { <span class="text-cuerpo text-tinta-media">{{ autoria.resto }}</span> }
+                        </span>
+                      }
+                    </td>
+                    <td class="px-4 py-4 text-center">
+                      @if (esAnioSuelto(item.year)) {
+                        <button type="button" data-filtrar="anio" (click)="$event.stopPropagation(); filtrarPorAnio(item.year)"
+                          [title]="'Ver las obras de ' + item.year"
+                          class="text-cuerpo font-bold text-tinta-media rounded-md px-1 cursor-pointer foco-simus hover:text-morado hover:underline">{{ item.year }}</button>
+                      } @else {
+                        <span class="text-cuerpo font-bold text-tinta-media">{{ item.year || '—' }}</span>
+                      }
+                    </td>
+                    <td class="px-3 py-4 text-center">
+                      <button type="button" (click)="$event.stopPropagation(); toggleExpandedId(item.id)"
+                        [attr.aria-expanded]="isExpanded" [attr.aria-controls]="'ficha-de-' + item.id"
+                        [attr.aria-label]="(isExpanded ? 'Ocultar la ficha de ' : 'Ver la ficha de ') + item.title"
+                        class="inline-flex h-9 w-9 items-center justify-center rounded-md cursor-pointer foco-simus hover:bg-white">
+                        @if (isExpanded) {
+                          <svg lucideChevronUp size="18" class="text-morado" aria-hidden="true"></svg>
+                        } @else {
+                          <svg lucideChevronDown size="18" class="text-tinta-suave" aria-hidden="true"></svg>
+                        }
+                      </button>
+                    </td>
+                  </tr>
+
+                  <!-- Expanded details row -->
+                  @if (isExpanded) {
+                    <tr class="bg-transparent">
+                      <td colSpan="5" class="p-0" [id]="'ficha-de-' + item.id">
+                        <div class="px-4 py-1 bg-niebla border-x border-b border-filete mx-2 mb-3 rounded-b-2xl">
+                          <div class="bg-white/60 rounded-xl p-6 space-y-6">
+                            <!-- La misma ficha, en su variante de fila. Ver `FichaEditorialComponent`. -->
+                            <app-ficha-editorial [item]="item" variante="fila" (explorar)="explorarDesdeLaFicha($event)"></app-ficha-editorial>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="sr-only" role="status" aria-live="polite">{{ anuncioDeOrden() }}</p>
+        }
+
+        <!-- Paginación con selector de cuántas fichas por página (E-3). Siempre visible: sin él no se puede volver a elegir. -->
+        @if (!primeraCarga() && !error() && total() > 0) {
+          <div class="mt-12">
+            <app-paginacion-de-lista nombre="el catálogo" identificador="catalogo" [pagina]="currentPage()" [totalPaginas]="totalPages()"
+              [porPagina]="porPagina()" [cantidades]="cantidadesPorPagina"
+              (paginaCambiada)="irAPagina($event)" (porPaginaCambiado)="cambiarPorPagina($event)" />
+          </div>
+
+          <p class="mt-8 text-sm font-bold text-tinta-media" data-testid="resumen-del-catalogo">
+            Mostrando {{ desde() }}–{{ hasta() }} de {{ total() }} {{ total() === 1 ? 'registro' : 'registros' }} del catálogo editorial
+            @if (facetas() && total() !== facetas()!.totalAcervo) { (el acervo tiene {{ facetas()!.totalAcervo }}) }
+          </p>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal Overlay (For Mosaic View) -->
+  @if (selectedMosaicItem()) {
+    <!--
+      EL CLIC SIN TECLADO SE SILENCIA AQUI Y SOLO AQUI, con motivo. Es el patrón de «cerrar al
+      pulsar fuera» sobre un `<dialog>` nativo, que YA trae su salida por teclado: la tecla de
+      escape dispara `(cancel)`, que es el manejador de la línea de arriba. Añadir un `keydown` al
+      fondo del diálogo no daría accesibilidad, daría una segunda forma de cerrar que compite con
+      la del navegador.
+    -->
+    <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+    <dialog
+      #mosaicDetailDialog
+      (cancel)="closeMosaicDetail($event)"
+      (click)="onMosaicDialogClick($event)"
+      class="mosaic-detail-dialog fixed inset-0 z-(--z-dialogo) m-0 h-dvh w-screen max-h-none max-w-none items-start sm:items-center justify-center overflow-y-auto overscroll-contain border-0 bg-morado/80 p-4 sm:p-6 lg:p-8 backdrop-blur-sm transition-opacity"
+    >
+      <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+      <div 
+        (click)="$event.stopPropagation()"
+        class="relative bg-niebla w-full max-w-6xl max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)] lg:max-h-[calc(100dvh-4rem)] min-h-0 rounded-2xl overflow-hidden flex flex-col"
+      >
+        <div class="absolute top-6 right-6 z-20">
+          <button 
+            type="button"
+            (click)="closeMosaicDetail()"
+            aria-label="Cerrar la ficha" title="Cerrar la ficha"
+            class="p-2 bg-white hover:bg-niebla text-tinta-media hover:text-morado rounded-full transition-colors cursor-pointer border-0"
+          >
+            <svg lucideX size="20" aria-hidden="true"></svg>
+          </button>
+        </div>
+        
+        <!--
+          `overscroll-contain` PARA QUE LA PAGINA DE DETRAS NO SE MUEVA. Al llegar al final de la
+          ficha, el navegador pasa el desplazamiento al contenedor de atrás —encadenamiento— y el
+          catálogo se iba solo: quien cerraba la ficha aparecía en otro sitio del listado. El criterio es este: «cuando se acaba el scroll de la ficha empieza a explorarse lo de
+          atrás, y debería mantenerse estático». Va en los DOS contenedores que desplazan —el
+          diálogo y su cuerpo— porque cualquiera de los dos encadena por su cuenta.
+        -->
+        <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6 lg:p-10 hide-scrollbar">
+            <!--
+              LA FICHA, UNA SOLA VEZ. Aquí vivía la segunda de las dos copias casi idénticas que
+              el diseño aprobado escribe de la ficha —ésta, 167 líneas; la de la fila desplegada,
+              165—. Dos copias divergen: el paréntesis suelto de React que se veía en pantalla
+              existía SOLO en ésta, y lo mismo habría pasado con cualquier campo nuevo. Ver
+              `FichaEditorialComponent`, donde lo único que cambia entre las dos es la variante.
+            -->
+            <app-ficha-editorial [item]="selectedMosaicItem()!" variante="dialogo" (explorar)="explorarDesdeLaFicha($event)"></app-ficha-editorial>
+        </div>
+      </div>
+    </dialog>
+  }
+</div>

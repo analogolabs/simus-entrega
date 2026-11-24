@@ -1,0 +1,314 @@
+<!--
+  La ficha de un espacio para música en vivo en el panel: alta y edición en la misma pantalla.
+
+  UNA SOLA PANTALLA PARA DOS RESPONSABLES —una organización o el propio responsable independiente—; la
+  ruta decide a dónde se vuelve. Lo que se puede hacer depende del estado, y solo se ofrece lo que
+  aplica: no hay botones apagados sin explicación.
+-->
+<div class="space-y-6 vista-de-proceso pb-10">
+  @if (cargando()) {
+    <p role="status" class="py-10 text-center text-sm text-slate-500">Abriendo el espacio…</p>
+  } @else if (noEncontrado()) {
+    <p role="alert" class="border border-red-200 rounded-lg bg-red-50 p-4 text-sm text-red-800">{{ error() || 'No encontramos ese espacio.' }}</p>
+    <a [routerLink]="rutaDeLaLista()" class="text-dato font-bold text-verde-texto no-underline hover:underline">Volver a los espacios</a>
+  } @else {
+    <header class="border-b border-slate-200 pb-6">
+      <nav aria-label="Ubicación dentro de Gestión" class="flex flex-wrap items-center gap-1.5 text-dato font-bold">
+        <a [routerLink]="rutaDeLaLista()" class="text-slate-500 no-underline transition hover:text-morado">Espacios para música en vivo</a>
+        <span aria-hidden="true" class="text-slate-300">/</span>
+        <span class="text-morado">{{ esNuevo() ? 'Registrar un espacio' : espacio()!.nombre }}</span>
+      </nav>
+
+      <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div class="min-w-0">
+          <h1>
+            {{ esNuevo() ? 'Registrar un espacio para música en vivo' : espacio()!.nombre }}
+          </h1>
+          @if (esNuevo()) {
+            <p class="mt-2 max-w-2xl text-cuerpo leading-relaxed text-prosa">
+              Cuéntanos qué hace tu espacio. Lo guardamos como borrador: lo completas cuando puedas y lo envías a revisión cuando esté listo.
+            </p>
+          } @else {
+            <p class="mt-2 text-sm text-slate-600">
+              {{ esPersona() ? 'Espacio de tu cuenta' : 'Espacio de ' + (espacio()!.organizacionNombre || 'tu organización') }}
+              @if (espacio()!.fechaActualizacion) { · actualizado {{ espacio()!.fechaActualizacion | fecha }} }
+            </p>
+          }
+        </div>
+        @if (!esNuevo()) {
+          <app-indicador-de-estado
+            [etiqueta]="etiquetaDeEstado(estado())"
+            [tono]="tonoDelEstado(estado())"
+            [matiz]="matizDelEstado(estado())"
+            [conTexto]="true"></app-indicador-de-estado>
+        }
+      </div>
+    </header>
+
+    <!-- Lo que dijo el PNMC, en el estado que lo origina. -->
+    @if (espacio(); as t) {
+      @if (t.estadoRegistro === 'ajustes_solicitados' && t.motivoDeLaDecision) {
+        <section role="status" data-testid="ajustes-del-espacio" class="border border-amber-200 rounded-lg bg-amber-50 p-4 text-sm text-amber-900">
+          <p class="font-bold">El PNMC pidió ajustes</p>
+          <p class="mt-1 whitespace-pre-line">{{ t.motivoDeLaDecision }}</p>
+          <p class="mt-2">Corrige lo que se pide, guarda y vuelve a enviarlo a revisión.</p>
+        </section>
+      }
+      @if (t.estadoRegistro === 'rechazado') {
+        <section role="status" class="border border-red-200 rounded-lg bg-red-50 p-4 text-sm text-red-900">
+          <p class="font-bold">El PNMC rechazó este espacio</p>
+          @if (t.motivoDeLaDecision) { <p class="mt-1 whitespace-pre-line">{{ t.motivoDeLaDecision }}</p> }
+        </section>
+      }
+      @if (t.estadoRegistro === 'en_revision') {
+        <section role="status" class="border border-sky-200 rounded-lg bg-sky-50 p-4 text-sm text-sky-900">
+          El espacio está en revisión{{ t.fechaEnvioARevision ? ' desde ' : '' }}{{ t.fechaEnvioARevision | fecha }}. No se edita hasta que el PNMC decida; si te equivocaste, puedes retirarlo de la revisión.
+        </section>
+      }
+      @if (t.estadoRegistro === 'archivado' && t.motivoDeLaDecision) {
+        <section role="status" class="border border-slate-200 rounded-lg bg-slate-50 p-4 text-sm text-slate-700">
+          <p class="font-bold">Retirado del ecosistema</p>
+          <p class="mt-1 whitespace-pre-line">{{ t.motivoDeLaDecision }}</p>
+        </section>
+      }
+    }
+
+    @if (error()) { <p role="alert" data-testid="error-del-espacio" class="border border-red-200 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{ error() }}</p> }
+    @if (aviso()) { <p role="status" data-testid="aviso-del-espacio" class="border border-emerald-200 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">{{ aviso() }}</p> }
+
+    <form (ngSubmit)="guardar()" class="space-y-8" novalidate>
+      <fieldset [disabled]="!editable()" class="space-y-8">
+        <!-- ───────────── Qué es el espacio ───────────── -->
+        <section aria-labelledby="espacio-que-es" class="space-y-4">
+          <h3 id="espacio-que-es" class="border-t border-filete pt-4 rotulo-de-seccion">El espacio</h3>
+
+          <div>
+            <label for="espacio-nombre" class="block text-sm font-bold text-slate-900">Nombre del espacio</label>
+            <input id="espacio-nombre" name="nombre" type="text" maxlength="240" required
+                   [ngModel]="formulario().nombre" (ngModelChange)="cambiar('nombre', $event)"
+                   [attr.aria-invalid]="erroresDeCampo()['nombre'] ? true : null"
+                   class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+            @if (erroresDeCampo()['nombre']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['nombre'] }}</p> }
+          </div>
+
+          <div>
+            <label for="espacio-descripcion" class="block text-sm font-bold text-slate-900">Descripción</label>
+            <p class="text-xs text-slate-500">Cómo es el espacio, qué música se presenta y qué lo distingue.</p>
+            <textarea id="espacio-descripcion" name="descripcion" rows="4" maxlength="4000"
+                      [ngModel]="formulario().descripcion" (ngModelChange)="cambiar('descripcion', $event)"
+                      [attr.aria-invalid]="erroresDeCampo()['descripcion'] ? true : null"
+                      class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm"></textarea>
+            @if (erroresDeCampo()['descripcion']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['descripcion'] }}</p> }
+          </div>
+
+          <app-foto-del-proceso idBase="espacio-foto"
+            [fotoUrl]="formulario().fotoUrl" [fotoAlt]="formulario().fotoAlt"
+            [errorExterno]="erroresDeCampo()['archivoFotoId']"
+            [subir]="subirFoto" (cambio)="cambiarFoto($event)" />
+
+          <fieldset>
+            <legend class="text-sm font-bold text-slate-900">Cómo es el lugar</legend>
+            <div class="mt-2 grid gap-2 sm:grid-cols-3">
+              @for (m of ambientes; track m.valor) {
+                <label class="flex cursor-pointer items-start gap-2 rounded-lg border border-slate-200 p-3 text-sm has-[:checked]:border-morado has-[:checked]:bg-slate-50">
+                  <input type="radio" name="ambiente" [value]="m.valor" [checked]="formulario().ambiente === m.valor"
+                         (change)="cambiar('ambiente', m.valor)" class="mt-1" />
+                  <span><span class="font-bold">{{ m.etiqueta }}</span><span class="block text-xs text-slate-500">{{ m.ayuda }}</span></span>
+                </label>
+              }
+            </div>
+            @if (erroresDeCampo()['ambiente']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['ambiente'] }}</p> }
+          </fieldset>
+
+          <div class="sm:max-w-xs">
+            <label for="espacio-aforo" class="block text-sm font-bold text-slate-900">Aforo máximo</label>
+            <p class="text-xs text-slate-500">Cuántas personas caben. Es opcional.</p>
+            <input id="espacio-aforo" name="aforo" type="number" min="1" max="200000" inputmode="numeric"
+                   [ngModel]="formulario().aforoMaximo" (ngModelChange)="cambiar('aforoMaximo', $event === null ? '' : '' + $event)"
+                   [attr.aria-invalid]="erroresDeCampo()['aforoMaximo'] ? true : null"
+                   class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+            @if (erroresDeCampo()['aforoMaximo']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['aforoMaximo'] }}</p> }
+          </div>
+
+          <div class="sm:max-w-sm">
+            <app-campo-de-seleccion tamano="comodo" etiqueta="Accesibilidad para personas con movilidad reducida" identificador="espacio-accesible" ayuda="Si no lo sabes, déjalo en «No consta»: así el portal no afirma que no es accesible." name="accesible" [ngModel]="formulario().esAccesible" (ngModelChange)="cambiar('esAccesible', $event)">
+              <option value="">No consta</option>
+              <option value="si">Es accesible</option>
+              <option value="no">No es accesible</option>
+            </app-campo-de-seleccion>
+          </div>
+        </section>
+
+        <!-- ───────────── Qué ofrece y con qué trabaja ───────────── -->
+        <section aria-labelledby="espacio-oficio" class="space-y-4">
+          <h3 id="espacio-oficio" class="border-t border-filete pt-4 rotulo-de-seccion">Qué tipo de lugar es y con qué cuenta</h3>
+
+          <fieldset>
+            <legend class="text-sm font-bold text-slate-900">Tipos de espacio</legend>
+            <p class="text-xs text-slate-500">Elige al menos uno: el lugar puede ser, por ejemplo, un bar y a la vez una casa de cultura.</p>
+            <div class="mt-2 grid gap-2 sm:grid-cols-2">
+              @for (f of catalogos().tipos; track f.id) {
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" [name]="'tipo-' + f.id" [checked]="formulario().tiposIds.includes(f.id)" (change)="alternar('tiposIds', f.id)" />
+                  <span>{{ f.nombre }}</span>
+                </label>
+              }
+            </div>
+            @if (erroresDeCampo()['tiposIds']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['tiposIds'] }}</p> }
+          </fieldset>
+
+          <fieldset>
+            <legend class="text-sm font-bold text-slate-900">Equipamiento del espacio</legend>
+            <p class="text-xs text-slate-500">Es opcional: marca lo que el lugar tiene para quienes se presentan.</p>
+            <div class="mt-2 grid gap-2 sm:grid-cols-2">
+              @for (s of catalogos().equipamiento; track s.id) {
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" [name]="'equipamiento-' + s.id" [checked]="formulario().equipamientoIds.includes(s.id)" (change)="alternar('equipamientoIds', s.id)" />
+                  <span>{{ s.nombre }}</span>
+                </label>
+              }
+            </div>
+            @if (erroresDeCampo()['equipamientoIds']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['equipamientoIds'] }}</p> }
+          </fieldset>
+
+          <app-selector-multiple
+            etiqueta="Prácticas musicales" ayuda="(opcional)" identificador="ficha-espacio-practicas"
+            [opciones]="catalogos().practicasMusicales" [seleccionados]="formulario().practicasMusicalesIds"
+            textoVacio="Sin prácticas registradas"
+            (alternar)="alternar('practicasMusicalesIds', $event)" />
+
+          <div>
+            <label for="espacio-horario" class="block text-sm font-bold text-slate-900">Horario y programación</label>
+            <p class="text-xs text-slate-500">Días y horas de funcionamiento, qué música se programa y condiciones de acceso. Es texto libre.</p>
+            <textarea id="espacio-horario" name="horario" rows="3" maxlength="2000"
+                      [ngModel]="formulario().horarioYProgramacion" (ngModelChange)="cambiar('horarioYProgramacion', $event)"
+                      class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm"></textarea>
+          </div>
+        </section>
+
+        <!-- ───────────── Dónde está ───────────── -->
+        <section aria-labelledby="espacio-donde" class="space-y-4">
+          <h3 id="espacio-donde" class="border-t border-filete pt-4 rotulo-de-seccion">Dónde está</h3>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="espacio-departamento" class="block text-sm font-bold text-slate-900">Departamento</label>
+              <app-filtro-desplegable completo tamano="comodo" etiqueta="Departamento" idDelControl="espacio-departamento" name="departamento" [ngModel]="formulario().codigoDepartamento" (ngModelChange)="elegirDepartamento($event)" [opciones]="departamentos() | opcionesDesde:'codigo':'nombre':'Elige un departamento'" />
+              @if (erroresDeCampo()['codigoDepartamento']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['codigoDepartamento'] }}</p> }
+            </div>
+            <div>
+              <label for="espacio-municipio" class="block text-sm font-bold text-slate-900">Municipio</label>
+              <app-filtro-desplegable completo tamano="comodo" etiqueta="Municipio" idDelControl="espacio-municipio" name="municipio" [ngModel]="formulario().codigoMunicipio" (ngModelChange)="cambiar('codigoMunicipio', $event)" [opciones]="municipios() | opcionesDesde:'municipalityCode':'municipalityName':'Elige un municipio'" />
+              @if (erroresDeCampo()['nivelCobertura']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['nivelCobertura'] }}</p> }
+            </div>
+          </div>
+
+          <div>
+            <label for="espacio-lugar" class="block text-sm font-bold text-slate-900">Dirección</label>
+            <p class="text-xs text-slate-500">Calle, carrera, barrio o una referencia del lugar. Hace falta para enviarlo a revisión.</p>
+            <input id="espacio-lugar" name="lugar" type="text" maxlength="300"
+                   [ngModel]="formulario().lugarEspecifico" (ngModelChange)="cambiar('lugarEspecifico', $event)"
+                   [attr.aria-invalid]="erroresDeCampo()['lugarEspecifico'] ? true : null"
+                   class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+            @if (erroresDeCampo()['lugarEspecifico']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['lugarEspecifico'] }}</p> }
+          </div>
+        </section>
+
+        <!-- ───────────── Cómo contactarlo ───────────── -->
+        <section aria-labelledby="espacio-contacto" class="space-y-4">
+          <h3 id="espacio-contacto" class="border-t border-filete pt-4 rotulo-de-seccion">Cómo contactarlo</h3>
+          <p class="text-xs text-slate-500">Es lo que se verá en el portal. Para enviarlo a revisión basta con una forma de contacto.</p>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="espacio-correo" class="block text-sm font-bold text-slate-900">Correo del espacio</label>
+              <input id="espacio-correo" name="correo" type="email" maxlength="180"
+                     [ngModel]="formulario().correoEspacio" (ngModelChange)="cambiar('correoEspacio', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['correoEspacio']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['correoEspacio'] }}</p> }
+            </div>
+            <div>
+              <label for="espacio-telefono" class="block text-sm font-bold text-slate-900">Teléfono</label>
+              <input id="espacio-telefono" name="telefono" type="tel" maxlength="80"
+                     [ngModel]="formulario().telefonoEspacio" (ngModelChange)="cambiar('telefonoEspacio', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['telefonoEspacio']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['telefonoEspacio'] }}</p> }
+            </div>
+            <div>
+              <label for="espacio-sitio" class="block text-sm font-bold text-slate-900">Sitio web</label>
+              <input id="espacio-sitio" name="sitio" type="url" maxlength="500"
+                     [ngModel]="formulario().sitioWebEspacio" (ngModelChange)="cambiar('sitioWebEspacio', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['sitioWebEspacio']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['sitioWebEspacio'] }}</p> }
+            </div>
+            <div>
+              <label for="espacio-instagram" class="block text-sm font-bold text-slate-900">Instagram</label>
+              <input id="espacio-instagram" name="instagram" type="text" maxlength="500"
+                     [ngModel]="formulario().instagramEspacio" (ngModelChange)="cambiar('instagramEspacio', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['instagramEspacio']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['instagramEspacio'] }}</p> }
+            </div>
+            <div>
+              <label for="espacio-facebook" class="block text-sm font-bold text-slate-900">Facebook</label>
+              <input id="espacio-facebook" name="facebook" type="text" maxlength="500"
+                     [ngModel]="formulario().facebookEspacio" (ngModelChange)="cambiar('facebookEspacio', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['facebookEspacio']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['facebookEspacio'] }}</p> }
+            </div>
+            <div>
+              <label for="espacio-enlace" class="block text-sm font-bold text-slate-900">Otro enlace</label>
+              <input id="espacio-enlace" name="enlace" type="url" maxlength="500"
+                     [ngModel]="formulario().otroEnlaceEspacio" (ngModelChange)="cambiar('otroEnlaceEspacio', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['otroEnlaceEspacio']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['otroEnlaceEspacio'] }}</p> }
+            </div>
+          </div>
+        </section>
+      </fieldset>
+
+      <!-- ───────────── Propuesta de cambio de fondo sobre lo publicado (PROP, decisión 122) ───────────── -->
+      <app-propuesta-del-proceso
+        [propuesta]="propuesta()" [cambiosSinGuardar]="cambiosSinGuardar()" [puedeAdministrar]="puedeAdministrar()"
+        [ocupado]="guardando() || guardandoLaPropuesta()" [(motivo)]="motivoDeLaPropuesta"
+        (enviar)="enviarLaPropuesta()" (abandonar)="abandonarLaPropuesta()" />
+
+      <!-- ───────────── Acciones, según el estado ───────────── -->
+      <section aria-label="Acciones del espacio" class="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-6">
+        @if (editable()) {
+          <button type="submit" data-testid="guardar-espacio" [disabled]="guardando()"
+                  appBoton="confirmar">
+            {{ esNuevo() ? 'Guardar como borrador' : 'Guardar cambios' }}
+          </button>
+        }
+        @if (!esNuevo() && puedeAdministrar()) {
+          @if (estado() === 'borrador' || estado() === 'ajustes_solicitados') {
+            <button type="button" data-testid="enviar-espacio" (click)="enviar()" [disabled]="guardando()"
+                    appBoton="secundaria">
+              {{ estado() === 'ajustes_solicitados' ? 'Reenviar a revisión' : 'Enviar a revisión' }}
+            </button>
+            <button type="button" data-testid="abandonar-espacio" (click)="retirarDeRevisionOAbandonar()" [disabled]="guardando()"
+                    class="text-sm font-bold text-red-700 underline-offset-2 hover:underline disabled:opacity-60">
+              Abandonar el borrador
+            </button>
+          }
+          @if (estado() === 'en_revision') {
+            <button type="button" data-testid="retirar-de-revision" (click)="retirarDeRevisionOAbandonar()" [disabled]="guardando()"
+                    appBoton="secundaria">
+              Retirar de la revisión
+            </button>
+          }
+          @if (estado() === 'publicado') {
+            <button type="button" data-testid="retirar-espacio" (click)="retirarPublicado()" [disabled]="guardando()"
+                    class="text-sm font-bold text-red-700 underline-offset-2 hover:underline disabled:opacity-60">
+              Retirar del ecosistema
+            </button>
+          }
+        }
+        @if (!esNuevo() && !puedeAdministrar()) {
+          <p class="text-sm text-slate-500">Enviar a revisión y retirar lo hace quien administra la organización.</p>
+        }
+        <a [routerLink]="rutaDeLaLista()" class="ml-auto text-sm font-bold text-verde-texto no-underline hover:underline">Volver a mis espacios</a>
+      </section>
+    </form>
+  }
+</div>

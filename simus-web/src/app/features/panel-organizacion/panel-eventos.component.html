@@ -1,0 +1,271 @@
+<section class="pb-8" aria-labelledby="eventos-titulo">
+  <app-encabezado-de-pantalla idDelTitulo="eventos-titulo" titulo="Eventos"
+    descripcion="Anuncia en la Agenda los conciertos, talleres y convocatorias de tus procesos. Cada evento se enmarca en uno de ellos."
+    [contador]="contador()">
+    @if (puedeAnunciar() && esAdministradora()) {
+      <button type="button" (click)="nuevo()" appBoton="principal">Anunciar evento</button>
+    }
+  </app-encabezado-de-pantalla>
+
+  @if (!esAdministradora()) {
+    <app-aviso-solo-administracion texto="Puedes consultar los eventos de la organización. Anunciarlos, editarlos y enviarlos a revisión lo hace quien la administra. Tu rol es editor." />
+  }
+
+  @if (error()) {
+    <app-estado-de-lista tipo="error" [titulo]="error() ?? ''" />
+  }
+  @if (aviso()) {
+    <p role="status" class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">{{ aviso() }}</p>
+  }
+
+  @if (cargando()) {
+    <app-esqueleto variante="fila" [cantidad]="2" etiqueta="Consultando tus eventos…" />
+  } @else if (!puedeAnunciar()) {
+    <!--
+      NINGUN EVENTO SIN PROCESO. La pantalla no ofrece el formulario y explica por qué: dejar
+      escribir un evento entero para rechazarlo al guardar, por algo que se sabía desde el
+      principio, es la peor forma de contarlo.
+    -->
+    <div class="border-y border-slate-200 py-5">
+      <h2>Todavía no puedes anunciar eventos</h2>
+      <p class="mt-2 max-w-2xl text-cuerpo leading-relaxed text-prosa">
+        Un evento se anuncia siempre <b>dentro de un proceso tuyo</b>: un festival, un mercado, un taller de
+        lutería, un espacio para música en vivo o una red. Para poder publicar aquí necesitas al menos un
+        proceso registrado y <b>publicado</b> en el ecosistema. Si ya registraste uno y sigue en revisión,
+        aparecerá en cuanto el PNMC lo publique.
+      </p>
+      <a [routerLink]="enlaceDeProcesos"
+        class="mt-4 inline-flex rounded-lg border border-morado px-4 py-2.5 text-sm font-bold text-morado no-underline transition hover:bg-violet-50">Ir a mis procesos</a>
+    </div>
+  } @else if (eventos().length === 0) {
+    <p class="t-texto border-y border-slate-200 py-5">
+      Todavía no has anunciado ningún evento. El primero que envíes quedará en revisión hasta que el
+      PNMC lo publique.
+    </p>
+  } @else {
+    <app-barra-de-herramientas etiqueta="Filtrar y ordenar los eventos" etiquetaDelTipo="Tipo de proceso de los eventos" controla="lista-de-eventos"
+      [tipos]="opcionesDeTipo()" [tipo]="tipoFiltro()" (elegirTipo)="tipoFiltro.set($event)"
+      [mostradas]="eventosVisibles().length" [total]="eventos().length" [hayFiltros]="hayFiltros()" (quitarFiltros)="quitarFiltros()">
+      <app-buscador-de-lista identificador="eventos-buscar" etiqueta="Buscar eventos"
+        marcador="Título, lugar o proceso" [valor]="busqueda()" [espera]="0" (cambiar)="busqueda.set($event)" />
+      <app-filtro-desplegable rotulo="Estado" etiqueta="Filtrar los eventos por estado" identificador="eventos-estado"
+        [opciones]="opcionesDeEstado()" [elegida]="estadoFiltro()" (cambiar)="estadoFiltro.set($event)" />
+      <app-orden-de-lista etiquetaDeLaLista="los eventos" identificador="orden-de-eventos" [columnas]="criteriosDeOrden" [orden]="orden()" (cambiar)="orden.set($event)" />
+    </app-barra-de-herramientas>
+    <div id="lista-de-eventos" role="tabpanel" [attr.aria-labelledby]="'pestana-' + tipoFiltro()" class="mt-3">
+    @if (!eventosVisibles().length) {
+      <app-estado-de-lista titulo="No hay eventos que coincidan." detalle="Cambia la búsqueda, el tipo o el estado elegidos.">
+        @if (hayFiltros()) { <button type="button" appBoton="secundaria" (click)="quitarFiltros()">Quitar filtros</button> }
+      </app-estado-de-lista>
+    } @else {
+      <!--
+        LA TABLA DE GESTIÓN (P3): Nombre, Estado, Fecha y «Acciones». Las acciones salen del modelo por estado (D3-13): lo que no
+        se puede hacer ahora se ofrece apagado y con su motivo escrito en el menú; cancelar y retirar piden su motivo en el
+        diálogo común antes de ejecutarse. «Ver historial» despliega el historial (#124) debajo de la fila.
+      -->
+      <app-tabla-de-gestion etiqueta="Eventos de la organización" [columnas]="columnas" [filas]="eventosVisibles()" [clave]="claveDeEvento"
+        [orden]="orden()" (ordenar)="orden.set(alternarOrden(orden(), $event))"
+        [acciones]="accionesDeFila" [descripcionDeFila]="tituloDe" (accion)="alElegirAccion($event.fila, $event.accion)"
+        [detalleAbierto]="historialAbierto()">
+        <ng-template appCelda="nombre" let-evento>
+          <b class="tg-titulo !text-valor">{{ evento.titulo }}</b>
+          <p class="tg-detalle">{{ [evento.procesoNombre, evento.lugar].filter(textoNoVacio).join(' · ') || '—' }}</p>
+          @if (etiquetaDelProceso(evento.procesoTipo)) { <span class="sr-only" data-testid="tipo-de-proceso">{{ etiquetaDelProceso(evento.procesoTipo) }}</span> }
+        </ng-template>
+        <ng-template appCelda="estado" let-evento>
+          <app-indicador-de-estado
+            [etiqueta]="evento.estadoEtiqueta"
+            [tono]="tonoDelEstado(estadoVisible(evento))"
+            [matiz]="matizDelEstado(estadoVisible(evento))"
+            [conTexto]="true"></app-indicador-de-estado>
+          @if (evento.cancelado) {
+            <!-- CANCELADO SIGUE EN LA AGENDA, CON EL MOTIVO QUE ESCRIBIÓ LA ORGANIZACIÓN (D3-13). -->
+            <small class="mt-1 block text-xs text-slate-700" data-testid="motivo-de-la-cancelacion">
+              Sigue en la agenda, marcado como cancelado{{ evento.motivoCancelacion ? ': ' + evento.motivoCancelacion : '' }}
+            </small>
+          }
+          @if (evento.estado === 'borrador' && evento.ultimoMotivo) {
+            <small class="mt-1 block text-xs text-amber-900">El PNMC lo devolvió: {{ evento.ultimoMotivo }}</small>
+          }
+          @if (evento.estado === 'rechazado' && evento.ultimoMotivo) {
+            <small class="mt-1 block text-xs text-red-800" data-testid="motivo-del-rechazo-del-evento">El PNMC lo rechazó: {{ evento.ultimoMotivo }}</small>
+          }
+        </ng-template>
+        <ng-template appCelda="fecha" let-evento>
+          <span class="tabular-nums">{{ evento.fechaInicio | fecha }}</span>
+          @if (evento.fechaFin && evento.fechaFin !== evento.fechaInicio) {
+            <span class="tg-aparte">hasta {{ evento.fechaFin | fecha }}</span>
+          }
+        </ng-template>
+        <!-- EL HISTORIAL, DEBAJO DE SU FILA: estado, fecha, quién y por qué. -->
+        <ng-template appDetalleDeFila let-evento>
+          <div [id]="'historial-evento-' + evento.id" class="px-4 py-4">
+            <p class="mb-3 text-xs font-bold text-slate-500">Historial de «{{ evento.titulo }}»</p>
+            <app-historial-de-estados [entradas]="historial()" [cargando]="cargandoHistorial()" />
+          </div>
+        </ng-template>
+      </app-tabla-de-gestion>
+    }
+    </div>
+  }
+
+  @if (formulario(); as f) {
+    <app-dialogo-de-formulario
+      [titulo]="tituloDelDialogo()"
+      [proposito]="propositoDelDialogo()"
+      [verbo]="verboDelDialogo()"
+      tono="confirmar"
+      [guardando]="guardando()"
+      [puedeGuardar]="loQueFalta().length === 0 && problemasDeFecha().length === 0"
+      identificador="anunciar-evento"
+      (guardar)="anunciar()"
+      (cerrar)="cerrar()">
+    <div class="grid gap-4">
+      <div class="block"><app-campo-de-seleccion tamano="comodo" etiqueta="Proceso en el que se enmarca" name="proceso" [ngModel]="f.procesoId" (ngModelChange)="campo('procesoId', $event)">
+          <option value="">Elige uno de tus procesos</option>
+          @for (proceso of procesos(); track proceso.id) {
+            <option [value]="claveDe(proceso)">
+              {{ proceso.tipoEtiqueta }} · {{ proceso.nombre }}@if (proceso.territorio) { ({{ proceso.territorio }}) }
+            </option>
+          }
+        </app-campo-de-seleccion>
+        <small class="campo__ayuda">Es obligatorio: un evento se anuncia siempre dentro de un proceso tuyo.</small>
+      </div>
+
+      <label class="block">
+        <span class="campo__rotulo">Título</span>
+        <input type="text" name="titulo" [ngModel]="f.titulo" (ngModelChange)="campo('titulo', $event)"
+          class="campo__control" />
+      </label>
+
+      <label class="block">
+        <span class="campo__rotulo">Descripción</span>
+        <textarea rows="3" name="descripcion" [ngModel]="f.descripcion" (ngModelChange)="campo('descripcion', $event)"
+          class="campo__control"></textarea>
+      </label>
+
+      @if (problemasDeFecha().length > 0) {
+        <ul class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900" role="alert">
+          @for (problema of problemasDeFecha(); track problema) { <li>{{ problema }}</li> }
+        </ul>
+      }
+
+      <!--
+        DOS COLUMNAS Y NO CUATRO (D3-17): en cuatro, cada campo de fecha medía lo justo para enseñar
+        «12/05/20…» y la persona no podía comprobar el año que escribía. Las fechas, de a dos; las
+        horas, debajo.
+      -->
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="block">
+          <span class="campo__rotulo">Empieza</span>
+          <input type="date" name="fechaInicio" [ngModel]="f.fechaInicio" (ngModelChange)="campo('fechaInicio', $event)"
+            class="campo__control" />
+        </label>
+        <label class="block">
+          <span class="campo__rotulo">Termina</span>
+          <input type="date" name="fechaFin" [ngModel]="f.fechaFin" (ngModelChange)="campo('fechaFin', $event)"
+            class="campo__control" />
+          <small class="campo__ayuda">Déjalo vacío si acaba el mismo día.</small>
+        </label>
+        <div>
+          <!-- «AGREGAR HORA», NO «¿TIENE HORA?»: una acción describe lo que va a pasar. -->
+          <label class="flex items-center gap-2">
+            <input type="checkbox" name="conHoraInicio" [ngModel]="f.conHoraInicio" (ngModelChange)="cambiarHoraDeInicio($event)" />
+            <span class="campo__rotulo">Agregar hora de inicio</span>
+          </label>
+          @if (f.conHoraInicio) {
+            <label class="mt-2 block">
+              <span class="sr-only">Hora de inicio</span>
+              <input type="time" name="horaInicio" [ngModel]="f.horaInicio" (ngModelChange)="campo('horaInicio', $event)"
+                class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-morado" />
+            </label>
+          }
+        </div>
+        <div>
+          <!-- La hora de fin no se ofrece antes que la de inicio: una sin la otra no significa nada. -->
+          @if (f.conHoraInicio) {
+            <label class="flex items-center gap-2">
+              <input type="checkbox" name="conHoraFin" [ngModel]="f.conHoraFin" (ngModelChange)="campo('conHoraFin', $event)" />
+              <span class="campo__rotulo">Agregar hora de fin</span>
+            </label>
+            @if (f.conHoraFin) {
+              <label class="mt-2 block">
+                <span class="sr-only">Hora de fin</span>
+                <input type="time" name="horaFin" [ngModel]="f.horaFin" (ngModelChange)="campo('horaFin', $event)"
+                  class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-morado" />
+              </label>
+            }
+          } @else {
+            <p class="text-dato leading-relaxed text-slate-400">La hora de fin se puede agregar en cuanto haya hora de inicio.</p>
+          }
+        </div>
+      </div>
+
+      <app-campo-de-seleccion tamano="comodo" etiqueta="Modalidad" name="modalidad" [ngModel]="f.modalidad" (ngModelChange)="campo('modalidad', $event)">
+          <option value="presencial">Presencial</option>
+          <option value="virtual">Virtual</option>
+          <option value="mixta">Mixta</option>
+        </app-campo-de-seleccion>
+
+      @if (f.modalidad === 'presencial' || f.modalidad === 'mixta') {
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="block">
+            <span class="campo__rotulo">Lugar</span>
+            <input type="text" name="lugar" [ngModel]="f.lugar" (ngModelChange)="campo('lugar', $event)"
+              class="campo__control" />
+          </label>
+          <div class="grid grid-cols-2 gap-3">
+            @if (procesoConTerritorio()) {
+              <!--
+                EL EVENTO HEREDA EL TERRITORIO DE SU PROCESO POR OMISIÓN, y la persona lo ve y puede
+                cambiarlo (D3-14): se dice de dónde viene el valor y cómo volver a él.
+              -->
+              <p class="col-span-2 text-dato leading-relaxed text-slate-600" data-testid="territorio-heredado">
+                @if (esElTerritorioDelProceso()) {
+                  Es el territorio de «{{ procesoElegido()?.nombre }}». Cámbialo si el evento ocurre en otro lugar.
+                } @else {
+                  Elegiste otro territorio.
+                  <button type="button" (click)="usarElTerritorioDelProceso()"
+                    class="font-bold text-morado underline">Volver al de «{{ procesoElegido()?.nombre }}»</button>
+                }
+              </p>
+            }
+            <div class="block">
+              <span class="campo__rotulo">Departamento</span>
+              <app-filtro-desplegable completo tamano="comodo" etiqueta="Departamento" name="departamento" [ngModel]="f.codigoDepartamento" (ngModelChange)="cambiarDepartamento($event)" [opciones]="territorios() | opcionesDesde:'codigo':'nombre':'Sin especificar':true" />
+            </div>
+            <div class="block">
+              <span class="campo__rotulo">Municipio</span>
+              <app-filtro-desplegable completo tamano="comodo" etiqueta="Municipio" name="municipio" [ngModel]="f.codigoMunicipio" (ngModelChange)="campo('codigoMunicipio', $event)" [deshabilitado]="municipiosDelDepartamento().length === 0" [opciones]="municipiosDelDepartamento() | opcionesDesde:'codigo':'nombre':'Todo el departamento'" />
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (f.modalidad === 'virtual' || f.modalidad === 'mixta') {
+        <label class="block">
+          <span class="campo__rotulo">Enlace</span>
+          <input type="url" name="url" [ngModel]="f.url" (ngModelChange)="campo('url', $event)"
+            class="campo__control" />
+        </label>
+      }
+    </div>
+
+      @if (puedeSerBorrador()) {
+        <label class="mt-4 flex items-start gap-2">
+          <input type="checkbox" name="borrador" [ngModel]="f.borrador" (ngModelChange)="campo('borrador', $event)" class="mt-1" />
+          <span>
+            <span class="campo__rotulo">Guardar como borrador</span>
+            <small class="campo__ayuda block">Solo lo verás {{ esDePersona ? 'tú' : 'tu organización' }}. Podrás enviarlo a revisión después.</small>
+          </span>
+        </label>
+      }
+
+      @if (loQueFalta().length > 0) {
+        <p class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-dato text-amber-900" role="status">
+          Falta {{ loQueFalta().join(', ') }}.
+        </p>
+      }
+    </app-dialogo-de-formulario>
+  }
+</section>

@@ -1,0 +1,280 @@
+<!--
+  MICROSITIO «CELEBRA LA MÚSICA» (P-4, L7). Cada edición pinta con sus colores (variables --cl-*); los datos salen de la
+  API. La programación y las noticias son las generales del portal filtradas por el proyecto de la edición.
+-->
+<div class="celebra tema-pnmc min-h-screen bg-white text-left" [style]="estilo()" data-testid="celebra-la-musica">
+  @if (cargandoEdiciones() || cargandoEdicion()) {
+    <div class="mx-auto max-w-7xl px-6 pb-16 pt-[96px] lg:px-8">
+      <app-esqueleto variante="encabezado" [etiqueta]="'celebra_cargando' | textoWeb" />
+      <div class="mt-10"><app-esqueleto variante="ficha" /></div>
+    </div>
+  } @else if (errorEdiciones() || errorEdicion()) {
+    <div class="mx-auto max-w-3xl px-6 pb-16 pt-[96px] lg:px-8">
+      <app-estado-de-lista tipo="error" [titulo]="'celebra_error_titulo' | textoWeb" [detalle]="errorEdiciones() || errorEdicion()">
+        <button type="button" class="foco-simus tipo-enlace cursor-pointer rounded-lg bg-morado px-4 py-2 text-white" (click)="cargarEdiciones()">{{ 'celebra_reintentar' | textoWeb }}</button>
+      </app-estado-de-lista>
+    </div>
+  } @else if (noExiste() || !edicion()) {
+    <div class="mx-auto max-w-3xl px-6 pb-16 pt-[96px] lg:px-8">
+      <app-estado-de-lista [titulo]="'celebra_no_disponible_titulo' | textoWeb"
+        [detalle]="'celebra_no_disponible_texto' | textoWeb">
+        <a routerLink="/pnmc" fragment="estrategias" class="foco-simus tipo-enlace text-morado">{{ 'celebra_volver' | textoWeb }}</a>
+      </app-estado-de-lista>
+    </div>
+  } @else {
+    @let e = edicion()!;
+    @if (vistaPrevia()) {
+      <p class="bg-amber-100 px-6 pb-2 pt-[84px] text-center text-cuerpo font-bold text-amber-900" role="status" data-testid="aviso-vista-previa">
+        Vista previa de la consola.@if (!e.publicada) { Esta edición no está publicada: el público todavía no la ve. } @else { Esta edición ya está publicada. }
+      </p>
+    }
+    <!-- ── Héroe de la edición: color oficial e ilustración ── -->
+    <header class="cl-heroe" [style.padding-top]="vistaPrevia() ? '0' : null">
+      <div class="cl-heroe__interior mx-auto max-w-7xl px-6 lg:px-8">
+        <nav aria-label="Volver">
+          <a routerLink="/pnmc" fragment="estrategias" class="foco-simus inline-flex min-h-[2.75rem] items-center gap-2 font-alternate text-sm font-bold no-underline" style="color: inherit">
+            <svg lucideArrowLeft [size]="14" aria-hidden="true"></svg>{{ 'celebra_volver' | textoWeb }}
+          </a>
+        </nav>
+        <div class="cl-heroe__rejilla">
+          <div class="min-w-0">
+            <h1 class="cl-titulo text-balance" data-testid="celebra-titulo">{{ e.nombre }}</h1>
+            @if (e.resumen) { <p class="tipo-cuerpo mt-5 max-w-xl">{{ e.resumen }}</p> }
+            @if (fechas()) { <p class="cl-fechas mt-5">{{ fechas() }}</p> }
+            <div class="mt-7 flex flex-wrap gap-3">
+              <a [routerLink]="[]" fragment="programacion" class="cl-boton cl-boton--solido foco-simus">{{ 'celebra_ver_destacados' | textoWeb }}</a>
+              <a [routerLink]="[]" fragment="caja-de-herramientas" class="cl-boton cl-boton--borde foco-simus">{{ 'celebra_herramientas_titulo' | textoWeb }}</a>
+            </div>
+          </div>
+          @if (e.imagenPortadaUrl) {
+            <div class="cl-heroe__arte">
+              <img [src]="e.imagenPortadaUrl" [alt]="'Imagen de ' + e.nombre" width="640" height="480" fetchpriority="high" class="cl-heroe__imagen" data-testid="portada" />
+            </div>
+          }
+        </div>
+      </div>
+      <div class="cl-ondas" aria-hidden="true"></div>
+    </header>
+
+    <!-- ── Navegación interna: pestañas pegadas bajo la barra principal (pieza compartida con El Plan) ── -->
+    <app-pestanas-de-seccion [secciones]="seccionesDeNav()" etiqueta="Secciones de la edición" />
+
+    <!-- ── Cifras ───────────────────────────────────────────────────────────── -->
+    @if (cifras().length) {
+      <section aria-label="La edición en cifras" class="cl-cifras">
+        <dl class="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-6 px-6 py-10 sm:grid-cols-3 lg:grid-cols-5 lg:px-8" data-testid="cifras">
+          @for (c of cifras(); track c.rotulo) {
+            <div>
+              <dd class="cl-cifra tabular-nums">@if (c.prefijo) { <span class="cl-cifra__prefijo">{{ c.prefijo }}</span> }{{ formatear(c.valor) }}</dd>
+              <dt class="tipo-etiqueta mt-1">{{ c.rotulo }}</dt>
+            </div>
+          }
+        </dl>
+      </section>
+    }
+
+    <div class="space-y-0">
+      <!-- ── La celebración ──────────────────────────────────────────────────── -->
+      <section id="celebracion" aria-labelledby="celebracion-titulo" class="cl-seccion scroll-mt-32">
+        <div class="mx-auto max-w-7xl px-6 lg:px-8">
+          <div class="grid gap-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-14">
+            <div class="min-w-0">
+              <p class="cl-sello cl-sello--tinta">{{ 'celebra_que_es_etiqueta' | textoWeb }}</p>
+              <h2 id="celebracion-titulo" class="cl-h2">{{ 'celebra_celebracion_titulo' | textoWeb }}</h2>
+              <div class="mt-6 max-w-3xl space-y-4">
+                @for (p of presentacionEnParrafos(); track $index) { <p class="tipo-cuerpo text-tinta-media">{{ p }}</p> }
+              </div>
+            </div>
+            @if (e.categorias.length) {
+              <div class="min-w-0" data-testid="categorias">
+                <h3 id="categorias-titulo" class="cl-h3">{{ 'celebra_categorias_titulo' | textoWeb }}</h3>
+                <ol class="cl-categorias mt-5" aria-labelledby="categorias-titulo">
+                  @for (c of e.categorias; track c.nombre; let i = $index) {
+                    <li class="cl-categoria">
+                      <span class="cl-numero" aria-hidden="true">{{ i + 1 }}</span>
+                      <div class="min-w-0">
+                        <p class="tipo-titulo-lista text-titulo">{{ c.nombre }}</p>
+                        @if (c.descripcion) { <p class="tipo-pequeno mt-1 text-tinta-media">{{ c.descripcion }}</p> }
+                      </div>
+                    </li>
+                  }
+                </ol>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Programación: la agenda general filtrada por la edición ─────────── -->
+      <section id="programacion" aria-labelledby="programacion-titulo" class="cl-seccion cl-seccion--tinte scroll-mt-32">
+        <div class="mx-auto max-w-7xl px-6 lg:px-8">
+          <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+            <div>
+              <p class="cl-sello cl-sello--tinta">{{ 'celebra_programacion_etiqueta' | textoWeb }}</p>
+              <h2 id="programacion-titulo" class="cl-h2">{{ 'celebra_programacion_titulo' | textoWeb }}</h2>
+            </div>
+          </div>
+          @if (cargandoEventos()) {
+            <app-esqueleto variante="fila" [cantidad]="4" [etiqueta]="'celebra_programacion_cargando' | textoWeb" />
+          } @else if (errorEventos()) {
+            <app-estado-de-lista tipo="error" [titulo]="'celebra_programacion_error' | textoWeb" [detalle]="errorEventos()">
+              <button type="button" class="foco-simus tipo-enlace cl-boton cl-boton--solido" (click)="cargarEventos()">{{ 'celebra_reintentar' | textoWeb }}</button>
+            </app-estado-de-lista>
+          } @else if (eventos().length === 0) {
+            <app-estado-de-lista [titulo]="'celebra_programacion_vacia_titulo' | textoWeb" [detalle]="'celebra_programacion_vacia_texto' | textoWeb" />
+          } @else {
+            <p class="tipo-pequeno mt-4 text-tinta-media" aria-live="polite">{{ totalEventos() }} {{ totalEventos() === 1 ? 'actividad' : 'actividades' }} en la agenda del PNMC.</p>
+            <ul class="mt-5 grid gap-4 md:grid-cols-2" data-testid="programacion">
+              @for (ev of eventos(); track ev.id) {
+                <li>
+                  <a [routerLink]="['/agenda', ev.slug]" class="cl-evento foco-simus group no-underline">
+                    <span class="cl-fecha" aria-hidden="true"><span class="cl-fecha__dia tabular-nums">{{ ev.d }}</span><span class="cl-fecha__mes">{{ ev.m }}</span></span>
+                    <span class="min-w-0">
+                      @if (ev.cat) { <span class="tipo-etiqueta block truncate cl-texto-principal">{{ ev.cat }}</span> }
+                      <span class="tipo-titulo-lista block text-titulo"><span class="sr-only">{{ ev.d }} {{ ev.m }}. </span>{{ ev.t }}</span>
+                      @if (ev.l) {
+                        <span class="tipo-pequeno mt-1 flex items-center gap-1 text-tinta-media"><svg lucideMapPin [size]="12" aria-hidden="true" class="shrink-0"></svg><span class="truncate">{{ ev.l }}</span></span>
+                      }
+                    </span>
+                  </a>
+                </li>
+              }
+            </ul>
+            <div class="mt-8">
+              <a routerLink="/agenda" [queryParams]="{ proyecto: e.proyectoCodigo }" class="cl-boton cl-boton--solido foco-simus" data-testid="ver-toda-la-agenda">
+                Ver toda la agenda {{ e.hashtag || e.nombre }}<svg lucideArrowRight [size]="16" aria-hidden="true" class="ml-2"></svg>
+              </a>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- ── Caja de herramientas ───────────────────────────────────────────── -->
+      <section id="caja-de-herramientas" aria-labelledby="caja-titulo" class="cl-seccion scroll-mt-32">
+        <div class="mx-auto max-w-7xl px-6 lg:px-8">
+          <p class="cl-sello cl-sello--tinta">{{ 'celebra_herramientas_etiqueta' | textoWeb }}</p>
+          <h2 id="caja-titulo" class="cl-h2">{{ 'celebra_herramientas_titulo' | textoWeb }}</h2>
+          @if (recursosDeCaja().length === 0) {
+            <app-estado-de-lista [titulo]="'celebra_documentos_vacio_titulo' | textoWeb" [detalle]="'celebra_documentos_vacio_texto' | textoWeb" />
+          } @else {
+            <div class="mt-6"><app-caja-de-herramientas-celebra [recursos]="recursosDeCaja()" /></div>
+          }
+        </div>
+      </section>
+
+      <!-- ── Preguntas frecuentes ───────────────────────────────────────────── -->
+      <section id="preguntas-frecuentes" aria-labelledby="faq-titulo" class="cl-seccion cl-seccion--tinte scroll-mt-32">
+        <div class="mx-auto max-w-7xl px-6 lg:px-8">
+          <p class="cl-sello cl-sello--tinta">{{ 'celebra_faq_etiqueta' | textoWeb }}</p>
+          <h2 id="faq-titulo" class="cl-h2">{{ 'celebra_faq_titulo' | textoWeb }}</h2>
+          @if (e.preguntas.length === 0) {
+            <app-estado-de-lista [titulo]="'celebra_faq_vacio' | textoWeb" />
+          } @else {
+            <div class="mt-6 max-w-3xl space-y-3" data-testid="preguntas">
+              @for (p of e.preguntas; track p.pregunta) {
+                <details class="cl-pregunta group">
+                  <summary class="foco-simus tipo-titulo-lista cl-pregunta__resumen">
+                    {{ p.pregunta }}<span aria-hidden="true" class="cl-mas transition-transform group-open:rotate-45">+</span>
+                  </summary>
+                  <p class="tipo-cuerpo px-5 pb-5 pr-10 text-tinta-media">{{ p.respuesta }}</p>
+                </details>
+              }
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- ── Noticias: las generales filtradas por la edición ───────────────── -->
+      <section id="noticias" aria-labelledby="noticias-titulo" class="cl-seccion scroll-mt-32">
+        <div class="mx-auto max-w-7xl px-6 lg:px-8">
+          <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+            <div>
+              <p class="cl-sello cl-sello--tinta">{{ 'celebra_noticias_etiqueta' | textoWeb }}</p>
+              <h2 id="noticias-titulo" class="cl-h2">{{ 'celebra_noticias_titulo' | textoWeb }}</h2>
+            </div>
+            <a routerLink="/noticias" class="foco-simus tipo-enlace cl-enlace">{{ 'celebra_noticias_todas' | textoWeb }}</a>
+          </div>
+          @if (cargandoNoticias()) {
+            <app-esqueleto variante="tarjeta" [cantidad]="3" [etiqueta]="'celebra_noticias_cargando' | textoWeb" />
+          } @else if (errorNoticias()) {
+            <app-estado-de-lista tipo="error" [titulo]="'celebra_noticias_error' | textoWeb" [detalle]="errorNoticias()">
+              <button type="button" class="foco-simus tipo-enlace cl-boton cl-boton--solido" (click)="cargarNoticias()">{{ 'celebra_reintentar' | textoWeb }}</button>
+            </app-estado-de-lista>
+          } @else if (noticiasDeLaEdicion().length === 0) {
+            <app-estado-de-lista [titulo]="'celebra_noticias_vacio_titulo' | textoWeb" [detalle]="'celebra_noticias_vacio_texto' | textoWeb" />
+          } @else {
+            <ul class="mt-6 grid gap-8 md:grid-cols-2 lg:grid-cols-3" data-testid="noticias-de-la-edicion">
+              @for (n of noticiasDeLaEdicion(); track n.id) {
+                <li class="cl-noticia group relative">
+                  <div class="aspect-[16/9] overflow-hidden rounded-2xl bg-niebla">
+                    <img [src]="imagenDe(n)" [alt]="n.alt" width="640" height="360" loading="lazy" class="h-full w-full object-cover" />
+                  </div>
+                  <p class="tipo-etiqueta mt-3 text-tinta-media">{{ n.date }}@if (n.category) { · {{ n.category }} }</p>
+                  <h3 class="tipo-titulo-lista mt-1 text-titulo">
+                    <a [routerLink]="['/noticias', n.slug]" class="foco-simus no-underline text-inherit after:absolute after:inset-0 after:content-['']">{{ n.title }}</a>
+                  </h3>
+                  <p class="tipo-pequeno mt-1 line-clamp-2 text-tinta-media">{{ n.desc }}</p>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </section>
+
+      <!-- ── Galería de piezas ──────────────────────────────────────────────── -->
+      <section id="galeria" aria-labelledby="galeria-titulo" class="cl-seccion cl-seccion--tinte scroll-mt-32">
+        <div class="mx-auto max-w-7xl px-6 lg:px-8">
+          <p class="cl-sello cl-sello--tinta">{{ 'celebra_galeria_etiqueta' | textoWeb }}</p>
+          <h2 id="galeria-titulo" class="cl-h2">{{ 'celebra_galeria_titulo' | textoWeb }}</h2>
+          @if (e.galeria.length === 0) {
+            <app-estado-de-lista [titulo]="'celebra_galeria_vacio' | textoWeb" />
+          } @else {
+            <div class="mt-6"><app-galeria-celebra [imagenes]="e.galeria" /></div>
+          }
+        </div>
+      </section>
+
+      <!-- ── Ediciones: el histórico de Celebra la música ──────────────────── -->
+      @if (ediciones().length > 1) {
+        <section id="ediciones" aria-labelledby="ediciones-titulo" class="cl-seccion scroll-mt-32" data-testid="selector-de-edicion">
+          <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-10 gap-y-6 px-6 lg:px-8">
+            <div class="min-w-0 max-w-2xl">
+              <p class="cl-sello cl-sello--tinta">{{ 'celebra_ediciones_etiqueta' | textoWeb }}</p>
+              <h2 id="ediciones-titulo" class="cl-h2">{{ 'celebra_ediciones_titulo' | textoWeb }}</h2>
+              <p class="tipo-cuerpo mt-4 text-tinta-media">{{ 'celebra_ediciones_texto' | textoWeb }}</p>
+            </div>
+            <ul class="cl-ediciones-botones" aria-label="Ediciones de Celebra la música" data-testid="botones-de-edicion">
+              @for (o of ediciones(); track o.anio) {
+                <li>
+                  <a [routerLink]="['/pnmc', 'estrategias', 'celebra-la-musica', o.anio]" queryParamsHandling="preserve"
+                    class="cl-boton cl-boton--solido cl-boton--edicion foco-simus" [attr.aria-current]="o.anio === e.anio ? 'page' : null"
+                    [attr.aria-label]="'Ver la edición ' + o.anio + (o.anio === e.anio ? ' (la que estás viendo)' : '')">{{ o.anio }}</a>
+                </li>
+              }
+            </ul>
+          </div>
+        </section>
+      }
+
+      <!-- ── Aliados ────────────────────────────────────────────────────────── -->
+      <section id="aliados" aria-labelledby="aliados-titulo" class="cl-creditos scroll-mt-32" [style.--cl-aliados-fondo]="fondoDeAliados()">
+        <div class="mx-auto max-w-7xl px-6 py-12 lg:px-8 lg:py-16">
+          <h2 id="aliados-titulo" class="cl-h2">{{ 'celebra_aliados_titulo' | textoWeb }}</h2>
+          @if (aliados().length === 0 && !aliadosComplemento()) {
+            <p class="tipo-cuerpo mt-6">{{ 'celebra_aliados_vacio' | textoWeb }}</p>
+          } @else {
+            <ul class="cl-aliados mt-6" data-testid="aliados">
+              @for (a of aliados(); track a.nombre) {
+                <li class="cl-aliado" [class.cl-aliado--sin-logo]="!a.logoUrl">
+                  @if (a.logoUrl) { <img [src]="a.logoUrl" [alt]="a.nombre" width="176" height="56" loading="lazy" class="cl-aliado__logo" /> }
+                  @else { <span class="cl-aliado__nombre">{{ a.nombre }}</span> }
+                </li>
+              }
+            </ul>
+            @if (aliadosComplemento()) { <p class="tipo-cuerpo mt-5">Y {{ aliadosComplemento() }}.</p> }
+          }
+        </div>
+      </section>
+    </div>
+  }
+</div>

@@ -1,0 +1,273 @@
+<section aria-labelledby="galeria-consola-titulo" data-testid="admin-galeria">
+  <!-- SIN ENCABEZADO PROPIO: la cabecera de página ya dice qué sección es y qué se hace aquí. -->
+  <h2 id="galeria-consola-titulo" class="sr-only">Galería</h2>
+
+  @if (!modelo()) {
+    <!-- ───────── Lista ───────── -->
+    <app-selector-segmentado [opciones]="pestanas()" [elegida]="pestana()" etiquetaDelGrupo="Contenido de la Galería" (elegir)="elegirPestana($event)"></app-selector-segmentado>
+
+    @if (aviso()) { <p class="mt-5 text-cuerpo font-semibold text-verde-texto" role="status" data-testid="galeria-aviso">{{ aviso() }}</p> }
+    @if (error()) { <p class="mt-5 text-cuerpo font-semibold text-amber-800" role="alert" data-testid="galeria-error">{{ error() }}</p> }
+
+    @if (pestana() === 'albumes') {
+      @if (cargando() && !cargado()) {
+        <app-estado-de-lista tipo="cargando" titulo="Consultando los álbumes…" />
+      } @else if (errorDeLista()) {
+        <app-estado-de-lista tipo="error" titulo="No fue posible consultar los álbumes" [detalle]="errorDeLista()">
+          <app-boton importancia="secundaria" tamano="menudo" (accion)="cargar()">Reintentar</app-boton>
+        </app-estado-de-lista>
+      } @else {
+        <app-barra-de-lista>
+          <app-buscador-de-lista identificador="galeria-buscar" etiqueta="Buscar álbumes" marcador="Buscar por título, lugar o descripción…" [valor]="busqueda()" (cambiar)="buscar($event)" />
+          <app-filtro-desplegable identificador="galeria-tipo" rotulo="Tipo" etiqueta="Mostrar por tipo de álbum" [opciones]="FILTRO_TIPO" [elegida]="filtroTipo()" (cambiar)="cambiarFiltro('tipo', $event)" />
+          <app-filtro-desplegable identificador="galeria-estado" rotulo="Estado" etiqueta="Mostrar por estado" [opciones]="FILTRO_ESTADO" [elegida]="filtroEstado()" (cambiar)="cambiarFiltro('estado', $event)" />
+          <ng-container extremo>
+            @if (hayFiltros()) { <app-boton importancia="terciaria" (accion)="limpiarFiltros()">Limpiar filtros</app-boton> }
+            <app-boton importancia="principal" identificador="galeria-nuevo" (accion)="nuevo()">Nuevo álbum</app-boton>
+          </ng-container>
+        </app-barra-de-lista>
+
+        <p class="mb-4 text-cuerpo text-slate-600">
+          Los álbumes de la Galería pública: de fotos, de videos o mixtos. {{ resumen().total }} en total, {{ resumen().publicados }} publicados{{
+            resumen().destacados > 0 ? ' y ' + resumen().destacados + ' en el carrusel «Destacados» del portal' : ' (sin ninguno marcado, el carrusel muestra los tres más recientes)' }}.
+          Las fotos salen del Banco de archivos.
+          @if (hayFiltros()) { <span class="font-semibold"> Con búsqueda o filtros no se puede reordenar.</span> }
+        </p>
+
+        @if (filtrados().length === 0) {
+          <app-estado-de-lista [titulo]="hayFiltros() ? 'Ningún álbum coincide' : 'Todavía no hay álbumes'"
+            [detalle]="hayFiltros() ? 'Cambia la búsqueda o los filtros.' : 'Crea el primero con «Nuevo álbum».'" />
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="tabla-administrativa" data-testid="galeria-albumes">
+              <thead class="tabla-administrativa__cabecera">
+                <tr>
+                  <th scope="col">Álbum</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col">Contenido</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Orden</th>
+                  <th scope="col" class="text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (f of filas(); track f.a.slug) {
+                  @let a = f.a;
+                  <tr class="tabla-administrativa__fila" [attr.data-album]="a.slug">
+                    <td>
+                      <span class="flex items-center gap-3">
+                        @if (a.portadaUrl) { <img [src]="a.portadaUrl" alt="" width="64" height="48" loading="lazy" class="h-12 w-16 shrink-0 rounded-md border border-slate-200 object-cover" /> }
+                        @else { <span class="flex h-12 w-16 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-slate-100 text-slate-400" aria-hidden="true"><svg lucidePlay [size]="18"></svg></span> }
+                        <span class="min-w-0">
+                          <span class="tabla-administrativa__principal">{{ a.titulo }}</span>
+                          <span class="tabla-administrativa__secundaria">{{ anio(a) }}{{ anio(a) && a.lugar ? ' · ' : '' }}{{ a.lugar }}</span>
+                          <span class="tabla-administrativa__secundaria font-mono">{{ a.slug }}</span>
+                        </span>
+                      </span>
+                    </td>
+                    <td>{{ tipoRotulado(a.tipo) }}</td>
+                    <td>{{ conteo(a) }}</td>
+                    <td>
+                      <app-indicador-de-estado [etiqueta]="a.publicado ? 'Publicado' : 'Borrador'" [tono]="tonoDeEstado(a)" [conTexto]="true"></app-indicador-de-estado>
+                      @if (a.destacado) {
+                        <span class="tabla-administrativa__secundaria inline-flex items-center gap-1"><svg lucideStar [size]="12" aria-hidden="true"></svg>Destacado{{ a.publicado ? '' : ' (al publicarlo)' }}</span>
+                      }
+                    </td>
+                    <td>
+                      <span class="flex items-center gap-1">
+                        <app-boton importancia="terciaria" tamano="menudo" [deshabilitado]="f.primero || trabajando() || hayFiltros()" [etiqueta]="'Mover «' + a.titulo + '» arriba'" (accion)="mover(a, -1)"><svg lucideArrowUp [size]="14" aria-hidden="true"></svg></app-boton>
+                        <app-boton importancia="terciaria" tamano="menudo" [deshabilitado]="f.ultimo || trabajando() || hayFiltros()" [etiqueta]="'Mover «' + a.titulo + '» abajo'" (accion)="mover(a, 1)"><svg lucideArrowDown [size]="14" aria-hidden="true"></svg></app-boton>
+                      </span>
+                    </td>
+                    <td class="tabla-administrativa__acciones">
+                      <app-menu-de-acciones [acciones]="accionesDe(a)" [descripcion]="a.titulo" (elegida)="ejecutarAccion(a, $event)"></app-menu-de-acciones>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <app-paginacion-de-lista class="mt-6 block" nombre="los álbumes" identificador="galeria-paginacion" [pagina]="pagina()" [totalPaginas]="totalDePaginas()"
+            [porPagina]="porPagina()" [cantidades]="cantidades" rotuloPorPagina="Álbumes por página"
+            (paginaCambiada)="pagina.set($event)" (porPaginaCambiado)="cambiarPorPagina($event)" />
+        }
+        @if (cargandoAlbum()) { <app-estado-de-lista class="mt-4" tipo="cargando" titulo="Abriendo el álbum…" [denso]="true" /> }
+      }
+    } @else {
+      <!-- ───────── Sin álbum ───────── -->
+      <p class="mt-5 max-w-3xl text-cuerpo text-slate-600">
+        Fotos y videos que no pertenecen a ningún álbum. Cada uno lleva su propia marca «Visible en el portal» y se muestra en la pestaña «Sin álbum» de la Galería.
+        Se guardan todos de una vez: lo que quites de esta lista deja de existir (las fotos siguen en el Banco de archivos).
+      </p>
+      @if (cargandoSueltos() && !sueltosCargados()) {
+        <app-estado-de-lista class="mt-6" tipo="cargando" titulo="Consultando los ítems sin álbum…" />
+      } @else if (errorDeSueltos()) {
+        <app-estado-de-lista class="mt-6" tipo="error" titulo="No fue posible consultar los ítems" [detalle]="errorDeSueltos()">
+          <app-boton importancia="secundaria" tamano="menudo" (accion)="cargarSueltos()">Reintentar</app-boton>
+        </app-estado-de-lista>
+      } @else {
+        <div class="mt-6">
+          <app-admin-galeria-items prefijo="galeria-sueltos" [items]="sueltos()" [tipoDeAlbum]="null" [conPublicado]="true"
+            (itemsChange)="cambiarSueltos($event)" (aviso)="aviso.set($event)" />
+        </div>
+        @if (problemasDeSueltos().length) {
+          <ul class="mt-4 list-disc space-y-1 pl-5 text-cuerpo text-amber-900" data-testid="galeria-sueltos-problemas">
+            @for (p of problemasDeSueltos(); track p) { <li>{{ p }}</li> }
+          </ul>
+        }
+        <div class="mt-6 flex flex-wrap items-center gap-3">
+          <app-boton importancia="principal" identificador="galeria-sueltos-guardar" [ocupado]="guardandoSueltos()" [deshabilitado]="guardandoSueltos() || !sueltosSinGuardar() || problemasDeSueltos().length > 0" (accion)="guardarSueltos()">Guardar los ítems sin álbum</app-boton>
+          @if (sueltosSinGuardar()) { <span class="text-cuerpo font-bold text-amber-800">Cambios sin guardar</span> }
+        </div>
+      }
+    }
+
+    @if (eliminando(); as e) {
+      <app-dialogo-de-formulario titulo="Eliminar el álbum" verbo="Eliminar el álbum" tono="destructiva" [guardando]="trabajando()" [error]="errorAlEliminar()"
+        identificador="galeria-confirmar-eliminar" (guardar)="confirmarEliminar()" (cerrar)="eliminando.set(null)"
+        [proposito]="'Se elimina «' + e.titulo + '» con sus ' + (e.totalFotos + e.totalVideos) + ' ítems' + (e.publicado ? ' y deja de verse en el portal' : '') + '. No se puede deshacer. Las fotos no se borran: siguen en el Banco de archivos. Queda registrado en la auditoría.'">
+        <p class="text-cuerpo text-slate-700">Para conservarlo sin mostrarlo, mejor «Despublicar».</p>
+      </app-dialogo-de-formulario>
+    }
+  } @else {
+    @let m = modelo()!;
+    <!-- ───────── Editor de un álbum ───────── -->
+    <nav aria-label="Volver" class="mb-4">
+      <app-boton importancia="terciaria" tamano="menudo" identificador="galeria-volver" (accion)="volver()">← Volver a los álbumes</app-boton>
+    </nav>
+
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div class="min-w-0">
+        <h3 class="tipo-titulo text-titulo" data-testid="galeria-editor-titulo">{{ m.esNuevo ? 'Nuevo álbum' : m.titulo }}</h3>
+        <p class="mt-1 flex flex-wrap items-center gap-3 text-cuerpo text-slate-600">
+          <app-indicador-de-estado [etiqueta]="m.publicado ? 'Publicado' : 'Borrador'" [tono]="m.publicado ? 'logrado' : 'preliminar'" [conTexto]="true" />
+          @if (m.destacado) { <span>Destacado</span> }
+          @if (sinGuardar()) { <span class="font-bold text-amber-800">Cambios sin guardar</span> }
+        </p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        @if (!m.esNuevo) {
+          @if (m.publicado) {
+            <a class="foco-simus tipo-enlace mr-2 text-morado" [href]="rutaDelPortal(m.slug)" target="_blank" rel="noopener" data-testid="galeria-ver-en-el-portal">Ver en el portal<span class="sr-only"> (abre en una pestaña nueva)</span></a>
+            <app-boton importancia="secundaria" [deshabilitado]="guardando() || sinGuardar()" identificador="galeria-despublicar" (accion)="despublicar()">Despublicar</app-boton>
+          } @else {
+            <app-boton importancia="confirmar" [deshabilitado]="guardando() || sinGuardar() || problemas().length > 0" identificador="galeria-publicar" (accion)="publicar()">Publicar</app-boton>
+          }
+        }
+        <app-boton importancia="principal" [ocupado]="guardando()" [deshabilitado]="guardando()" identificador="galeria-guardar" (accion)="guardar()">{{ m.esNuevo ? 'Crear el álbum' : 'Guardar cambios' }}</app-boton>
+      </div>
+    </div>
+    @if (!m.esNuevo && sinGuardar()) { <p class="mt-2 text-dato text-slate-500">Guarda los cambios antes de publicar o despublicar.</p> }
+
+    @if (errorDelEditor()) { <p class="mt-4 text-cuerpo font-semibold text-rose-700" role="alert" data-testid="galeria-editor-error">{{ errorDelEditor() }}</p> }
+    @if (avisoDelEditor()) { <p class="mt-4 text-cuerpo font-semibold text-verde-texto" role="status" data-testid="galeria-editor-aviso">{{ avisoDelEditor() }}</p> }
+    @if (problemas().length) {
+      <ul class="mt-4 list-disc space-y-1 pl-5 text-cuerpo text-amber-900" data-testid="galeria-problemas">
+        @for (p of problemas(); track p) { <li>{{ p }}</li> }
+      </ul>
+    }
+
+    <div class="mt-8 space-y-10">
+      <!-- Datos del álbum -->
+      <fieldset class="space-y-4">
+        <legend class="tipo-titulo-lista text-titulo">Datos del álbum</legend>
+        <label class="block"><span class="campo__rotulo">Título</span>
+          <input name="galeriaTitulo" class="campo__control" [maxlength]="LARGOS.tituloDeAlbum" [ngModel]="m.titulo" (ngModelChange)="campo('titulo', $event)" data-testid="galeria-titulo" /></label>
+        @if (m.esNuevo) {
+          <label class="block"><span class="campo__rotulo">Dirección del álbum</span>
+            <input name="galeriaSlug" class="campo__control font-mono" maxlength="120" [ngModel]="m.slug" (ngModelChange)="escribirDireccion($event)" data-testid="galeria-slug" />
+            <span class="campo__ayuda">Sale del título; usa minúsculas, números y guiones. No se puede cambiar después: es la que lleva el enlace del álbum.</span></label>
+        } @else {
+          <p class="text-dato text-slate-500">Dirección: <span class="font-mono">/galeria/album/{{ m.slug }}</span></p>
+        }
+        <label class="block"><span class="campo__rotulo">Descripción</span>
+          <textarea name="galeriaDescripcion" rows="3" class="campo__control" [maxlength]="LARGOS.descripcionDeAlbum" [ngModel]="m.descripcion" (ngModelChange)="campo('descripcion', $event)"></textarea>
+          <span class="campo__ayuda">{{ cuenta(m.descripcion, LARGOS.descripcionDeAlbum) }}.</span></label>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <app-campo-de-seleccion tamano="normal" etiqueta="Tipo de álbum" identificador="galeria-tipo-album" name="galeriaTipo" [opciones]="OPCIONES_DE_TIPO"
+            ayuda="Un álbum de fotos no lleva videos y uno de videos no lleva fotos." [ngModel]="m.tipo" (ngModelChange)="campo('tipo', $event)" />
+          <label class="block"><span class="campo__rotulo">Año o fecha de referencia</span>
+            <input name="galeriaFecha" type="date" class="campo__control" [ngModel]="m.fechaReferencia" (ngModelChange)="campo('fechaReferencia', $event)" />
+            <span class="campo__ayuda">Ordena el álbum y se muestra como año o edición.</span></label>
+          <label class="block"><span class="campo__rotulo">Lugar (opcional)</span>
+            <input name="galeriaLugar" class="campo__control" [maxlength]="LARGOS.lugar" [ngModel]="m.lugar" (ngModelChange)="campo('lugar', $event)" /></label>
+        </div>
+        @if (m.tipo !== 'fotos') {
+          <label class="block"><span class="campo__rotulo">Lista de reproducción de origen (opcional)</span>
+            <input name="galeriaLista" class="campo__control" inputmode="url" placeholder="https://www.youtube.com/playlist?list=…" [ngModel]="m.listaOrigenUrl" (ngModelChange)="campo('listaOrigenUrl', $event)" data-testid="galeria-lista" />
+            <span class="campo__ayuda">Se muestra como «Ver la lista en YouTube». Solo enlaces https de YouTube.</span></label>
+        }
+        <label class="flex items-start gap-2 text-cuerpo">
+          <input type="checkbox" name="galeriaDestacado" class="mt-1 accent-morado" [ngModel]="m.destacado" (ngModelChange)="campo('destacado', $event)" data-testid="galeria-destacado" />
+          <span>Destacar en el portal: entra al carrusel «Destacados» de la Galería (solo se ve si el álbum está publicado). Sin ningún álbum marcado, el carrusel muestra los tres más recientes.</span>
+        </label>
+        <p class="text-dato text-slate-500">Posición en la lista: {{ m.orden }}. Se cambia con las flechas de la lista de álbumes.</p>
+      </fieldset>
+
+      <!-- Portada -->
+      <fieldset>
+        <legend class="tipo-titulo-lista text-titulo">Portada del álbum</legend>
+        <p class="campo__ayuda">Por omisión es la primera foto del álbum (o la miniatura de su primer video). Para elegir otra, pulsa «Usar como portada» en una foto de abajo.</p>
+        @if (portadaDeLaVista()) {
+          <div class="mt-3 flex flex-wrap items-start gap-4">
+            <img [src]="portadaDeLaVista()" alt="Portada actual del álbum" width="160" height="120" class="h-28 w-auto rounded-xl border border-slate-200 bg-white object-contain" />
+            @if (portadaElegida()) { <app-boton importancia="secundaria" tamano="menudo" (accion)="cambiarPortada(null)">Volver a la portada por omisión</app-boton> }
+          </div>
+        } @else {
+          <p class="mt-3 text-cuerpo text-slate-600">Todavía no hay imagen para la portada: añade una foto o la miniatura de un video.</p>
+        }
+      </fieldset>
+
+      <!-- Ítems -->
+      <fieldset>
+        <legend class="tipo-titulo-lista text-titulo">Fotos y videos</legend>
+        <p class="campo__ayuda">Cada foto lleva su texto alternativo (obligatorio) y su crédito. El orden de aquí es el del álbum en el portal.</p>
+        <div class="mt-3">
+          <app-admin-galeria-items prefijo="galeria-items" [items]="m.items" [tipoDeAlbum]="m.tipo" [portadaArchivoId]="m.portadaArchivoId"
+            (itemsChange)="cambiarItems($event)" (portadaChange)="cambiarPortada($event)" (listaDetectada)="listaDetectada($event)" (aviso)="avisoDelEditor.set($event)" />
+        </div>
+      </fieldset>
+
+      <!-- Vista previa -->
+      <section aria-labelledby="galeria-previa-titulo" data-testid="galeria-vista-previa">
+        <h3 id="galeria-previa-titulo" class="tipo-titulo-lista text-titulo">Vista previa en el portal</h3>
+        <p class="campo__ayuda">Así se verá la tarjeta del álbum y sus primeros ítems. {{ m.publicado ? 'El álbum está publicado.' : 'Es un borrador: no se ve en el portal hasta que lo publiques.' }}</p>
+        <div class="mt-4 grid gap-6 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
+          <article class="overflow-hidden rounded-xl border border-filete bg-white" data-testid="galeria-previa-tarjeta">
+            <div class="relative aspect-[4/3] bg-slate-100">
+              @if (portadaDeLaVista()) { <img [src]="portadaDeLaVista()" alt="" width="288" height="216" class="h-full w-full object-cover" /> }
+              @else { <span class="flex h-full w-full items-center justify-center text-slate-400" aria-hidden="true"><svg lucidePlay [size]="32"></svg></span> }
+              <span class="absolute left-2 top-2 rounded bg-white/90 px-2 py-0.5 text-dato font-bold text-morado">{{ tipoRotulado(m.tipo) }}</span>
+              @if (m.destacado) { <span class="absolute right-2 top-2 inline-flex items-center gap-1 rounded bg-amber-300 px-2 py-0.5 text-dato font-bold text-slate-900"><svg lucideStar [size]="12" aria-hidden="true"></svg>Destacado</span> }
+            </div>
+            <div class="p-4">
+              <p class="tipo-titulo-lista text-titulo">{{ m.titulo || 'Título del álbum' }}</p>
+              @if (subtituloDeLaVista()) { <p class="mt-1 text-dato text-slate-500">{{ subtituloDeLaVista() }}</p> }
+              @if (m.descripcion) { <p class="mt-2 line-clamp-3 text-cuerpo text-slate-600" data-recorte-intencional="La tarjeta del portal resume la descripción en tres líneas; completa se lee en el álbum.">{{ m.descripcion }}</p> }
+              <p class="mt-2 text-dato font-bold text-slate-700">{{ conteoDeLaVista() || 'Sin ítems' }}</p>
+            </div>
+          </article>
+          <div>
+            @if (muestrasDeLaVista().length === 0) {
+              <app-estado-de-lista [denso]="true" titulo="Sin ítems para mostrar" detalle="Añade fotos o videos y verás aquí cómo quedan en el mosaico." />
+            } @else {
+              <ul class="grid grid-cols-2 gap-2 sm:grid-cols-4" data-testid="galeria-previa-mosaico">
+                @for (i of muestrasDeLaVista(); track i.clave) {
+                  <li class="relative aspect-[4/3] overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                    @if (i.imagenUrl) { <img [src]="i.imagenUrl" [alt]="i.tipoItem === 'foto' ? i.textoAlternativo : 'Miniatura de ' + i.titulo" width="160" height="120" loading="lazy" class="h-full w-full object-cover" /> }
+                    @if (i.tipoItem === 'video') {
+                      <span class="absolute inset-0 flex items-center justify-center bg-black/25 text-white" aria-hidden="true"><svg lucidePlay [size]="26"></svg></span>
+                      <span class="absolute inset-x-0 bottom-0 truncate bg-black/55 px-2 py-1 text-dato font-semibold text-white" [attr.title]="i.titulo">{{ i.titulo || 'Video sin título' }}</span>
+                    }
+                  </li>
+                }
+              </ul>
+              @if (m.items.length > muestrasDeLaVista().length) { <p class="mt-2 text-dato text-slate-500">Y {{ m.items.length - muestrasDeLaVista().length }} más.</p> }
+            }
+            @if (enlaceDeLista(m)) { <p class="mt-3 text-dato text-slate-600">También se ofrecerá «Ver la lista en YouTube».</p> }
+          </div>
+        </div>
+      </section>
+    </div>
+  }
+</section>

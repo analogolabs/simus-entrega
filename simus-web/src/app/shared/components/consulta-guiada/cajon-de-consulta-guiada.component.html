@@ -1,0 +1,48 @@
+<!--
+  EL ASISTENTE, EN TODOS LOS ESPACIOS: UNA BURBUJA FLOTANTE Y UN PANEL DE CHAT ANCLADO ABAJO A LA DERECHA.
+  La burbuja es redonda, con icono y rótulo accesible «Asistente», respeta el área segura del teléfono, sube lo que mide la barra inferior
+  de la gestión (`--alto-barra-inferior`) y no se pinta donde estorba (mapa, agenda de citas, asistentes de alta, editores a pantalla
+  completa). Sigue en el documento con el panel abierto (hace de interruptor y es adonde vuelve el foco al cerrar); en teléfono, con el
+  panel a pantalla casi completa (en la gestión, sobre su barra superior, que es más alta que la del portal), queda oculta debajo. El panel NO es modal: no vela ni bloquea el fondo (ni la barra lateral), pero
+  lleva el foco al campo, cierra con Esc y devuelve el foco. Portal y Mi espacio de la persona usan el motor público; la consola y el
+  espacio de una organización, el suyo (la ruta `base` decide el ámbito y el servidor, los permisos).
+-->
+@if (!ocultarLanzador || abierto()) {
+  <button #burbuja type="button" (click)="abrir()" data-abrir-consulta-guiada [attr.data-abrir-pregunta]="publica ? '' : null"
+    [attr.aria-expanded]="abierto()"
+    aria-haspopup="dialog"
+    title="Asistente"
+    class="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px)+var(--alto-barra-inferior,0px))] right-[calc(1rem+env(safe-area-inset-right,0px))] z-(--z-flotante) flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-verde p-0 text-morado shadow-lg transition hover:bg-verde-claro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-2 sm:bottom-[calc(1.5rem+var(--alto-barra-inferior,0px))] sm:right-6 sm:h-14 sm:w-14"
+    [class.max-sm:invisible]="abierto()">
+    @if (abierto()) { <svg lucideX [size]="22" aria-hidden="true"></svg> } @else { <svg lucideMessageCircleQuestion [size]="24" aria-hidden="true"></svg> }
+    <span class="sr-only">Asistente</span>
+  </button>
+}
+
+@if (abierto()) {
+  <section #panel role="dialog" aria-modal="false" aria-labelledby="cajon-consulta-titulo"
+    appDialogo [dialogoBloqueaElFondo]="false" (cerrar)="cerrar()"
+    data-cajon-consulta-guiada
+    [class]="publica ? 'max-sm:top-[calc(var(--alto-barra-superior,72px)+0.5rem)]' : 'max-sm:top-[calc(env(safe-area-inset-top,0px)+0.5rem)]'"
+    class="fixed z-(--z-dialogo) flex flex-col overflow-hidden overscroll-contain border border-slate-200 bg-white shadow-2xl focus:outline-none
+           max-sm:inset-x-2 max-sm:bottom-[calc(0.5rem+env(safe-area-inset-bottom,0px))] max-sm:rounded-2xl
+           sm:bottom-[calc(6rem+env(safe-area-inset-bottom,0px)+var(--alto-barra-inferior,0px))] sm:right-6 sm:h-[min(42rem,calc(100dvh-var(--alto-barra-superior,72px)-8rem))] sm:w-[26rem] sm:rounded-2xl">
+    <div class="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-4 py-2.5">
+      <h2 id="cajon-consulta-titulo" class="flex items-center gap-2 font-alternate text-base font-bold text-morado">
+        {{ 'asistente_titulo_panel' | textoWeb }}
+        <!-- UN SOLO SELLO, junto al título: las cifras salen de los datos, no del modelo. -->
+        <svg lucideCircleCheck [size]="16" aria-hidden="true" class="text-verde-texto"></svg>
+        <span class="sr-only">{{ 'asistente_nota_verificada' | textoWeb }}</span>
+      </h2>
+      <button type="button" (click)="cerrar()" data-cerrar-consulta-guiada aria-label="Cerrar el Asistente"
+        appBoton="secundaria" tamano="comodo">
+        <svg lucideX [size]="16" aria-hidden="true"></svg>
+      </button>
+    </div>
+    @if (publica) {
+      <app-consulta-guiada-publica (navego)="cerrar()" />
+    } @else {
+      <app-consulta-guiada [base]="base" [contexto]="contexto" [saludo]="saludo" [limite]="limite" [conTitulo]="false" />
+    }
+  </section>
+}

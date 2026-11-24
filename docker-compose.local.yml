@@ -1,0 +1,67 @@
+name: simus-desarrollo-local
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    container_name: simus-desarrollo-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      # La contrasena local no tiene valor por defecto: incluso en desarrollo debe
+      # definirse fuera del repositorio, en el entorno o en el archivo .env ignorado.
+      MSSQL_SA_PASSWORD: "${SIMUS_LOCAL_SA_PASSWORD:?Defina SIMUS_LOCAL_SA_PASSWORD en el entorno o en .env}"
+    ports:
+      # Publicar sin IP expone el puerto en TODAS las interfaces (0.0.0.0 y [::]):
+      # cualquier equipo de la red local alcanzaba la base con la contrasena "sa" que
+      # esta unas lineas mas arriba. El API y el frontend ya viven en bucle local.
+      - "127.0.0.1:${SIMUS_LOCAL_SQL_PORT:-14344}:1433"
+    volumes:
+      - simus_desarrollo_sqlserver_data:/var/opt/mssql
+    healthcheck:
+      # Esta imagen no trae sqlcmd en todas sus variantes; una sonda SQL interna quedaba
+      # permanentemente en rojo aunque la base aceptara conexiones reales. Esta prueba
+      # verifica que el motor escucha. La disponibilidad autentica (SELECT 1 con la clave
+      # local) la comprueba siempre scripts/local/local-db-up.sh antes de permitir cualquier uso.
+      test:
+        - "CMD-SHELL"
+        - "/bin/bash -c 'echo > /dev/tcp/127.0.0.1/1433'"
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 25s
+
+  # Bandeja de correo SOLO LOCAL (demo y videos): recibe lo que la API envía por SMTP y lo muestra en una
+  # web. No entrega nada a nadie: todo se queda en este contenedor, en memoria (al recrearlo queda vacío).
+  # Se levanta con scripts/local/mailpit-local.sh; `up -d sqlserver` no lo arranca.
+  mailpit:
+    image: axllent/mailpit:v1.34.0
+    container_name: "${SIMUS_LOCAL_MAILPIT_CONTAINER:-simus-desarrollo-mailpit}"
+    ports:
+      - "127.0.0.1:${SIMUS_LOCAL_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${SIMUS_LOCAL_MAILPIT_WEB_PORT:-8025}:8025"
+    restart: unless-stopped
+
+  # MODELO de la consulta abierta: servicio PROPIO DEL PROYECTO (no depende del computador de nadie). Imagen multi-arquitectura
+  # fijada en infra/modelo/modelo.env; el modelo se descarga una vez a un volumen. Solo con el perfil «modelo» (lo usa
+  # scripts/local/modelo-local.sh); `up -d sqlserver` no lo arranca. Solo bucle local; en servidor, el mismo servicio sin publicar el puerto.
+  modelo:
+    image: "${SIMUS_MODELO_IMAGEN:-ollama/ollama:0.40.17}"
+    container_name: "${SIMUS_LOCAL_MODELO_CONTAINER:-simus-desarrollo-modelo}"
+    profiles: ["modelo"]
+    environment:
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_KEEP_ALIVE: "2h"
+    ports:
+      - "127.0.0.1:${SIMUS_LOCAL_MODELO_PORT:-11434}:11434"
+    volumes:
+      - simus_desarrollo_modelo:/root/.ollama
+    deploy:
+      resources:
+        limits:
+          cpus: "${SIMUS_LOCAL_MODELO_CPUS:-4}"
+          memory: "${SIMUS_LOCAL_MODELO_MEMORIA:-8g}"
+    restart: unless-stopped
+
+volumes:
+  simus_desarrollo_sqlserver_data:
+  simus_desarrollo_modelo:

@@ -1,0 +1,81 @@
+<!--
+  EL ALTO DE LA BARRA FIJA SE RESERVA ARRIBA (`pt-[calc(var(--alto-barra-superior)+2rem)]`), igual que en la página de
+  confirmación: la barra del portal es `fixed` y sin ese margen taparía el título de esta página anónima.
+-->
+<main id="contenido-principal" tabindex="-1"
+  class="min-h-[70vh] bg-morado-50 px-4 pb-16 pt-[calc(var(--alto-barra-superior)+2rem)] sm:px-6">
+  <div class="mx-auto w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-sm">
+    <div class="flex items-center bg-morado px-6 py-6 sm:px-8">
+      <img src="/assets/branding/logo-simus-blanco.png" width="380" height="135" class="h-10 w-auto" alt="SIMUS" />
+    </div>
+    <div aria-hidden="true" class="flex h-1">
+      <span class="flex-1 bg-rosa"></span><span class="flex-1 bg-morado-claro"></span><span class="flex-1 bg-rosa-claro"></span><span class="flex-1 bg-verde-claro"></span><span class="flex-1 bg-verde"></span>
+    </div>
+
+    <div class="px-6 py-8 sm:px-8">
+      @switch (paso()) {
+        @case ('cargando') {
+          <div role="status" aria-live="polite" data-testid="baja-boletin-cargando">
+            <p class="tipo-etiqueta text-verde-texto">{{ 'boletin_etiqueta' | textoWeb }}</p>
+            <h1 class="tipo-titulo mt-2 text-morado">{{ 'boletin_baja_cargando_titulo' | textoWeb }}</h1>
+            <p class="tipo-pequeno mt-3 text-tinta-media">{{ 'boletin_baja_cargando_texto' | textoWeb }}</p>
+          </div>
+        }
+        @case ('confirmar') {
+          <div data-testid="baja-boletin-confirmar">
+            <p class="tipo-etiqueta text-verde-texto">{{ 'boletin_etiqueta' | textoWeb }}</p>
+            <h1 class="tipo-titulo mt-2 text-morado">{{ 'boletin_baja_titulo' | textoWeb }}</h1>
+            <p class="tipo-pequeno mt-3 text-tinta-media">
+              El correo <b data-testid="baja-boletin-correo" class="text-morado">{{ correo() }}</b> {{ 'boletin_baja_texto' | textoWeb }}
+            </p>
+            <div class="mt-6 flex flex-wrap gap-3">
+              <button type="button" data-testid="baja-boletin-boton" (click)="darseDeBaja()" [disabled]="trabajando()"
+                appBoton="principal" tamano="comodo">{{ trabajando() ? ('boletin_baja_boton_trabajando' | textoWeb) : ('boletin_baja_boton' | textoWeb) }}</button>
+              <a routerLink="/" appBoton="secundaria" tamano="comodo" class="inline-flex">{{ 'boletin_baja_mantener' | textoWeb }}</a>
+            </div>
+          </div>
+        }
+        @case ('hecha') {
+          <div role="status" data-testid="baja-boletin-hecha">
+            <p class="tipo-etiqueta text-verde-texto">{{ 'boletin_etiqueta' | textoWeb }}</p>
+            <h1 class="tipo-titulo mt-2 text-morado">{{ yaEstabaDeBaja() ? ('boletin_baja_ya_titulo' | textoWeb) : ('boletin_baja_hecha_titulo' | textoWeb) }}</h1>
+            <p class="tipo-pequeno mt-3 text-tinta-media">
+              El correo <b data-testid="baja-boletin-correo" class="text-morado">{{ correo() }}</b> {{ 'boletin_baja_hecha_texto' | textoWeb }}
+            </p>
+            <div class="mt-6 flex flex-wrap gap-3">
+              <a routerLink="/" data-testid="baja-boletin-resuscribir" appBoton="principal" tamano="comodo" class="inline-flex">{{ 'boletin_baja_resuscribir' | textoWeb }}</a>
+              <a routerLink="/" appBoton="secundaria" tamano="comodo" class="inline-flex">{{ 'boletin_volver_inicio' | textoWeb }}</a>
+            </div>
+          </div>
+        }
+        @case ('fallo') {
+          <div data-testid="baja-boletin-fallo">
+            <p class="tipo-etiqueta text-verde-texto">{{ 'boletin_etiqueta' | textoWeb }}</p>
+            <h1 class="tipo-titulo mt-2 text-morado">{{ 'boletin_baja_fallo_titulo' | textoWeb }}</h1>
+            <p role="alert" data-testid="baja-boletin-error" class="tipo-pequeno mt-3 text-red-700">{{ error() }}</p>
+            <div class="mt-6 flex flex-wrap gap-3">
+              <button type="button" data-testid="baja-boletin-reintentar" (click)="consultar()"
+                appBoton="principal" tamano="comodo">{{ 'boletin_reintentar' | textoWeb }}</button>
+              <a routerLink="/" appBoton="secundaria" tamano="comodo" class="inline-flex">{{ 'boletin_volver_inicio' | textoWeb }}</a>
+            </div>
+          </div>
+        }
+        @default {
+          <div data-testid="baja-boletin-invalido">
+            <p class="tipo-etiqueta text-verde-texto">{{ 'boletin_etiqueta' | textoWeb }}</p>
+            <h1 class="tipo-titulo mt-2 text-morado">{{ 'boletin_enlace_invalido_titulo' | textoWeb }}</h1>
+            <p role="alert" class="tipo-pequeno mt-3 text-red-700">
+              {{ 'boletin_baja_invalido_texto' | textoWeb }}
+            </p>
+            <p class="tipo-pequeno mt-3 text-tinta-media">
+              {{ 'boletin_baja_invalido_ayuda' | textoWeb }}
+            </p>
+            <div class="mt-6">
+              <a routerLink="/" appBoton="secundaria" tamano="comodo" class="inline-flex">{{ 'boletin_volver_inicio' | textoWeb }}</a>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</main>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>SIMUS — Sistema de Información de la Música</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- SEO -->
+  <meta name="description" content="SIMUS reúne, organiza y hace consultable la información del ecosistema musical colombiano: festivales, mercados, territorios sonoros, prácticas musicales, mapa, editorial y actualidad.">
+  <meta name="theme-color" content="#4C2C54">
+  <link rel="canonical" href="https://pnmc.mincultura.gov.co/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="SIMUS — Sistema de Información de la Música">
+  <meta property="og:title" content="SIMUS — Sistema de Información de la Música">
+  <meta property="og:description" content="SIMUS reúne, organiza y hace consultable la información del ecosistema musical colombiano: festivales, mercados, territorios sonoros, prácticas musicales, mapa, editorial y actualidad.">
+  <meta property="og:locale" content="es_CO">
+  <meta property="og:url" content="https://pnmc.mincultura.gov.co/">
+  <meta property="og:image" content="/assets/branding/pnmc-blanco.png">
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SIMUS — Sistema de Información de la Música">
+  <meta name="twitter:description" content="SIMUS reúne, organiza y hace consultable la información del ecosistema musical colombiano: festivales, mercados, territorios sonoros, prácticas musicales, mapa, editorial y actualidad.">
+  <meta name="twitter:image" content="/assets/branding/pnmc-blanco.png">
+
+  <!-- Icons -->
+  <!--
+    LA MARCA DEL PNMC, NO LA DE ANGULAR. Hasta este `favicon.ico` era
+    el que deja `ng new`: el logotipo de Angular en rosa y morado. No es un descuido de este
+    desarrollo —el de el diseño aprobado del portal y el de un desarrollo anterior llevan el mismo— pero es lo primero que se ve de
+    un sitio, en la pestaña y en los marcadores.
+
+    LOS DOS FICHEROS SE GENERAN, NO SE DIBUJAN A MANO: `tools/genera-favicon.py` los saca de
+    `public/Icono PNMC Negro.png`, la marca de 2000x2000 que ya estaba en el proyecto, teñida con
+    el morado del tema. El script explica por qué engrosa las crestas antes de reducir; en corto:
+    la tinta cubre el 15 % del lienzo y a 16 px el promedio se la come.
+
+    Si cambia la marca, se sustituye ese PNG y se vuelve a ejecutar el script.
+  -->
+  <!--
+    EL PNG VA PRIMERO Y EL `.ICO` QUEDA DE RESPALDO, y el orden importa por una razón concreta: un
+    navegador guarda el icono POR SU URL y lo conserva con muchísima insistencia. Cambiar el
+    contenido de `/favicon.ico` deja a quien ya visitó el sitio viendo el anterior durante días;
+    estas direcciones son nuevas, así que entran a la primera. Los navegadores modernos además
+    prefieren el PNG declarado con su medida.
+  -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/icono-pnmc-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icono-pnmc-192.png">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+  <!-- Fuentes ALOJADAS EN EL PROPIO SITIO (optimización, 20 nov 2026): `src/fuentes.css` declara Nunito Sans, Oswald y
+       Outfit como fuentes variables (subconjuntos latin y latin-ext, `font-display: swap`) servidas desde `/fonts/`.
+       Antes eran tres familias de Google con 13 pesos: una resolución DNS, dos conexiones TLS y dos viajes en
+       cadena (CSS y luego fuentes) antes de pintar texto, además de enviar la IP de cada visitante a un tercero.
+       Se precargan las dos que pintan el texto del primer pliegue. -->
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/nunito-sans-latin.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/outfit-latin.woff2" crossorigin>
+  <!-- ARMAZÓN DE ARRANQUE (decisión 117): lo que se ve antes de que Angular y el paquete de la ruta lleguen.
+       Vive DENTRO de <app-root>, así que Angular lo reemplaza al arrancar sin dejar rastro. Sin JS. -->
+  <style>
+    .arranque-barra { height: 72px; background: rgb(76 44 84); }
+    .arranque-pagina { max-width: 96rem; margin: 0 auto; padding: 2.5rem 1.5rem; display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); }
+    .arranque-bloque { min-height: 21rem; border: 1px solid rgb(231 234 240); border-radius: 1rem; background: rgb(241 242 246); animation: arranque-latido 1.2s ease-in-out infinite; }
+    @keyframes arranque-latido { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+    @media (prefers-reduced-motion: reduce) { .arranque-bloque { animation: none; } }
+  </style>
+</head>
+<body>
+  <app-root>
+    <div class="arranque-barra" aria-hidden="true"></div>
+    <div class="arranque-pagina" aria-busy="true" role="status" aria-label="Cargando SIMUS">
+      <div class="arranque-bloque"></div><div class="arranque-bloque"></div><div class="arranque-bloque"></div>
+    </div>
+  </app-root>
+</body>
+</html>

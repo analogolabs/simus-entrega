@@ -1,0 +1,9 @@
+# Cuentas de VALIDACIÓN de la siembra integral (nivel 0) para el acceso rápido de demostración (TEMPORAL). Columnas separadas por tabulador: ámbito, rótulo, correo.
+# Existen solo después de `./scripts/demo/siembra-integral.sh sembrar` (siembra/generador/cuentas_validacion.py). Clave «admin» (solo demo local).
+# Uso: SIMUS_DEMO_CUENTAS_ACCESO_RAPIDO=scripts/demo/acceso-rapido-demo-cuentas-validacion.tsv ./scripts/demo/acceso-rapido-demo.sh escribir
+administrativo	Webmaster SIMUS (administración)	webmaster@simus.test
+administrativo	Gestor institucional SIMUS (gestión)	gestor@simus.test
+externo	Camila (organizaciones y perfil)	camila.restrepo@simus.test
+externo	Editora de apoyo	editor@simus.test
+externo	Reclamante	reclamante@simus.test
+externo	Persona nueva (sin datos)	nuevo@simus.test

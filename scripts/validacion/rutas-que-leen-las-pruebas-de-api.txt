@@ -1,0 +1,22 @@
+# Ficheros FUERA de simus-api/ y simus-database/ que las pruebas de API leen.
+#
+# POR QUÉ EXISTE. scripts/validacion/validar-local.sh omite la suite de API (~40 min) cuando el diff contra origin/main no toca
+# simus-api/ ni simus-database/. Pero algunas pruebas de API leen ficheros de otras carpetas: una rama «solo web»
+# puede ponerlas en rojo sin tocar la API (#243 dejó en rojo ModulosDeLaConsolaTests en main al cambiar
+# navegacion-administrativa.ts). Si el diff toca uno de estos patrones, validar-local.sh corre SOLO las clases
+# de prueba listadas a la derecha (--filter) e imprime qué patrón lo forzó.
+#
+# FORMATO. Una regla por línea:   patrón | ClaseDePrueba [OtraClase ...]
+#   - patrón: ruta relativa a la raíz del repo; si termina en «/» es un prefijo de carpeta, si no, un fichero exacto.
+#   - clases: nombre del fichero .cs de tests/SIMUS.Api.Tests/ sin extensión (coincide con la clase pública).
+# Las líneas que empiezan por «#» y las vacías se ignoran.
+#
+# CÓMO SE MANTIENE. scripts/validacion/verificar-rutas-que-leen-las-pruebas-de-api.sh (llamado desde verificar-estructura.sh)
+# falla si una prueba de API lee de scripts/, simus-web/, docs/, infra/, .github/ o de la raíz sin estar listada
+# aquí, si un patrón ya no existe o si una clase ya no existe. Al añadir una prueba que lea fuera de simus-api,
+# añade aquí su regla. simus-database/ no se lista: ya fuerza la API completa por sí misma.
+
+simus-web/src/app/features/admin/domain/navegacion-administrativa.ts | ModulosDeLaConsolaTests
+scripts/local/seed-local-db.sh | SiembraSinBaseCableadaTests
+scripts/local/sql-local-comun.sh | SemillasDeDemostracionTests
+scripts/demo/sembrar-demo.sh | SemillasDeDemostracionTests

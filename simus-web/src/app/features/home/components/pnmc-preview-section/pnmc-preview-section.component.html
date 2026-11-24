@@ -1,0 +1,18 @@
+<!--
+  QUÉ ES SIMUS (aire: fondo blanco). Dos columnas alineadas en vertical: el mensaje (antetítulo,
+  frase y texto, juntos) a la izquierda, centrado en vertical frente a los cuatro conceptos en
+  lista de la derecha. Cada concepto lleva, al pasar el puntero crece bajo el título una barrita de su color.
+-->
+<section id="portada-que-es" class="bg-white py-20 lg:py-24">
+  <div class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 lg:grid-cols-12 lg:items-stretch lg:gap-8 lg:px-8">
+    <app-encabezado-de-seccion class="lg:col-span-6 lg:self-center" tipo="mensaje" [antetitulo]="getWebText('home_about_title')" [titulo]="getWebText('home_about_quote')" [texto]="getWebText('home_about_desc')"></app-encabezado-de-seccion>
+    <ul class="flex flex-col divide-y divide-filete lg:col-span-5 lg:col-start-8">
+      @for (concepto of conceptos(); track concepto.numero) {
+        <li class="group py-4 first:pt-0 last:pb-0">
+          <h3 class="enlace-revela tipo-titulo inline-block text-titulo" [style.--barra]="concepto.barra">{{ concepto.titulo }}</h3>
+          <p class="tipo-pequeno mt-1 text-tinta-media">{{ concepto.descripcion }}</p>
+        </li>
+      }
+    </ul>
+  </div>
+</section>

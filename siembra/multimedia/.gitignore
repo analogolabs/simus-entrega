@@ -1,0 +1,9 @@
+# Los binarios NO se versionan: el pool vive fuera del repositorio. Esto cubre el caso de apuntar SIMUS_SIEMBRA_ASSETS a una carpeta local.
+assets/
+assets-local/
+pool/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.pdf

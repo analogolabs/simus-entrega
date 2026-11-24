@@ -1,0 +1,143 @@
+/*
+  TEMA «CELEBRA LA MÚSICA» (alcance local al micrositio; no toca los tokens globales).
+  Identidad: el color principal y el secundario de cada edición llegan por la API como --cl-principal y
+  --cl-secundario (y su texto legible, --cl-sobre-*). Las formas -ondas, píldoras, tarjetas redondeadas- y el
+  ritmo de color vienen del sitio oficial; la tipografía es la del Sistema (Oswald para títulos, Nunito Sans para
+  el texto: Nunito Sans es también la tipografía de texto oficial de la campaña).
+  Contraste: el texto sobre fondo claro usa SIEMPRE --cl-tinta (principal oscurecido), nunca el secundario, que puede
+  ser un amarillo (2025). Los fondos de color llevan --cl-sobre-* calculado por contraste WCAG.
+*/
+:host { display: block; }
+.celebra {
+  --cl-principal: #5b2a86;
+  --cl-secundario: #1b1230;
+  --cl-sobre-principal: #ffffff;
+  --cl-sobre-secundario: #ffffff;
+  /* Principal para texto sobre blanco: se oscurece un 18 % con negro para asegurar 4,5:1 en cualquier edición. */
+  --cl-tinta: color-mix(in srgb, var(--cl-principal) 82%, #000);
+  --cl-tinte: color-mix(in srgb, var(--cl-principal) 6%, #fff);
+  --cl-radio: 1.25rem;
+}
+
+/* ── Héroe ─────────────────────────────────────────────────────────────── */
+.cl-heroe { position: relative; overflow: hidden; background: var(--cl-principal); color: var(--cl-sobre-principal); padding-top: 72px; }
+.cl-heroe::before, .cl-heroe::after {
+  content: ''; position: absolute; border-radius: 9999px; background: var(--cl-secundario); opacity: .22; pointer-events: none;
+}
+.cl-heroe::before { width: 34rem; height: 34rem; right: -9rem; top: -10rem; }
+.cl-heroe::after { width: 16rem; height: 16rem; left: -6rem; bottom: 2rem; opacity: .14; }
+.cl-heroe__interior { position: relative; z-index: 1; padding-top: .5rem; padding-bottom: 4.5rem; }
+.cl-heroe__rejilla { display: grid; gap: 2rem; align-items: center; margin-top: 1.5rem; }
+@media (min-width: 1024px) { .cl-heroe__rejilla { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 3rem; } }
+.cl-heroe__arte { display: grid; place-items: center; }
+.cl-heroe__imagen {
+  width: 100%; max-width: 30rem; max-height: 26rem; height: auto; object-fit: contain;
+  filter: drop-shadow(0 18px 24px rgb(0 0 0 / .28));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cl-heroe__imagen { animation: cl-entrada .7s cubic-bezier(.2, .7, .2, 1) both; }
+  @keyframes cl-entrada { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+}
+.cl-sello {
+  display: inline-block; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: .8125rem; letter-spacing: .08em;
+ padding: .3rem .8rem; border-radius: 9999px;
+  background: var(--cl-sobre-principal); color: var(--cl-principal);
+}
+.cl-sello--tinta { background: transparent; padding: 0; color: var(--cl-tinta); }
+.cl-titulo {
+  margin-top: 1rem; font-family: 'Oswald', sans-serif; font-weight: 700; line-height: .98;
+  font-size: clamp(2.5rem, 7vw, 5rem); letter-spacing: .01em;
+}
+.cl-fechas {
+  display: inline-block; padding: .4rem 1rem; border-radius: 9999px; font-weight: 700; font-size: .9375rem;
+  background: var(--cl-secundario); color: var(--cl-sobre-secundario);
+}
+/* Ondas del borde inferior del héroe. */
+.cl-ondas {
+  position: absolute; left: 0; right: 0; bottom: -1px; height: 1.75rem; background: #fff;
+  -webkit-mask: radial-gradient(1.1rem at 50% 0, #0000 98%, #000) 0 0 / 2.2rem 100% repeat-x;
+  mask: radial-gradient(1.1rem at 50% 0, #0000 98%, #000) 0 0 / 2.2rem 100% repeat-x;
+}
+
+/* ── Botones ───────────────────────────────────────────────────────────── */
+/* Rectángulo de esquina suave (el radio único de los controles del Sistema), nunca píldora. */
+.cl-boton {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: .5rem 1.25rem; border-radius: var(--radius-control, .5rem);
+  font-weight: 800; text-decoration: none; cursor: pointer; transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+.cl-boton--solido { background: var(--cl-sobre-principal); color: var(--cl-tinta); border: 2px solid var(--cl-sobre-principal); }
+.cl-boton--borde { background: transparent; color: inherit; border: 2px solid currentColor; }
+.cl-boton--borde:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
+.cl-boton--solido:hover { background: color-mix(in srgb, var(--cl-sobre-principal) 88%, var(--cl-secundario)); }
+.cl-seccion .cl-boton--solido { background: var(--cl-principal); color: var(--cl-sobre-principal); border-color: var(--cl-principal); }
+.cl-seccion .cl-boton--solido:hover { background: var(--cl-tinta); border-color: var(--cl-tinta); }
+@media (prefers-reduced-motion: reduce) { .cl-boton { transition: none; } }
+
+/* ── Cifras ────────────────────────────────────────────────────────────── */
+.cl-cifras { background: var(--cl-secundario); color: var(--cl-sobre-secundario); }
+.cl-cifra { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: clamp(2.25rem, 5vw, 3.25rem); line-height: 1; }
+.cl-cifra__prefijo { font-family: 'Nunito Sans', sans-serif; font-size: .8125rem; font-weight: 700; margin-right: .35rem; opacity: .85; }
+
+/* ── Secciones ─────────────────────────────────────────────────────────── */
+.cl-seccion { padding: 3.5rem 0; }
+@media (min-width: 1024px) { .cl-seccion { padding: 5rem 0; } }
+.cl-seccion--tinte { background: var(--cl-tinte); }
+.cl-h2 { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.02; color: var(--cl-tinta); margin-top: .35rem; }
+.cl-h3 { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 1.375rem; line-height: 1.15; color: var(--color-titulo, #1b1230); }
+.cl-enlace { color: var(--cl-tinta); font-weight: 800; }
+.cl-texto-principal { color: var(--cl-tinta); }
+.cl-numero {
+  display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 9999px; font-family: 'Oswald', sans-serif;
+  font-weight: 700; background: var(--cl-principal); color: var(--cl-sobre-principal);
+}
+
+/* ── Programación ──────────────────────────────────────────────────────── */
+.cl-evento {
+  display: grid; grid-template-columns: 4rem minmax(0, 1fr); gap: 1rem; align-items: center; padding: 1rem;
+  background: #fff; border-radius: var(--cl-radio); transition: transform .15s ease, box-shadow .15s ease;
+}
+.cl-evento:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgb(27 18 48 / .12); }
+.cl-fecha {
+  display: grid; place-items: center; align-content: center; width: 4rem; height: 4.5rem; border-radius: 1rem;
+  background: var(--cl-principal); color: var(--cl-sobre-principal); font-family: 'Oswald', sans-serif;
+}
+.cl-fecha__dia { font-size: 1.75rem; font-weight: 700; line-height: 1; }
+.cl-fecha__mes { font-size: .75rem; letter-spacing: .08em; }
+@media (prefers-reduced-motion: reduce) { .cl-evento, .cl-evento:hover { transition: none; transform: none; } }
+
+/* ── Preguntas frecuentes ──────────────────────────────────────────────── */
+.cl-pregunta { background: #fff; border-radius: var(--cl-radio); }
+.cl-pregunta__resumen {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 3.5rem; padding: .5rem 1.25rem;
+  cursor: pointer; list-style: none; color: var(--color-titulo, #1b1230);
+}
+.cl-pregunta__resumen::-webkit-details-marker { display: none; }
+.cl-mas {
+  display: grid; place-items: center; flex: none; width: 2rem; height: 2rem; border-radius: 9999px; font-weight: 800;
+  background: var(--cl-principal); color: var(--cl-sobre-principal);
+}
+@media (prefers-reduced-motion: reduce) { .group .transition-transform { transition: none; } }
+
+/* ── Categorías (columna derecha de «La celebración») ─────────────────── */
+/* El margen superior va AQUÍ: `margin: 0` del componente le ganaba al `mt-5` de la plantilla y el rótulo «Categorías» quedaba pegado a la primera tarjeta. */
+.cl-categorias { display: grid; gap: .75rem; margin: 1.25rem 0 0; padding: 0; list-style: none; }
+.cl-categoria { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: 1rem; align-items: start; padding: 1.25rem; background: var(--cl-tinte); border-radius: var(--radius-control, .5rem); }
+
+/* ── Ediciones: los botones de año a la derecha de los textos ─────────── */
+.cl-ediciones-botones { display: flex; flex-wrap: wrap; gap: .75rem; margin: 0; padding: 0; list-style: none; }
+.cl-boton--edicion { min-width: 6rem; font-family: 'Oswald', sans-serif; font-size: 1.5rem; letter-spacing: .02em; }
+.cl-seccion .cl-boton--edicion[aria-current='page'] { background: var(--cl-secundario); border-color: var(--cl-secundario); color: var(--cl-sobre-secundario); }
+
+/* ── Aliados ───────────────────────────────────────────────────────────── */
+/* El fondo de los aliados es el color OSCURO de la edición (los logos oficiales son blancos): en 2025 el amarillo secundario no sirve y se usa el morado. */
+.cl-creditos { background: var(--cl-aliados-fondo, var(--cl-secundario)); color: #fff; }
+.cl-creditos .cl-h2 { color: inherit; }
+.cl-creditos p { overflow-wrap: anywhere; }
+.cl-aliados { display: grid; gap: 1rem; margin: 1.5rem 0 0; padding: 0; list-style: none; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); }
+/* Los logos oficiales son blancos y van directamente sobre el fondo oscuro de la sección; la holgura evita que un logo toque al vecino o al borde. */
+.cl-aliado { display: grid; place-items: center; min-height: 6rem; padding: 1rem 1.5rem; text-align: center; color: #fff; }
+.cl-aliado__logo { max-width: 100%; max-height: 3.25rem; width: auto; height: auto; object-fit: contain; }
+.cl-aliado__nombre { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 1.0625rem; line-height: 1.2; }
+
+/* Aliado sin logo cargado: recuadro discreto con su nombre (el logo real se carga desde el Banco de archivos). */
+.cl-aliado--sin-logo { background: transparent; color: inherit; border: 1px solid color-mix(in srgb, currentColor 35%, transparent); }

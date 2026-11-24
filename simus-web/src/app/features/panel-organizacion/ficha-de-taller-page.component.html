@@ -1,0 +1,327 @@
+<!--
+  La ficha de un taller de lutería en el panel: alta y edición en la misma pantalla.
+
+  UNA SOLA PANTALLA PARA DOS RESPONSABLES —una organización o el propio lutier independiente—; la
+  ruta decide a dónde se vuelve. Lo que se puede hacer depende del estado, y solo se ofrece lo que
+  aplica: no hay botones apagados sin explicación.
+-->
+<div class="space-y-6 vista-de-proceso pb-10">
+  @if (cargando()) {
+    <p role="status" class="py-10 text-center text-sm text-slate-500">Abriendo el taller…</p>
+  } @else if (noEncontrado()) {
+    <p role="alert" class="border border-red-200 rounded-lg bg-red-50 p-4 text-sm text-red-800">{{ error() || 'No encontramos ese taller.' }}</p>
+    <a [routerLink]="rutaDeLaLista()" class="text-dato font-bold text-verde-texto no-underline hover:underline">Volver a los talleres</a>
+  } @else {
+    <header class="border-b border-slate-200 pb-6">
+      <nav aria-label="Ubicación dentro de Gestión" class="flex flex-wrap items-center gap-1.5 text-dato font-bold">
+        <a [routerLink]="rutaDeLaLista()" class="text-slate-500 no-underline transition hover:text-morado">Talleres de lutería</a>
+        <span aria-hidden="true" class="text-slate-300">/</span>
+        <span class="text-morado">{{ esNuevo() ? 'Registrar un taller' : taller()!.nombre }}</span>
+      </nav>
+
+      <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div class="min-w-0">
+          <h1>
+            {{ esNuevo() ? 'Registrar un taller de lutería' : taller()!.nombre }}
+          </h1>
+          @if (esNuevo()) {
+            <p class="mt-2 max-w-2xl text-cuerpo leading-relaxed text-prosa">
+              Cuéntanos qué hace tu taller. Lo guardamos como borrador: lo completas cuando puedas y lo envías a revisión cuando esté listo.
+            </p>
+          } @else {
+            <p class="mt-2 text-sm text-slate-600">
+              {{ esPersona() ? 'Taller de tu cuenta' : 'Taller de ' + (taller()!.organizacionNombre || 'tu organización') }}
+              @if (taller()!.fechaActualizacion) { · actualizado {{ taller()!.fechaActualizacion | fecha }} }
+            </p>
+          }
+        </div>
+        @if (!esNuevo()) {
+          <app-indicador-de-estado
+            [etiqueta]="etiquetaDeEstado(estado())"
+            [tono]="tonoDelEstado(estado())"
+            [matiz]="matizDelEstado(estado())"
+            [conTexto]="true"></app-indicador-de-estado>
+        }
+      </div>
+    </header>
+
+    <!-- Lo que dijo el PNMC, en el estado que lo origina. -->
+    @if (taller(); as t) {
+      @if (t.estadoRegistro === 'ajustes_solicitados' && t.motivoDeLaDecision) {
+        <section role="status" data-testid="ajustes-del-taller" class="border border-amber-200 rounded-lg bg-amber-50 p-4 text-sm text-amber-900">
+          <p class="font-bold">El PNMC pidió ajustes</p>
+          <p class="mt-1 whitespace-pre-line">{{ t.motivoDeLaDecision }}</p>
+          <p class="mt-2">Corrige lo que se pide, guarda y vuelve a enviarlo a revisión.</p>
+        </section>
+      }
+      @if (t.estadoRegistro === 'rechazado') {
+        <section role="status" class="border border-red-200 rounded-lg bg-red-50 p-4 text-sm text-red-900">
+          <p class="font-bold">El PNMC rechazó este taller</p>
+          @if (t.motivoDeLaDecision) { <p class="mt-1 whitespace-pre-line">{{ t.motivoDeLaDecision }}</p> }
+        </section>
+      }
+      @if (t.estadoRegistro === 'en_revision') {
+        <section role="status" class="border border-sky-200 rounded-lg bg-sky-50 p-4 text-sm text-sky-900">
+          El taller está en revisión{{ t.fechaEnvioARevision ? ' desde ' : '' }}{{ t.fechaEnvioARevision | fecha }}. No se edita hasta que el PNMC decida; si te equivocaste, puedes retirarlo de la revisión.
+        </section>
+      }
+      @if (t.estadoRegistro === 'archivado' && t.motivoDeLaDecision) {
+        <section role="status" class="border border-slate-200 rounded-lg bg-slate-50 p-4 text-sm text-slate-700">
+          <p class="font-bold">Retirado del ecosistema</p>
+          <p class="mt-1 whitespace-pre-line">{{ t.motivoDeLaDecision }}</p>
+        </section>
+      }
+    }
+
+    @if (error()) { <p role="alert" data-testid="error-del-taller" class="border border-red-200 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{ error() }}</p> }
+    @if (aviso()) { <p role="status" data-testid="aviso-del-taller" class="border border-emerald-200 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">{{ aviso() }}</p> }
+
+    <form (ngSubmit)="guardar()" class="space-y-8" novalidate>
+      <fieldset [disabled]="!editable()" class="space-y-8">
+        <!-- ───────────── Qué es el taller ───────────── -->
+        <section aria-labelledby="taller-que-es" class="space-y-4">
+          <h3 id="taller-que-es" class="border-t border-filete pt-4 rotulo-de-seccion">El taller</h3>
+
+          <div>
+            <label for="taller-nombre" class="block text-sm font-bold text-slate-900">Nombre del taller</label>
+            <input id="taller-nombre" name="nombre" type="text" maxlength="240" required
+                   [ngModel]="formulario().nombre" (ngModelChange)="cambiar('nombre', $event)"
+                   [attr.aria-invalid]="erroresDeCampo()['nombre'] ? true : null"
+                   class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+            @if (erroresDeCampo()['nombre']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['nombre'] }}</p> }
+          </div>
+
+          <div>
+            <label for="taller-descripcion" class="block text-sm font-bold text-slate-900">Descripción</label>
+            <p class="text-xs text-slate-500">Qué hace el taller, desde cuándo y qué lo distingue.</p>
+            <textarea id="taller-descripcion" name="descripcion" rows="4" maxlength="4000"
+                      [ngModel]="formulario().descripcion" (ngModelChange)="cambiar('descripcion', $event)"
+                      [attr.aria-invalid]="erroresDeCampo()['descripcion'] ? true : null"
+                      class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm"></textarea>
+            @if (erroresDeCampo()['descripcion']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['descripcion'] }}</p> }
+          </div>
+
+          <app-foto-del-proceso idBase="taller-foto"
+            [fotoUrl]="formulario().fotoUrl" [fotoAlt]="formulario().fotoAlt"
+            [errorExterno]="erroresDeCampo()['archivoFotoId']"
+            [subir]="subirFoto" (cambio)="cambiarFoto($event)" />
+
+          <fieldset>
+            <legend class="text-sm font-bold text-slate-900">Cómo trabaja</legend>
+            <div class="mt-2 grid gap-2 sm:grid-cols-3">
+              @for (m of modalidades; track m.valor) {
+                <label class="flex cursor-pointer items-start gap-2 rounded-lg border border-slate-200 p-3 text-sm has-[:checked]:border-morado has-[:checked]:bg-slate-50">
+                  <input type="radio" name="modalidad" [value]="m.valor" [checked]="formulario().modalidad === m.valor"
+                         (change)="cambiar('modalidad', m.valor)" class="mt-1" />
+                  <span><span class="font-bold">{{ m.etiqueta }}</span><span class="block text-xs text-slate-500">{{ m.ayuda }}</span></span>
+                </label>
+              }
+            </div>
+            @if (erroresDeCampo()['modalidad']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['modalidad'] }}</p> }
+          </fieldset>
+
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="aprendices" [ngModel]="formulario().recibeAprendices"
+                   (ngModelChange)="cambiar('recibeAprendices', $event)" />
+            <span>El taller recibe aprendices</span>
+          </label>
+        </section>
+
+        <!-- ───────────── Qué ofrece y con qué trabaja ───────────── -->
+        <section aria-labelledby="taller-oficio" class="space-y-4">
+          <h3 id="taller-oficio" class="border-t border-filete pt-4 rotulo-de-seccion">Qué ofrece y con qué instrumentos trabaja</h3>
+
+          <fieldset>
+            <legend class="text-sm font-bold text-slate-900">Servicios del taller</legend>
+            <div class="mt-2 grid gap-2 sm:grid-cols-2">
+              @for (s of catalogos().servicios; track s.id) {
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" [name]="'servicio-' + s.id" [checked]="formulario().serviciosIds.includes(s.id)" (change)="alternar('serviciosIds', s.id)" />
+                  <span>{{ s.nombre }}</span>
+                </label>
+              }
+            </div>
+            @if (erroresDeCampo()['serviciosIds']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['serviciosIds'] }}</p> }
+          </fieldset>
+
+          <fieldset>
+            <legend class="text-sm font-bold text-slate-900">Familias de instrumentos</legend>
+            <p class="text-xs text-slate-500">Las clases de la clasificación Hornbostel-Sachs. En los cordófonos puedes precisar si son frotados o pulsados.</p>
+            <div class="mt-2 space-y-2">
+              @for (f of familiasPrincipales(); track f.id) {
+                <div>
+                  <label class="flex items-center gap-2 text-sm">
+                    <input type="checkbox" [name]="'familia-' + f.id" [checked]="formulario().familiasIds.includes(f.id)" (change)="alternar('familiasIds', f.id)" />
+                    <span class="font-bold">{{ f.nombre }}</span>
+                  </label>
+                  @for (sub of subniveles(f); track sub.id) {
+                    <label class="ml-6 flex items-center gap-2 text-sm">
+                      <input type="checkbox" [name]="'familia-' + sub.id" [checked]="formulario().familiasIds.includes(sub.id)" (change)="alternar('familiasIds', sub.id)" />
+                      <span>{{ sub.nombre }}</span>
+                    </label>
+                  }
+                </div>
+              }
+            </div>
+            @if (erroresDeCampo()['familiasIds']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['familiasIds'] }}</p> }
+          </fieldset>
+
+          <app-selector-multiple
+            etiqueta="Prácticas musicales" ayuda="(opcional)" identificador="ficha-taller-practicas"
+            [opciones]="catalogos().practicasMusicales" [seleccionados]="formulario().practicasMusicalesIds"
+            textoVacio="Sin prácticas registradas"
+            (alternar)="alternar('practicasMusicalesIds', $event)" />
+
+          <div>
+            <label for="taller-saberes" class="block text-sm font-bold text-slate-900">Saberes y técnicas del taller</label>
+            <p class="text-xs text-slate-500">En tus palabras: las técnicas, los materiales y los saberes que trabajas. Es texto libre: nadie lo valida.</p>
+            <textarea id="taller-saberes" name="saberes" rows="3" maxlength="2000"
+                      [ngModel]="formulario().saberesYTecnicas" (ngModelChange)="cambiar('saberesYTecnicas', $event)"
+                      class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm"></textarea>
+          </div>
+        </section>
+
+        <!-- ───────────── Dónde está ───────────── -->
+        <section aria-labelledby="taller-donde" class="space-y-4">
+          <h3 id="taller-donde" class="border-t border-filete pt-4 rotulo-de-seccion">Dónde trabaja</h3>
+
+          <div class="grid gap-4 sm:grid-cols-3">
+            <div>
+              <app-campo-de-seleccion tamano="comodo" etiqueta="Alcance" identificador="taller-nivel" name="nivel" [ngModel]="formulario().nivelCobertura" (ngModelChange)="cambiar('nivelCobertura', $event)">
+                <option value="municipal">Un municipio</option>
+                <option value="departamental">Un departamento</option>
+                <option value="nacional">Todo el país</option>
+              </app-campo-de-seleccion>
+              @if (erroresDeCampo()['nivelCobertura']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['nivelCobertura'] }}</p> }
+            </div>
+            @if (formulario().nivelCobertura !== 'nacional') {
+              <div>
+                <label for="taller-departamento" class="block text-sm font-bold text-slate-900">Departamento</label>
+                <app-filtro-desplegable completo tamano="comodo" etiqueta="Departamento" idDelControl="taller-departamento" name="departamento" [ngModel]="formulario().codigoDepartamento" (ngModelChange)="elegirDepartamento($event)" [opciones]="departamentos() | opcionesDesde:'codigo':'nombre':'Elige un departamento'" />
+                @if (erroresDeCampo()['codigoDepartamento']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['codigoDepartamento'] }}</p> }
+              </div>
+            }
+            @if (formulario().nivelCobertura === 'municipal') {
+              <div>
+                <label for="taller-municipio" class="block text-sm font-bold text-slate-900">Municipio</label>
+                <app-filtro-desplegable completo tamano="comodo" etiqueta="Municipio" idDelControl="taller-municipio" name="municipio" [ngModel]="formulario().codigoMunicipio" (ngModelChange)="cambiar('codigoMunicipio', $event)" [opciones]="municipios() | opcionesDesde:'municipalityCode':'municipalityName':'Elige un municipio'" />
+              </div>
+            }
+          </div>
+
+          <div>
+            <h4 class="text-sm font-bold text-slate-900">Sede principal</h4>
+            <p class="text-xs text-slate-500">Dónde está el taller. Sirve para situarlo en el mapa, aunque trabaje en un departamento o en todo el país.</p>
+            <app-selector-de-sede class="mt-2" idBase="taller" [ubicaciones]="ubicaciones()"
+              [departamento]="formulario().sedeCodigoDepartamento" [municipio]="formulario().sedeCodigoMunicipio"
+              [errorDepartamento]="erroresDeCampo()['sedeCodigoDepartamento']" [errorMunicipio]="erroresDeCampo()['sedeCodigoMunicipio']"
+              (cambiar)="elegirSede($event)" />
+          </div>
+
+          <div>
+            <label for="taller-lugar" class="block text-sm font-bold text-slate-900">Lugar</label>
+            <p class="text-xs text-slate-500">Barrio, vereda o dirección, si quieres que se vea. Es opcional.</p>
+            <input id="taller-lugar" name="lugar" type="text" maxlength="300"
+                   [ngModel]="formulario().lugarEspecifico" (ngModelChange)="cambiar('lugarEspecifico', $event)"
+                   class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+          </div>
+        </section>
+
+        <!-- ───────────── Cómo contactarlo ───────────── -->
+        <section aria-labelledby="taller-contacto" class="space-y-4">
+          <h3 id="taller-contacto" class="border-t border-filete pt-4 rotulo-de-seccion">Cómo contactarlo</h3>
+          <p class="text-xs text-slate-500">Es lo que se verá en el portal. Para enviarlo a revisión basta con una forma de contacto.</p>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="taller-correo" class="block text-sm font-bold text-slate-900">Correo del taller</label>
+              <input id="taller-correo" name="correo" type="email" maxlength="180"
+                     [ngModel]="formulario().correoTaller" (ngModelChange)="cambiar('correoTaller', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['correoTaller']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['correoTaller'] }}</p> }
+            </div>
+            <div>
+              <label for="taller-telefono" class="block text-sm font-bold text-slate-900">Teléfono</label>
+              <input id="taller-telefono" name="telefono" type="tel" maxlength="80"
+                     [ngModel]="formulario().telefonoTaller" (ngModelChange)="cambiar('telefonoTaller', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['telefonoTaller']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['telefonoTaller'] }}</p> }
+            </div>
+            <div>
+              <label for="taller-sitio" class="block text-sm font-bold text-slate-900">Sitio web</label>
+              <input id="taller-sitio" name="sitio" type="url" maxlength="500"
+                     [ngModel]="formulario().sitioWebTaller" (ngModelChange)="cambiar('sitioWebTaller', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['sitioWebTaller']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['sitioWebTaller'] }}</p> }
+            </div>
+            <div>
+              <label for="taller-instagram" class="block text-sm font-bold text-slate-900">Instagram</label>
+              <input id="taller-instagram" name="instagram" type="text" maxlength="500"
+                     [ngModel]="formulario().instagramTaller" (ngModelChange)="cambiar('instagramTaller', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['instagramTaller']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['instagramTaller'] }}</p> }
+            </div>
+            <div>
+              <label for="taller-facebook" class="block text-sm font-bold text-slate-900">Facebook</label>
+              <input id="taller-facebook" name="facebook" type="text" maxlength="500"
+                     [ngModel]="formulario().facebookTaller" (ngModelChange)="cambiar('facebookTaller', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['facebookTaller']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['facebookTaller'] }}</p> }
+            </div>
+            <div>
+              <label for="taller-enlace" class="block text-sm font-bold text-slate-900">Otro enlace</label>
+              <input id="taller-enlace" name="enlace" type="url" maxlength="500"
+                     [ngModel]="formulario().otroEnlaceTaller" (ngModelChange)="cambiar('otroEnlaceTaller', $event)"
+                     class="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm" />
+              @if (erroresDeCampo()['otroEnlaceTaller']) { <p class="mt-1 text-xs text-red-700">{{ erroresDeCampo()['otroEnlaceTaller'] }}</p> }
+            </div>
+          </div>
+        </section>
+      </fieldset>
+
+      <!-- ───────────── Propuesta de cambio de fondo sobre lo publicado (PROP, decisión 122) ───────────── -->
+      <app-propuesta-del-proceso
+        [propuesta]="propuesta()" [cambiosSinGuardar]="cambiosSinGuardar()" [puedeAdministrar]="puedeAdministrar()"
+        [ocupado]="guardando() || guardandoLaPropuesta()" [(motivo)]="motivoDeLaPropuesta"
+        (enviar)="enviarLaPropuesta()" (abandonar)="abandonarLaPropuesta()" />
+
+      <!-- ───────────── Acciones, según el estado ───────────── -->
+      <section aria-label="Acciones del taller" class="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-6">
+        @if (editable()) {
+          <button type="submit" data-testid="guardar-taller" [disabled]="guardando()"
+                  appBoton="confirmar">
+            {{ esNuevo() ? 'Guardar como borrador' : 'Guardar cambios' }}
+          </button>
+        }
+        @if (!esNuevo() && puedeAdministrar()) {
+          @if (estado() === 'borrador' || estado() === 'ajustes_solicitados') {
+            <button type="button" data-testid="enviar-taller" (click)="enviar()" [disabled]="guardando()"
+                    appBoton="secundaria">
+              {{ estado() === 'ajustes_solicitados' ? 'Reenviar a revisión' : 'Enviar a revisión' }}
+            </button>
+            <button type="button" data-testid="abandonar-taller" (click)="retirarDeRevisionOAbandonar()" [disabled]="guardando()"
+                    class="text-sm font-bold text-red-700 underline-offset-2 hover:underline disabled:opacity-60">
+              Abandonar el borrador
+            </button>
+          }
+          @if (estado() === 'en_revision') {
+            <button type="button" data-testid="retirar-de-revision" (click)="retirarDeRevisionOAbandonar()" [disabled]="guardando()"
+                    appBoton="secundaria">
+              Retirar de la revisión
+            </button>
+          }
+          @if (estado() === 'publicado') {
+            <button type="button" data-testid="retirar-taller" (click)="retirarPublicado()" [disabled]="guardando()"
+                    class="text-sm font-bold text-red-700 underline-offset-2 hover:underline disabled:opacity-60">
+              Retirar del ecosistema
+            </button>
+          }
+        }
+        @if (!esNuevo() && !puedeAdministrar()) {
+          <p class="text-sm text-slate-500">Enviar a revisión y retirar lo hace quien administra la organización.</p>
+        }
+        <a [routerLink]="rutaDeLaLista()" class="ml-auto text-sm font-bold text-verde-texto no-underline hover:underline">Volver a mis talleres</a>
+      </section>
+    </form>
+  }
+</div>

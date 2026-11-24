@@ -1,0 +1,188 @@
+<!--
+  El directorio público de un proceso del Ecosistema (ver el componente: es el estándar).
+
+  `section`, no `main`: el landmark principal lo declara el armazón en `app.component.html`, y un
+  `main` aquí quedaría anidado dentro de aquel.
+
+  EL DISEÑO MANDA Y EL DATO SE ADAPTA: los cuerpos de texto de los registros llevan altura explícita
+  en las plantillas de cada proceso, así que un registro con descripción larga y otro sin ninguna
+  ocupan lo mismo. Lo que no cabe se recorta.
+
+  SIN MAYÚSCULAS SOSTENIDAS (docs/usuario/23-guia-de-estilo-de-textos.md): rótulos y botones llevan mayúscula inicial y nada más.
+-->
+<section class="min-h-screen bg-hueso pb-24 font-nunito text-titulo">
+  <app-compact-hero
+    backLabel="Ecosistema"
+    [current]="migaActual || titulo"
+    [title]="titulo"
+    [subtitle]="subtitulo"
+    (regresoSolicitado)="regresoSolicitado.emit()"></app-compact-hero>
+
+  <div class="mx-auto max-w-[100rem]" role="region" [attr.aria-label]="region">
+    <div class="grid grid-cols-1 lg:grid-cols-[22rem_minmax(0,1fr)]">
+
+      <!-- ============================ FILTROS ============================ -->
+      <aside
+        [attr.aria-label]="'Filtros del directorio de ' + titulo"
+        class="self-start border-b border-filete bg-niebla/50 p-7 lg:sticky lg:top-20 lg:flex lg:h-[calc(100vh-5rem)] lg:flex-col lg:self-start lg:overflow-y-auto lg:border-b-0 lg:border-r lg:p-10">
+        <form (ngSubmit)="irAResultados()">
+
+          <div class="space-y-3">
+            <label [for]="clave + '-buscar'" class="block text-sm font-bold text-tinta-media">
+              {{ etiquetaBusqueda }}
+            </label>
+            <!--
+              UI-C: LA BÚSQUEDA ES `app-buscador-de-lista` (44 px, la lupa y la «✕» de la pieza común), no
+              un <input> con su caja escrita aquí. El campo ya filtra mientras se escribe, y sin la «✕» hay
+              que seleccionar el texto y borrarlo a mano para volver a ver todo el directorio. El botón
+              «Buscar» NO busca —eso ya ocurre solo—: lleva a los resultados, que en móvil están debajo de
+              esta columna y fuera de la pantalla.
+            -->
+            <app-buscador-de-lista ancho tamano="comodo" [etiquetaVisible]="true"
+              [identificador]="clave + '-buscar'" [etiqueta]="etiquetaBusqueda" [marcador]="placeholderBusqueda"
+              [valor]="busqueda" [espera]="0" (cambiar)="busquedaCambiada.emit($event)" />
+            <button type="submit"
+              appBoton="principal" tamano="comodo" class="w-full">{{ 'dir_comun_buscar' | textoWeb }}</button>
+          </div>
+
+          <!-- «Ordenar» va justo bajo el buscador (mapa 17), no al final de los filtros. -->
+          @if (ordenes.length) {
+            <div class="mt-5">
+              <div>
+                <span class="mb-1 block text-xs font-bold text-tinta-media">Ordenar</span>
+                <app-filtro-desplegable [completo]="true" tamano="comodo"
+                  etiqueta="Ordenar" [identificador]="clave + '-orden'"
+                  [opciones]="opcionesDeOrden" [elegida]="orden"
+                  (cambiar)="ordenCambiado.emit($event)" />
+              </div>
+              @if (ayuda) { <p class="mt-3 text-xs leading-relaxed text-tinta-media">{{ ayuda }}</p> }
+            </div>
+          }
+
+          @if (filtros.length) {
+            <div class="mt-9 border-t border-filete pt-8">
+              <div class="mb-4 flex items-center justify-between gap-3">
+                <p class="flex items-center gap-2 text-sm font-bold text-tinta-media">
+                  <svg lucideSlidersHorizontal [size]="15" class="text-morado" aria-hidden="true"></svg> {{ tituloFiltros }}
+                </p>
+                <button type="button" (click)="filtrosLimpiados.emit()" [disabled]="!hayFiltros" data-limpiar-filtros
+                  class="inline-flex min-h-11 cursor-pointer items-center border-0 bg-transparent text-xs font-semibold text-morado transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-verde disabled:cursor-not-allowed disabled:text-slate-300 disabled:no-underline">
+                  Limpiar filtros @if (filtrosActivos) { ({{ filtrosActivos }}) }
+                </button>
+              </div>
+
+              <!--
+                UI-C: LOS FILTROS SON `app-filtro-desplegable` (44 px, a todo el ancho): el mismo control
+                que la Agenda y la consola, con su panel, su búsqueda en las listas largas y su teclado,
+                en lugar de un <select> cuyo panel dibuja el sistema operativo. La opción vacía lleva el
+                texto de «todos» o, si el filtro depende de otro, lo que falta («Elige un departamento
+                primero»). El rótulo va ARRIBA, como en todo campo del producto.
+              -->
+              <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-1" data-directorio-filtros>
+                @for (filtro of filtros; track filtro.id) {
+                  <div>
+                    @if (filtro.multiple) {
+                      <!-- SELECCIÓN MÚLTIPLE: varias opciones a la vez; cada una trae su conteo en la etiqueta. -->
+                      <app-selector-multiple [identificador]="clave + '-' + filtro.id" [etiqueta]="filtro.etiqueta"
+                        [opciones]="multiplesPorFiltro.get(filtro.id)?.opciones ?? []"
+                        [seleccionados]="multiplesPorFiltro.get(filtro.id)?.marcadas ?? []"
+                        [textoVacio]="filtro.textoTodos" tamano="comodo" (alternar)="alternarEnPantalla(filtro.id, $event)" />
+                    } @else {
+                    <span class="mb-1 block text-xs font-bold text-tinta-media">{{ filtro.etiqueta }}</span>
+                    <app-filtro-desplegable [completo]="true" tamano="comodo"
+                      [etiqueta]="filtro.etiqueta" [identificador]="clave + '-' + filtro.id"
+                      [deshabilitado]="!!filtro.deshabilitado"
+                      [opciones]="opcionesPorFiltro.get(filtro.id) ?? []" [elegida]="filtro.valor"
+                      (cambiar)="filtroEnPantalla(filtro.id, $event)" />
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+        </form>
+
+        @if (etiquetaMapa) {
+          <div class="mt-9 border-t border-filete pt-8">
+            <app-acceso-mapa-ecosistema [etiqueta]="etiquetaMapa" (activar)="mapaSolicitado.emit()"></app-acceso-mapa-ecosistema>
+          </div>
+        }
+      </aside>
+
+      <!-- ============================ RESULTADOS ============================ -->
+      <section class="min-w-0 bg-white p-7 lg:p-12">
+        <!-- El encabezado real de la lista. No se ve: el `h1` de la página es el del encabezado. -->
+        <h2 class="sr-only">{{ encabezado }}</h2>
+
+        <app-barra-exploracion-ecosistema
+          class="block"
+          [metricas]="metricasMostradas"
+          [vista]="vista"
+          (cambioVista)="vistaCambiada.emit($event)"></app-barra-exploracion-ecosistema>
+
+        <!-- Un aviso propio del proceso (p. ej. una consulta truncada), bajo las cifras. -->
+        <ng-content select="[directorio-aviso]"></ng-content>
+
+        <p [id]="'resultados-de-' + clave" aria-live="polite" data-directorio-conteo
+           class="mt-6 scroll-mt-24 text-sm font-bold text-tinta-media">
+          @if (cargando) { &nbsp; } @else { Mostrando {{ desde }}–{{ hasta }} de {{ total }} }
+          @if (filtrosActivos && !cargando) {
+            <span class="ml-1.5 rounded-full bg-verde/10 px-2.5 py-0.5 text-morado">
+              {{ filtrosActivos }} {{ filtrosActivos === 1 ? 'filtro' : 'filtros' }}
+            </span>
+          }
+        </p>
+
+        @if (cargando) {
+          <!-- LA FORMA DE LA LISTA YA ESTÁ AHÍ: ni «0 de 0» ni un vacío que parpadea antes de los datos. -->
+          <div class="mt-6" data-directorio-cargando>
+            <app-esqueleto [variante]="vista === 'listado' ? 'fila' : 'tarjeta'" [cantidad]="6" [etiqueta]="textos.cargando" />
+          </div>
+        } @else if (error) {
+          <div class="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800" role="alert">{{ error }}</div>
+        } @else if (total === 0) {
+          <!--
+            EL VACÍO DICE QUÉ HACER. «No hay resultados» a secas deja a quien busca sin saber si el
+            directorio está vacío o si es su consulta la que no encuentra nada.
+          -->
+          <div class="mt-10 border border-filete bg-niebla px-6 py-8" data-sin-resultados>
+            @if (totalPublicados === 0) {
+              <h3 class="text-lg font-bold text-titulo">{{ textos.vacioTotalTitulo }}</h3>
+              <p class="mt-2 max-w-2xl text-sm leading-relaxed text-tinta-media">{{ textos.vacioTotalTexto }}</p>
+            } @else {
+              <h3 class="text-lg font-bold text-titulo">{{ textos.vacioConsultaTitulo }}</h3>
+              <p class="mt-2 max-w-2xl text-sm leading-relaxed text-tinta-media">
+                {{ textos.hayTotal(totalPublicados) }} {{ textos.vacioConsultaTexto ?? 'Prueba con menos filtros.' }}
+              </p>
+              <button type="button" (click)="filtrosLimpiados.emit()"
+                appBoton="principal" tamano="comodo" class="mt-5">{{ 'dir_comun_limpiar_filtros' | textoWeb }}</button>
+            }
+          </div>
+        } @else if (vista === 'listado') {
+          <ul class="aparece mt-6 divide-y divide-slate-100" data-directorio-listado>
+            @for (registro of visibles; track $index) {
+              <li>
+                <ng-container [ngTemplateOutlet]="plantillaListado ?? null" [ngTemplateOutletContext]="{ $implicit: registro }"></ng-container>
+              </li>
+            }
+          </ul>
+        } @else {
+          <div class="aparece mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3" data-directorio-cuadricula>
+            @for (registro of visibles; track $index) {
+              <ng-container [ngTemplateOutlet]="plantillaTarjeta ?? null" [ngTemplateOutletContext]="{ $implicit: registro }"></ng-container>
+            }
+          </div>
+        }
+
+        <!-- La paginación común, con el selector de cuántos por página (se queda aunque haya una sola página,
+             para poder subir la cantidad). El valor viaja en la URL de quien usa el directorio. -->
+        @if (total > cantidades[0] || totalPaginas > 1) {
+          <app-paginacion-de-lista class="mt-8 block" [nombre]="titulo" identificador="directorio-paginacion"
+            [pagina]="pagina" [totalPaginas]="totalPaginas" [porPagina]="porPagina" [cantidades]="cantidades"
+            (paginaCambiada)="paginaCambiada.emit($event)" (porPaginaCambiado)="porPaginaCambiado.emit($event)" />
+        }
+      </section>
+    </div>
+  </div>
+</section>

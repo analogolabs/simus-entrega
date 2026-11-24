@@ -1,0 +1,41 @@
+<!--
+  EXPLORA SIMUS. Cinco puertas en dos filas de anchos distintos, sobre doce columnas: el Ecosistema
+  ancho y horizontal (foto a un lado, texto al otro) junto a Conocimiento; debajo, Historias,
+  Agenda y PNMC. Dos filas y no tres: título y tarjetas caben en una pantalla. Fotos a color con un
+  filtro sutil.
+-->
+<section class="bg-niebla py-20 lg:py-24">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <app-encabezado-de-seccion class="lg:max-w-4xl lg:[&>p]:max-w-none" [antetitulo]="getWebText('home_strat_tag')" [titulo]="getWebText('home_strat_title')" [texto]="getWebText('home_strat_desc')"></app-encabezado-de-seccion>
+
+    <!--
+      MOSAICO: las cinco puertas forman un solo bloque, sin separaciones y con las esquinas
+      redondeadas solo por fuera. En todas, la foto es el fondo, con un velo morado suave que la
+      oscurece en conjunto (más abajo, donde va el texto), y el texto es lo importante: título y descripción, igual en las cinco y sin flechas. Bajo el texto, un
+      desenfoque que se desvanece hacia arriba. Al pasar el puntero el velo se aclara.
+    -->
+    <ul class="mt-12 grid grid-cols-1 overflow-hidden rounded-2xl bg-morado sm:grid-cols-2 lg:mt-12 lg:grid-cols-12 lg:auto-rows-[18.5rem]">
+      @for (tarjeta of tarjetas(); track tarjeta.id; let i = $index) {
+        <li [class]="'min-h-[18rem] ' + tarjeta.ancho" [class.sm:col-span-2]="tarjeta.celda === 'grande'" [appRevelar]="i * 90">
+          <a
+            [href]="'/' + tarjeta.navigatePath"
+            data-testid="puerta"
+            (click)="abrir($event, tarjeta.navigatePath)"
+            class="group relative flex h-full w-full cursor-pointer flex-col justify-end overflow-hidden bg-morado p-0 text-left text-white no-underline focus-visible:z-10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-verde"
+          >
+            <img [src]="tarjeta.img" [alt]="tarjeta.alt" class="foto-portada absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" loading="lazy" />
+            <!-- El velo: suave sobre toda la foto y más denso abajo, donde va el texto. -->
+            <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-[#241329]/85 via-[#241329]/40 to-[#241329]/15 transition-opacity duration-200 group-hover:opacity-80"></div>
+            <!-- Desenfoque progresivo bajo el texto (ver `.desenfoque-progresivo` en styles.css). -->
+            <div aria-hidden="true" class="desenfoque-progresivo absolute inset-x-0 bottom-0 h-1/2"></div>
+            <!-- La misma lógica en las cinco: antetítulo, título y descripción. -->
+            <div class="relative p-6 lg:p-8" [class.max-w-2xl]="tarjeta.celda === 'grande'">
+              <h3 [class.tipo-titulo-grande]="tarjeta.celda === 'grande'" [class.tipo-titulo]="tarjeta.celda !== 'grande'">{{ tarjeta.title }}</h3>
+              <p class="mt-1.5 line-clamp-2 text-white/90" [class.tipo-cuerpo]="tarjeta.celda === 'grande'" [class.tipo-pequeno]="tarjeta.celda !== 'grande'">{{ tarjeta.desc }}</p>
+            </div>
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
+</section>

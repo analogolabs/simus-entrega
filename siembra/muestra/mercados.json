@@ -1,0 +1,93 @@
+[
+ {
+  "id": "M001",
+  "nombre": "Circulart",
+  "municipio": "Medellín",
+  "departamento": "Antioquia",
+  "anio_primera_edicion": null,
+  "periodicidad_epoca": "Anual; en junio (ediciones 16 y 17); en 2023 fue en noviembre",
+  "entidad_organizadora": "Circulart (con apoyo de la Alcaldía de Medellín, Secretaría de Cultura Ciudadana)",
+  "practicas": "músicas iberoamericanas (multi-género)",
+  "descripcion": "Mercado de las músicas de Iberoamérica en Medellín: ruedas de negocios, showcases y charlas; nació a raíz de la Cumbre Iberoamericana de Cultura.",
+  "sitio_web": "https://www.circulart.org",
+  "ediciones_historicas": [
+   {
+    "anio": 2020,
+    "fecha": "",
+    "sede": "Virtual",
+    "hecho": "Edición digital con unas 50 presentaciones y más de 170 representantes",
+    "fuente": "https://www.medellin.gov.co/es/sala-de-prensa/noticias/llega-de-nuevo-circulart-el-mercado-musical-de-iberoamerica-que-se-realiza-en-medellin/"
+   },
+   {
+    "anio": 2021,
+    "fecha": "",
+    "sede": "",
+    "hecho": "Alianza con el BOmm",
+    "fuente": "https://www.ccb.org.co/en/of-interest/news/news-sep-2021-5"
+   },
+   {
+    "anio": 2026,
+    "fecha": "4-7 jun",
+    "sede": "Medellín",
+    "hecho": "Edición 17, con conciertos gratuitos",
+    "fuente": "https://www.noticiasrcn.com/tendencias/circulart-2026-medellin-recibe-el-mercado-musical-mas-importante-de-iberoamerica-1028508"
+   }
+  ],
+  "participaciones_verificadas": [],
+  "fuentes": [
+   "https://www.medellin.gov.co/es/eventos/circulart-medellin/",
+   "https://www.noticiasrcn.com/tendencias/circulart-2026-medellin-recibe-el-mercado-musical-mas-importante-de-iberoamerica-1028508"
+  ],
+  "certeza": "alto",
+  "notas": "Primer año: la edición 17 en 2026 sugiere 2009-2010, no verificado. Relación jurídica con la Alcaldía no aclarada."
+ },
+ {
+  "id": "M002",
+  "nombre": "Bogotá Music Market (BOmm)",
+  "municipio": "Bogotá",
+  "departamento": "Bogotá D. C.",
+  "anio_primera_edicion": 2012,
+  "periodicidad_epoca": "Anual; septiembre (2025: 9-12 sep) y agosto (2026)",
+  "entidad_organizadora": "Cámara de Comercio de Bogotá (con aliados como Idartes)",
+  "practicas": "músicas colombianas e internacionales (multi-género)",
+  "descripcion": "Mercado musical de la Cámara de Comercio de Bogotá para profesionalizar el sector: showcases, citas de negocio y convocatoria de artistas.",
+  "sitio_web": "https://www.ccb.org.co",
+  "ediciones_historicas": [
+   {
+    "anio": 2021,
+    "fecha": "",
+    "sede": "",
+    "hecho": "Alianza con Circulart",
+    "fuente": "https://www.ccb.org.co/en/of-interest/news/news-sep-2021-5"
+   },
+   {
+    "anio": 2023,
+    "fecha": "",
+    "sede": "",
+    "hecho": "Lanzamiento del componente Ventana, de enfoque territorial",
+    "fuente": "https://www.ccb.org.co/de-interes/comunicados/conoce-los-showcases-del-bogota-music-market-bomm-2023"
+   },
+   {
+    "anio": 2025,
+    "fecha": "9-12 sep",
+    "sede": "Bogotá",
+    "hecho": "Edición 14",
+    "fuente": "https://www.semana.com/cultura/articulo/bomm-2025-lo-que-necesita-saber-de-un-evento-que-toma-la-fotografia-sonora-de-colombia-para-mostrarla-al-mundo/202500/"
+   },
+   {
+    "anio": 2026,
+    "fecha": "",
+    "sede": "Bogotá",
+    "hecho": "Edición 15: 160 proyectos de 18 países (114 colombianos, 46 internacionales); primera convocatoria a proyectos internacionales",
+    "fuente": "https://www.larepublica.co/ocio/bomm-2026-abrira-por-primera-vez-su-convocatoria-a-proyectos-musicales-internacionales-4446228"
+   }
+  ],
+  "participaciones_verificadas": [],
+  "fuentes": [
+   "https://www.ccb.org.co/de-interes/comunicados/el-bomm-celebra-sus-15-anos-incluyendo-por-primera-vez-proyectos-internacionales",
+   "https://www.semana.com/cultura/articulo/bomm-2025-lo-que-necesita-saber-de-un-evento-que-toma-la-fotografia-sonora-de-colombia-para-mostrarla-al-mundo/202500/"
+  ],
+  "certeza": "alto",
+  "notas": "2012 respaldado por Semana y por la numeración (edición 15 en 2026); no se halló la nota de la primera edición."
+ }
+]

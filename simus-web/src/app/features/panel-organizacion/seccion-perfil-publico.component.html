@@ -1,0 +1,251 @@
+<!-- «Perfil público», en /gestion/cuenta/perfil-publico (ME). Ver seccion-perfil-publico.component.ts. -->
+<div class="space-y-6">
+  <app-encabezado-de-pantalla titulo="Perfil público" descripcion="Lo que el ecosistema puede ver de ti, si decides publicarlo. Nace oculto." />
+  @if (error()) { <p role="alert" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error() }}</p> }
+
+  @if (perfil(); as p) {
+    <!-- EDITAR Y VER LA FICHA A LA VEZ: en pantalla ancha y alta (desde 56 rem de alto) cada columna tiene su propio desplazamiento, y en una ventana baja se desplaza la página entera (dos desplazamientos anidados dejaban medio alto de ventana); en la estrecha se alterna por pestañas. -->
+    <div class="mb-4 xl:hidden">
+      <app-selector-segmentado forma="segmentado" etiquetaDelGrupo="Qué ver" [opciones]="opcionesDeVista" [elegida]="vista()" (elegir)="vista.set($any($event))" />
+    </div>
+    <div class="xl:grid xl:grid-cols-[minmax(0,1fr)_26rem] xl:items-start xl:gap-8" data-editor-con-vista-previa>
+      <div class="min-w-0 space-y-6 xl:block alto:xl:sticky alto:xl:top-28 alto:xl:max-h-[calc(100dvh-13rem)] alto:xl:overflow-y-auto alto:xl:pr-2" [class.hidden]="vista() === 'vista'" data-columna-del-formulario>
+        <form class="rounded-2xl border border-slate-200 bg-white p-6" (ngSubmit)="guardar()" novalidate aria-labelledby="perfil-datos">
+          <h2 id="perfil-datos" class="text-slate-700">Lo que se publica</h2>
+          <p class="mt-2 text-sm text-slate-600">Tu correo, tu documento, tu teléfono y tu rol en cada organización no se publican nunca.</p>
+
+          <div class="mt-6">
+            <label for="perfil-nombre-visible" class="block text-sm font-semibold text-slate-800">Nombre artístico</label>
+            <input id="perfil-nombre-visible" name="nombreVisible" type="text" maxlength="120" [(ngModel)]="formulario.nombreVisible"
+              [attr.aria-invalid]="!!errores()['nombreVisible']" [attr.aria-describedby]="errores()['nombreVisible'] ? 'perfil-nombre-visible-error' : null"
+              class="mt-1 block min-h-11 w-full rounded-lg border border-slate-300 px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado" />
+            @if (errores()['nombreVisible']) { <p id="perfil-nombre-visible-error" class="mt-1 text-sm text-red-700">{{ errores()['nombreVisible'] }}</p> }
+            <label class="mt-3 flex min-h-11 items-start gap-3 text-sm text-slate-800" [class.cursor-pointer]="!!p.nombreCivilPropio" [class.opacity-70]="!p.nombreCivilPropio">
+              <input id="perfil-nombre-civil" type="checkbox" name="nombreCivilVisible" class="mt-0.5 h-5 w-5" [(ngModel)]="formulario.nombreCivilVisible" [disabled]="!p.nombreCivilPropio" [attr.aria-describedby]="'perfil-nombre-civil-ayuda'" />
+              <span>Mostrar también mi nombre civil junto a mi nombre artístico.
+                @if (p.nombreCivilPropio) { <span id="perfil-nombre-civil-ayuda" class="block text-slate-600" data-nombre-civil-propio>Se vería como «{{ p.nombreCivilPropio }}». Es tu decisión: si no marcas la casilla, no se publica.</span> }
+                @else { <span id="perfil-nombre-civil-ayuda" class="block text-slate-600" data-nombre-civil-ausente>Tu cuenta aún no tiene un nombre registrado. Complétalo en <a routerLink="/gestion/cuenta/datos" class="font-bold text-morado underline underline-offset-2">Datos personales</a> para poder mostrarlo.</span> }
+              </span>
+            </label>
+          </div>
+
+          <div class="mt-6" data-biografia>
+            <label for="perfil-bio-corta" class="block text-sm font-semibold text-slate-800">Biografía corta</label>
+            <p id="perfil-bio-corta-ayuda" class="text-sm text-slate-600">Una o dos frases: es lo que se ve primero en tu ficha.</p>
+            <textarea id="perfil-bio-corta" name="biografiaCorta" rows="2" [attr.maxlength]="largoBiografiaCorta" [(ngModel)]="formulario.biografiaCorta" aria-describedby="perfil-bio-corta-ayuda perfil-bio-corta-error"
+              class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado"></textarea>
+            <p class="mt-1 text-xs text-slate-500" data-contador-bio-corta>{{ formulario.biografiaCorta.length }} de {{ largoBiografiaCorta }}</p>
+            <app-error-de-campo identificador="perfil-bio-corta-error" [mensaje]="errores()['biografiaCorta']" />
+            <label for="perfil-bio-larga" class="mt-4 block text-sm font-semibold text-slate-800">Biografía</label>
+            <textarea id="perfil-bio-larga" name="biografiaLarga" rows="6" [attr.maxlength]="largoBiografiaLarga" [(ngModel)]="formulario.biografiaLarga" aria-describedby="perfil-bio-larga-error"
+              class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado"></textarea>
+            <p class="mt-1 text-xs text-slate-500" data-contador-bio-larga>{{ formulario.biografiaLarga.length }} de {{ largoBiografiaLarga }}</p>
+            <app-error-de-campo identificador="perfil-bio-larga-error" [mensaje]="errores()['biografiaLarga']" />
+          </div>
+
+          <fieldset class="mt-6" data-oficios>
+            <legend class="text-sm font-semibold text-slate-800">Roles y oficios (hasta {{ maximoDeOficios }})</legend>
+            <p class="text-sm text-slate-600">Por ejemplo: intérprete, compositora, luthier, docente, gestora cultural.</p>
+            @if (formulario.oficios.length) {
+              <ul class="mt-2 flex flex-wrap gap-2">
+                @for (oficio of formulario.oficios; track oficio) {
+                  <li class="inline-flex items-center gap-1 rounded-full bg-violet-50 py-1 pl-3 pr-1 text-sm text-morado">
+                    {{ oficio }}
+                    <button type="button" (click)="quitarOficio(oficio)" [attr.aria-label]="'Quitar ' + oficio" class="grid h-7 w-7 place-items-center rounded-full hover:bg-violet-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado"><span aria-hidden="true">×</span></button>
+                  </li>
+                }
+              </ul>
+            }
+            @if (formulario.oficios.length < maximoDeOficios) {
+              <div class="mt-2 flex gap-2">
+                <label for="perfil-oficio" class="sr-only">Añadir un rol u oficio</label>
+                <input id="perfil-oficio" name="nuevoOficio" type="text" maxlength="60" [(ngModel)]="nuevoOficio" (keydown.enter)="anadirOficio($event)"
+                  class="block min-h-11 w-full rounded-lg border border-slate-300 px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado" />
+                <button type="button" (click)="anadirOficio()" appBoton="secundaria">Añadir</button>
+              </div>
+            }
+            <app-error-de-campo identificador="perfil-oficios-error" [mensaje]="errores()['oficios']" />
+          </fieldset>
+
+          <fieldset class="mt-6">
+            <legend class="text-sm font-semibold text-slate-800">Prácticas musicales</legend>
+            <div class="mt-2 grid gap-2 sm:grid-cols-2">
+              @for (practica of practicas(); track practica.id) {
+                <label class="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-slate-200 px-3 text-sm focus-within:ring-2 focus-within:ring-morado">
+                  <input type="checkbox" class="h-5 w-5" [checked]="tienePractica(practica.id)" (change)="alternarPractica(practica.id, $any($event.target).checked)" />
+                  {{ practica.nombre }}
+                </label>
+              }
+            </div>
+            @if (errores()['idsPracticas']) { <p class="mt-1 text-sm text-red-700">{{ errores()['idsPracticas'] }}</p> }
+          </fieldset>
+
+          <div class="mt-6 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="perfil-departamento" class="block text-sm font-semibold text-slate-800">Departamento</label>
+              <app-filtro-desplegable completo tamano="comodo" etiqueta="Departamento" idDelControl="perfil-departamento" name="departamento" [(ngModel)]="formulario.codigoDepartamento" (ngModelChange)="alCambiarDepartamento()" [opciones]="departamentos() | opcionesDesde:'codigo':'nombre':'Sin indicar'" />
+            </div>
+            <div>
+              <label for="perfil-municipio" class="block text-sm font-semibold text-slate-800">Municipio</label>
+              <app-filtro-desplegable completo tamano="comodo" etiqueta="Municipio" idDelControl="perfil-municipio" name="municipio" [(ngModel)]="formulario.codigoMunicipio" [deshabilitado]="!formulario.codigoDepartamento" [opciones]="municipios() | opcionesDesde:'municipalityCode':'municipalityName':'Sin indicar'" />
+              @if (errores()['codigoMunicipio']) { <p class="mt-1 text-sm text-red-700">{{ errores()['codigoMunicipio'] }}</p> }
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <app-foto-del-perfil [fotoActual]="formulario.fotoUrl" [vistaPrevia]="vistaPreviaDeFoto()" [subiendo]="haySubidaDeFoto()"
+              [error]="errores()['foto'] || errores()['archivoFotoId']" [errorDeDescripcion]="errores()['fotoAlt']" [(descripcion)]="fotoAlt"
+              (elegida)="elegirFoto($event)" (quitada)="quitarFoto()" />
+          </div>
+
+          <div class="mt-6">
+            <app-enlaces-del-perfil [(enlaces)]="formulario.enlaces" [mostrarTodos]="intentoDeGuardar()" [errorGeneral]="errores()['enlaces']" />
+          </div>
+
+          <div class="mt-6">
+            <app-portafolio-del-perfil [(portafolio)]="formulario.portafolio" [errorGeneral]="errores()['portafolio']" />
+          </div>
+
+          <fieldset class="mt-6" data-organizaciones>
+            <legend class="text-sm font-semibold text-slate-800">Organizaciones que quieres mostrar</legend>
+            @if (p.organizaciones.length) {
+              <p class="text-sm text-slate-600">Participar en una organización no la publica en tu perfil: eliges cuáles se ven. Solo salen las que el PNMC ya revisó.</p>
+              <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                @for (organizacion of p.organizaciones; track organizacion.id) {
+                  <label class="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-slate-200 px-3 text-sm focus-within:ring-2 focus-within:ring-morado">
+                    <input type="checkbox" class="h-5 w-5" [checked]="muestraOrganizacion(organizacion.id)" (change)="alternarOrganizacion(organizacion.id, $any($event.target).checked)" />
+                    {{ organizacion.nombre }}
+                  </label>
+                }
+              </div>
+            } @else {
+              <p class="text-sm text-slate-600" data-sin-organizaciones-que-mostrar>No participas en ninguna organización pública, así que no hay nada que elegir por ahora.</p>
+            }
+            <app-error-de-campo identificador="perfil-organizaciones-error" [mensaje]="errores()['idsOrganizaciones']" />
+          </fieldset>
+
+          <div class="mt-8 flex flex-wrap items-center gap-4">
+            <button type="submit" [disabled]="ocupado()" data-guardar-perfil appBoton="principal">Guardar perfil</button>
+            @if (hayCambios()) { <p class="text-sm font-semibold text-amber-800" data-cambios-sin-guardar>Tienes cambios sin guardar.</p> }
+          </div>
+          @if (avisoDeGuardado()) { <p role="status" data-aviso-de-guardado class="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ avisoDeGuardado() }}</p> }
+        </form>
+        <app-clasificacion-de-mi-perfil />
+      </div>
+      <aside class="space-y-6 xl:block alto:xl:sticky alto:xl:top-28 alto:xl:max-h-[calc(100dvh-13rem)] alto:xl:overflow-y-auto alto:xl:pr-2" [class.hidden]="vista() === 'editar'" aria-label="Vista previa, estado y visibilidad del perfil" data-columna-de-la-vista-previa>
+      <!-- LA VISTA PREVIA PRIMERO: es lo que se mira mientras se escribe a la izquierda. -->
+      <section class="rounded-2xl border border-slate-200 bg-white p-6" aria-labelledby="perfil-vista-previa" data-vista-previa>
+        <h2 id="perfil-vista-previa" class="text-slate-800">Así se verá tu ficha</h2>
+        <p class="mt-1 text-xs text-slate-500">Se actualiza mientras escribes. No incluye tu correo, documento ni teléfono.</p>
+        <div class="mt-4 rounded-xl border border-slate-200 p-4">
+          <div class="flex items-center gap-3">
+            @if (vistaPreviaDeFoto() || formulario.fotoUrl) { <img [src]="vistaPreviaDeFoto() || formulario.fotoUrl" alt="" class="h-14 w-14 rounded-full object-cover" width="56" height="56" /> }
+            @else { <span aria-hidden="true" class="grid h-14 w-14 place-items-center rounded-full bg-violet-100 text-lg font-black text-morado">{{ inicialesDeLaVistaPrevia() }}</span> }
+            <div class="min-w-0">
+              <p class="truncate text-base font-bold text-morado" data-vp-nombre>{{ formulario.nombreVisible.trim() || 'Tu nombre artístico' }}</p>
+              @if (formulario.nombreCivilVisible && p.nombreCivilPropio) { <p class="truncate text-xs text-slate-600" data-vp-civil>{{ p.nombreCivilPropio }}</p> }
+              @if (lugarDeLaVistaPrevia()) { <p class="text-xs text-slate-500">{{ lugarDeLaVistaPrevia() }}</p> }
+            </div>
+          </div>
+          @if (formulario.biografiaCorta.trim()) { <p class="mt-3 text-sm text-slate-700" data-vp-bio>{{ formulario.biografiaCorta.trim() }}</p> }
+          @if (formulario.oficios.length) {
+            <ul class="mt-3 flex flex-wrap gap-1.5" data-vp-oficios>@for (oficio of formulario.oficios; track oficio) { <li class="rounded-full bg-violet-50 px-2.5 py-0.5 text-xs text-morado">{{ oficio }}</li> }</ul>
+          }
+          @if (practicasDeLaVistaPrevia().length) { <p class="mt-3 text-xs text-slate-600" data-vp-practicas>{{ practicasDeLaVistaPrevia().join(' · ') }}</p> }
+          @if (organizacionesDeLaVistaPrevia().length) { <p class="mt-3 text-xs text-slate-600" data-vp-organizaciones>Participa en {{ organizacionesDeLaVistaPrevia().join(', ') }}</p> }
+          @if (portafolioDeLaVistaPrevia().length) {
+            <ul class="mt-3 space-y-1.5 text-xs text-slate-700" data-vp-portafolio>
+              @for (item of portafolioDeLaVistaPrevia(); track $index) {
+                <li><span class="text-slate-500">{{ etiquetaDeClase(item.tipo) }}{{ item.anio ? ' · ' + item.anio : '' }}:</span>&ngsp;<span class="font-semibold">{{ item.titulo }}</span>@if (item.descripcion) { <span class="block text-slate-600">{{ item.descripcion }}</span> }</li>
+              }
+            </ul>
+          }
+          @if (enlacesDeLaVistaPrevia().length) {
+            <ul class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-morado" data-vp-enlaces>
+              @for (enlace of enlacesDeLaVistaPrevia(); track $index) {
+                <li class="inline-flex items-center gap-1.5"><app-icono-de-enlace [tipo]="iconoDeEnlace(enlace)" [tamano]="14" />{{ rotuloDeEnlace(enlace) }}</li>
+              }
+            </ul>
+          }
+        </div>
+      </section>
+      <!-- EL ESTADO PRIMERO: lo que la gente ve hoy de esta persona. -->
+      <section class="border-t border-filete pt-6" aria-labelledby="perfil-estado">
+        <h2 id="perfil-estado">Estado</h2>
+        @if (p.ocultoPorModeracion) {
+          <p class="mt-3 text-sm text-slate-700" data-estado="moderado">
+            <strong>Oculto por el equipo del PNMC.</strong> Motivo: {{ p.motivoModeracion }}
+          </p>
+          <p class="mt-1 text-sm text-slate-600">Tu perfil no se ve mientras siga oculto. Si corriges lo indicado, escríbenos para que lo revisemos.</p>
+        } @else if (p.visible) {
+          <p class="mt-3 text-sm text-slate-700" data-estado="visible"><strong>Público.</strong> Cualquier persona puede verlo.</p>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <a [routerLink]="['/ecosistema/personas', p.clave]" class="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-5 text-sm font-semibold text-morado no-underline hover:border-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado">Ver mi perfil público</a>
+            <button type="button" (click)="ocultar()" [disabled]="ocupado()" appBoton="secundaria">Ocultar mi perfil</button>
+          </div>
+          @if (avisoDePublicacion()) { <p role="status" data-aviso-de-publicacion class="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ avisoDePublicacion() }}</p> }
+        } @else {
+          <p class="mt-3 text-sm text-slate-700" data-estado="oculto"><strong>Oculto.</strong> Nadie más puede verlo. Se publica solo cuando lo autorizas abajo.</p>
+        }
+      </section>
+      <section class="border-t border-filete pt-6" aria-labelledby="perfil-visibilidad" data-visibilidad>
+        <h2 id="perfil-visibilidad">Quién ve tu perfil</h2>
+        <fieldset class="mt-3 space-y-2">
+          <legend class="sr-only">Quién ve tu perfil</legend>
+          <label class="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-3 text-sm focus-within:ring-2 focus-within:ring-morado">
+            <input type="radio" name="visibilidad" value="publico" class="mt-0.5 h-5 w-5" [(ngModel)]="visibilidadElegida" />
+            <span><strong class="block text-slate-900">Cualquier persona</strong>Tu perfil es público en la web.</span>
+          </label>
+          <label class="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-3 text-sm focus-within:ring-2 focus-within:ring-morado">
+            <input type="radio" name="visibilidad" value="solo_simus" class="mt-0.5 h-5 w-5" [(ngModel)]="visibilidadElegida" />
+            <span><strong class="block text-slate-900">Solo quien tiene cuenta en SIMUS</strong>Quien no ha iniciado sesión no lo ve.</span>
+          </label>
+          <label class="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-3 text-sm focus-within:ring-2 focus-within:ring-morado">
+            <input type="radio" name="visibilidad" value="oculto" class="mt-0.5 h-5 w-5" [(ngModel)]="visibilidadElegida" />
+            <span><strong class="block text-slate-900">Oculto</strong>Nadie más lo ve y retiramos tu autorización.</span>
+          </label>
+        </fieldset>
+        @if (hayCambios()) { <p class="mt-3 text-sm text-slate-600">Se aplica al pulsar «Guardar perfil».</p> }
+      </section>
+      @if (p.existe && !p.autorizacionVigente && politica(); as texto) {
+        <section class="border-t border-filete pt-6" aria-labelledby="perfil-autorizar">
+          <h2 id="perfil-autorizar">{{ texto.titulo }}</h2>
+          <div class="mt-3 max-h-64 overflow-y-auto whitespace-pre-line rounded-lg bg-slate-50 p-4 text-sm leading-relaxed text-slate-700" tabindex="0" aria-label="Texto de la autorización">{{ texto.texto }}</div>
+          <label class="mt-4 flex min-h-11 cursor-pointer items-center gap-3 text-sm text-slate-800">
+            <input id="perfil-acepta" type="checkbox" class="h-5 w-5" [(ngModel)]="acepta" name="acepta" [attr.aria-describedby]="errores()['acepta'] ? 'perfil-acepta-error' : null" />
+            Leí el texto y autorizo publicar mi perfil (versión {{ texto.version }}).
+          </label>
+          @if (errores()['acepta']) { <p id="perfil-acepta-error" class="mt-1 text-sm text-red-700">{{ errores()['acepta'] }}</p> }
+          <button type="button" (click)="publicar()" [disabled]="ocupado()" appBoton="principal" class="mt-4">Publicar mi perfil</button>
+          @if (hayCambios()) { <p class="mt-2 text-sm text-slate-600" data-publicar-guarda-antes>Tienes cambios sin guardar: se guardarán antes de publicar.</p> }
+          @if (avisoDePublicacion()) { <p role="status" data-aviso-de-publicacion class="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ avisoDePublicacion() }}</p> }
+        </section>
+      } @else if (!p.existe) {
+        <p class="text-sm text-slate-600">Guarda tu perfil para poder publicarlo.</p>
+      }
+      <section class="rounded-2xl border border-slate-200 bg-white p-6" aria-labelledby="perfil-historial" data-historial>
+        <h2 id="perfil-historial" class="text-slate-800">Historial de cambios</h2>
+        <p class="mt-1 text-xs text-slate-500">Lo que cambiaste en tu perfil y cuándo. Solo lo ves tú.</p>
+        @if (historial() === null) {
+          <button type="button" (click)="cargarHistorial()" appBoton="secundaria" class="mt-3">Ver el historial</button>
+        } @else if (!historial()!.length) {
+          <p class="mt-3 text-sm text-slate-600">Todavía no hay cambios guardados.</p>
+        } @else {
+          <ul class="mt-3 max-h-80 space-y-2 overflow-y-auto text-sm" data-historial-lista>
+            @for (cambio of historial(); track $index) {
+              <li class="rounded-lg border border-slate-200 p-2.5">
+                <p class="text-xs text-slate-500">{{ cambio.fecha | fecha: 'fecha-hora' }}</p>
+                <p class="font-semibold text-slate-800">{{ cambio.campo }}</p>
+                <p class="text-slate-600"><span class="line-through decoration-slate-400">{{ resumenDeCambio(cambio.anterior) }}</span> → {{ resumenDeCambio(cambio.nuevo) }}</p>
+              </li>
+            }
+          </ul>
+        }
+        @if (errorDeHistorial()) { <p role="alert" class="mt-2 text-sm text-red-700">{{ errorDeHistorial() }}</p> }
+      </section>
+      </aside>
+    </div>
+  } @else if (!error()) {
+    <app-esqueleto variante="fila" [cantidad]="2" etiqueta="Cargando tu perfil público…" />
+  }
+</div>

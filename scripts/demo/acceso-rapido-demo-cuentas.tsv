@@ -1,0 +1,12 @@
+# Cuentas del acceso rápido de demostración (TEMPORAL) para la SIEMBRA INTEGRAL. Columnas separadas por tabulador: ámbito, rótulo, correo.
+# La clave NO va aquí: se toma de SIMUS_DEMO_CLAVE (por omisión «admin») al escribir el archivo. Solo demo local: no exponer en una demo pública.
+# Ámbitos: administrativo (ingreso de la gestión) y externo (ingreso de organizaciones y personas).
+# Las cuentas @simus.test las crea la siembra integral (siembra/generador/cuentas_validacion.py); las @pnmc.local son las de arranque y se conservan.
+# La lista de la siembra clásica (Cantaclaro, Lucía…) está en acceso-rapido-demo-cuentas-clasica.tsv.
+administrativo	Webmaster SIMUS (administración)	webmaster@simus.test
+administrativo	Gestor institucional SIMUS (gestión)	gestor@simus.test
+externo	Camila · Gestión externa (organizaciones y perfil)	camila.restrepo@simus.test
+externo	Editora de apoyo (equipo de una organización)	editor@simus.test
+externo	Reclamante (reclamaciones en varios estados)	reclamante@simus.test
+externo	Persona nueva (sin datos)	nuevo@simus.test
+externo	Externo de prueba (arranque)	externo@simus.test

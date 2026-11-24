@@ -1,0 +1,69 @@
+<section class="min-h-[100dvh] bg-white px-4 pb-16 pt-28 font-nunito text-titulo sm:px-6">
+  <div class="mx-auto w-full max-w-md">
+    <p class="font-alternate text-xs font-bold text-morado">Tu cuenta en SIMUS</p>
+    <h1 id="restablecer-titulo" tabindex="-1" class="mt-2 font-alternate text-3xl font-bold uppercase text-morado outline-none">
+      {{ restablecida() ? 'Contraseña restablecida' : 'Elige una contraseña nueva' }}
+    </h1>
+
+    @if (comprobando()) {
+      <p role="status" class="mt-6 text-sm text-tinta-media">Comprobando el enlace…</p>
+    } @else if (restablecida()) {
+      <div class="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5" data-testid="restablecer-hecho">
+        <p role="status" class="text-sm leading-relaxed text-emerald-900">
+          Tu contraseña quedó cambiada y cerramos las demás sesiones de tu cuenta. Ingresa con la contraseña nueva.
+        </p>
+        <a routerLink="/ingresar" data-testid="restablecer-ir-a-ingresar"
+           class="mt-5 inline-flex min-h-11 items-center rounded-lg bg-morado px-5 text-sm font-bold text-white no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado focus-visible:ring-offset-2">
+          Ingresar
+        </a>
+      </div>
+    } @else if (motivo()) {
+      <!-- EL MOTIVO EXACTO Y QUÉ HACER: «venció» y «ya se usó» piden uno nuevo; «no es válido», revisar el enlace. -->
+      <div class="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5" data-testid="restablecer-sin-enlace">
+        <p role="alert" class="text-sm leading-relaxed text-amber-900">{{ mensajeDelMotivo() }}</p>
+        <a routerLink="/ingresar" [queryParams]="{ recuperar: 1 }" data-testid="restablecer-pedir-otro"
+           class="mt-5 inline-flex min-h-11 items-center rounded-lg border border-amber-300 bg-white px-5 text-sm font-bold text-morado no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-morado">
+          Pedir un enlace nuevo
+        </a>
+      </div>
+    } @else if (!valido()) {
+      <p role="alert" class="mt-6 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ error() }}</p>
+    } @else {
+      <p class="mt-3 text-sm leading-relaxed text-tinta-media">
+        Es la cuenta de <strong>{{ correoEnmascarado() }}</strong>. Al guardar, cerramos las demás sesiones abiertas de esta cuenta.
+      </p>
+
+      @if (error()) { <p role="alert" class="mt-5 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ error() }}</p> }
+
+      <form class="mt-6 space-y-5" novalidate (ngSubmit)="restablecer()">
+        <div>
+          <label for="restablecer-nueva" class="text-sm font-semibold text-titulo">Contraseña nueva<span class="simus-obligatorio" aria-hidden="true">*</span></label>
+          <span class="relative mt-1 block">
+            <input id="restablecer-nueva" name="nueva" [type]="mostrarContrasena() ? 'text' : 'password'" autocomplete="new-password"
+                   [(ngModel)]="nueva" (ngModelChange)="actualizarCampo('nueva')" (blur)="alSalirDelCampo('nueva')"
+                   [attr.aria-invalid]="errores()['nueva'] ? 'true' : null" aria-describedby="restablecer-nueva-ayuda restablecer-nueva-error"
+                   class="simus-campo !mt-0 pr-12">
+            <button type="button" (click)="alternarMostrarContrasena()" [attr.aria-label]="mostrarContrasena() ? 'Ocultar contraseña' : 'Mostrar contraseña'" [attr.aria-pressed]="mostrarContrasena()"
+                    class="absolute inset-y-0 right-0 grid w-11 place-items-center rounded-r-lg text-tinta-media transition hover:text-morado focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-morado">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" class="h-5 w-5"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/>@if (mostrarContrasena()) { <path d="M4 4 20 20"/> }</svg>
+            </button>
+          </span>
+          <p id="restablecer-nueva-ayuda" class="mt-1 text-xs text-tinta-suave">Mínimo 12 caracteres. Una frase larga es mejor que una clave corta con símbolos.</p>
+          <app-error-de-campo identificador="restablecer-nueva-error" [mensaje]="errores()['nueva']" />
+        </div>
+        <div>
+          <label for="restablecer-confirmacion" class="text-sm font-semibold text-titulo">Repite la contraseña nueva<span class="simus-obligatorio" aria-hidden="true">*</span></label>
+          <input id="restablecer-confirmacion" name="confirmacion" [type]="mostrarContrasena() ? 'text' : 'password'" autocomplete="new-password"
+                 [(ngModel)]="confirmacion" (ngModelChange)="actualizarCampo('confirmacion')" (blur)="alSalirDelCampo('confirmacion')"
+                 [attr.aria-invalid]="errores()['confirmacion'] ? 'true' : null" aria-describedby="restablecer-confirmacion-error"
+                 class="simus-campo">
+          <app-error-de-campo identificador="restablecer-confirmacion-error" [mensaje]="errores()['confirmacion']" />
+        </div>
+        <button type="submit" [disabled]="enviando()"
+                appBoton="principal" tamano="comodo">
+          {{ enviando() ? 'Guardando…' : 'Guardar contraseña nueva' }}
+        </button>
+      </form>
+    }
+  </div>
+</section>

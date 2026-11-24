@@ -1,0 +1,87 @@
+[
+ {
+  "id": "O001",
+  "nombre": "Ministerio de las Culturas, las Artes y los Saberes",
+  "tipo": "Entidad nacional",
+  "municipio": "Bogotá",
+  "departamento": "Bogotá D. C.",
+  "sitio_web": "https://www.mincultura.gov.co",
+  "relacion_verificable": "Entidad rectora; Programa Nacional de Concertación; Celebra la Música; apoya festivales (p. ej. Música Colombiana, Barranquijazz).",
+  "fuentes": [
+   "https://www.mincultura.gov.co/transparencia/Documents/4-planeacion-presupuesto-e-informes/MINCULTURAS_Informe_al_Congreso_2023-2024.pdf",
+   "https://canaltrece.com.co/noticias/festival-musica-colombiana-ibague-2025/"
+  ],
+  "certeza": "alto",
+  "notas": "Nombre vigente por Ley 2319 de 2023."
+ },
+ {
+  "id": "O002",
+  "nombre": "Instituto Distrital de las Artes (Idartes)",
+  "tipo": "Entidad distrital",
+  "municipio": "Bogotá",
+  "departamento": "Bogotá D. C.",
+  "sitio_web": "https://www.idartes.gov.co",
+  "relacion_verificable": "Organiza los Festivales al Parque (Rock, Jazz, Joropo, Vallenato, etc.) y aliado del BOmm.",
+  "fuentes": [
+   "https://www.idartes.gov.co/sites/default/files/kit-prensa/2025-03/Idartes-lanza-las-fechas-y-conceptos-de-los-Festivales-al-Parque-2025.pdf"
+  ],
+  "certeza": "alto",
+  "notas": ""
+ },
+ {
+  "id": "O003",
+  "nombre": "Fundación Gilberto Alzate Avendaño (Fuga)",
+  "tipo": "Entidad distrital",
+  "municipio": "Bogotá",
+  "departamento": "Bogotá D. C.",
+  "sitio_web": "",
+  "relacion_verificable": "Citada como apoyo de actividades de BOmm en El Tiempo.",
+  "fuentes": [
+   "https://www.eltiempo.com/bogota/el-bronx-se-convierte-en-escenario-de-musica-con-el-boom-267796"
+  ],
+  "certeza": "bajo",
+  "notas": ""
+ },
+ {
+  "id": "O004",
+  "nombre": "Cámara de Comercio de Bogotá",
+  "tipo": "Gremio empresarial",
+  "municipio": "Bogotá",
+  "departamento": "Bogotá D. C.",
+  "sitio_web": "https://www.ccb.org.co",
+  "relacion_verificable": "Organiza el Bogotá Music Market (BOmm).",
+  "fuentes": [
+   "https://www.ccb.org.co/de-interes/comunicados/el-bomm-celebra-sus-15-anos-incluyendo-por-primera-vez-proyectos-internacionales"
+  ],
+  "certeza": "alto",
+  "notas": ""
+ },
+ {
+  "id": "O005",
+  "nombre": "Orquesta Filarmónica de Bogotá",
+  "tipo": "Orquesta",
+  "municipio": "Bogotá",
+  "departamento": "Bogotá D. C.",
+  "sitio_web": "",
+  "relacion_verificable": "Orquesta sinfónica distrital; presencia en la escena internacional.",
+  "fuentes": [
+   "https://bogota.gov.co/mi-ciudad/cultura-recreacion-y-deporte/orquesta-filarmonica-de-bogota-en-la-escena-mundial-de-la-musica"
+  ],
+  "certeza": "medio",
+  "notas": ""
+ },
+ {
+  "id": "O006",
+  "nombre": "Teatro Mayor Julio Mario Santo Domingo",
+  "tipo": "Escenario / teatro",
+  "municipio": "Bogotá",
+  "departamento": "Bogotá D. C.",
+  "sitio_web": "",
+  "relacion_verificable": "Sede del Festival Internacional de Música Clásica de Bogotá (según reseña).",
+  "fuentes": [
+   "https://www.mdw.ac.at/magazin/?p=12315"
+  ],
+  "certeza": "bajo",
+  "notas": ""
+ }
+]

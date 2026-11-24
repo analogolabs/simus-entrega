@@ -1,0 +1,58 @@
+/* UI-E · Lo propio de la cabecera del panel; el resto (alturas, buscador oscuro, menú de cuenta) viene de
+   `shared/components/layout/espacio-de-trabajo/cabecera.css`, la misma hoja que usa la consola. */
+:host { display: contents; }
+/* LA CABECERA SE QUEDA ARRIBA AL DESPLAZAR. `.foundation-header` es `position: sticky`, y un sticky solo se queda dentro de su bloque
+   contenedor: con el anfitrión en `display: block` ese bloque era el propio anfitrión (de la altura de la cabecera) y la cabecera
+   se iba con el desplazamiento mientras la barra lateral, anclada a `top: var(--alto-cabecera)`, se quedaba: se despegaban.
+   Con `display: contents` el contenedor pasa a ser el armazón entero. */
+
+/* LA MARCA ES DE TEXTO, como la de la barra pública: «si» en trazo fino y «mus» en negrita. */
+.foundation-brand { gap: .75rem; text-decoration: none; border-radius: .5rem; }
+.marca { font-family: var(--font-display, var(--font-alternate)); font-size: 1.6rem; line-height: 1; letter-spacing: -.01em; color: #fff; }
+.marca__si { font-weight: 300; }
+.marca__mus { font-weight: 800; }
+.marca__nombre { border-left: 1px solid rgba(255, 255, 255, .25); padding-left: .75rem; }
+.marca__nombre small { margin: 0; color: #d2c3e3; font-size: var(--text-dato); font-weight: 600; }
+
+/* El buscador y el menú no se salen de la cabecera en ventanas estrechas. */
+.header-search { flex: 0 1 19rem; min-width: 0; }
+.header-user { min-width: 0; }
+.avisos { gap: 0; }
+
+/* Los destinos del menú son enlaces y no botones: se visten igual que los botones de la consola. */
+.header-cuenta__menu a {
+  display: flex; width: 100%; align-items: center; gap: .65rem; min-height: var(--spacing-control);
+  padding: .5rem 1rem; color: #3c4761; font-size: var(--text-dato); font-weight: 700; text-align: left; text-decoration: none;
+}
+.header-cuenta__menu a:hover { background: #f6f4fa; color: var(--color-morado); }
+.header-cuenta__menu a:focus-visible, .header-cuenta__menu button:focus-visible { outline: 2px solid var(--color-morado); outline-offset: -2px; }
+.header-cuenta__menu .grupo { border-bottom: 1px solid #eef0f4; padding: .25rem 0; }
+.header-cuenta__menu .grupo__titulo { margin: 0; padding: .5rem 1rem .25rem; color: var(--color-rotulo); font-size: var(--text-dato); font-weight: 800; }
+.header-cuenta__menu a.con-detalle { min-height: 2.5rem; }
+/* LOS NOMBRES SE LEEN (punto 32 del mapa de comentarios). Los `<b>` de la cabecera se pintan en blanco por la regla
+   `.header-user b` —pensada para el nombre sobre la franja morada—, y dentro del menú, que es blanco, solo quedaba legible
+   la organización activa (la que lleva su propio color). Aquí el color se fija explícito y con la especificidad que hace falta. */
+.header-user .header-cuenta__menu .header-cuenta__quien b { max-width: none; overflow: visible; color: var(--color-valor); font-size: var(--text-cuerpo); white-space: normal; overflow-wrap: anywhere; }
+.header-user .header-cuenta__menu a.con-detalle { align-items: center; }
+.header-cuenta__menu a.con-detalle > span { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: .75rem; min-width: 0; }
+.header-user .header-cuenta__menu a.con-detalle b { display: block; flex: 1 1 auto; min-width: 0; max-width: none; overflow: hidden; color: var(--color-valor); font-size: var(--text-dato); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.header-user .header-cuenta__menu a.con-detalle b.activa { color: var(--color-morado); font-weight: 800; }
+/* El rol va AL LADO del nombre, con su propio rótulo, y no debajo. */
+.header-cuenta__menu a.con-detalle small { display: block; flex: none; max-width: 7rem; overflow: hidden; border-radius: 99px; background: var(--color-morado-50); padding: .0625rem .5rem; color: var(--color-morado); font-size: var(--text-dato); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.header-cuenta__menu a.con-detalle:hover small { background: #fff; }
+/* LA LISTA DE ORGANIZACIONES NO CRECE SIN LÍMITE: con muchas, tiene su propio desplazamiento y el resto del menú queda a la vista. */
+.header-cuenta__menu .grupo--organizaciones { max-height: 13.5rem; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.header-cuenta__menu .grupo--organizaciones .grupo__titulo { position: sticky; top: 0; z-index: 1; background: #fff; }
+.header-user .header-cuenta__menu { width: min(21rem, calc(100vw - 2rem)); }
+.header-cuenta__menu { max-height: calc(100dvh - var(--alto-cabecera, 4.5rem) - 1rem); overflow-y: auto; }
+
+@media (max-width: 800px) {
+  .marca__nombre { display: none; }
+}
+
+/* OBJETIVOS TÁCTILES (puntero grueso): marca, buscador, campana y menú de cuenta llegan a 44 px de alto. En escritorio no cambia nada. */
+@media (pointer: coarse) {
+  .foundation-brand, .header-cuenta__disparador { min-height: var(--spacing-control-tactil); }
+  :host ::ng-deep .header-search input, :host ::ng-deep .header-search .buscador__campo { min-height: var(--spacing-control-tactil); }
+  :host ::ng-deep app-campana-de-avisos button { min-width: var(--spacing-control-tactil); min-height: var(--spacing-control-tactil); }
+}
